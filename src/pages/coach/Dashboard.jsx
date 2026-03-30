@@ -17,7 +17,6 @@ export default function CoachDashboard() {
     checkPushStatus()
     fetchRecentActivity()
 
-    // Real-time notification channel
     const channel = supabase.channel('coach-notifications')
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'sessions',
@@ -38,6 +37,7 @@ export default function CoachDashboard() {
   }
 
   async function enablePush() {
+    if (!('Notification' in window)) return
     const result = await Notification.requestPermission()
     if (result === 'granted') {
       await subscribeToPush(profile?.id)
@@ -57,8 +57,8 @@ export default function CoachDashboard() {
 
   function triggerNotification(session) {
     if (Notification.permission === 'granted') {
-      new Notification('🏋️ Séance complétée !', {
-        body: `Un athlète vient de terminer sa séance – ${session.day_title || 'Entraînement'}`,
+      new Notification('Seance completee !', {
+        body: `Un athlete vient de terminer sa seance - ${session.day_title || 'Entrainement'}`,
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',
       })
@@ -96,21 +96,21 @@ export default function CoachDashboard() {
       }
     >
       <div className="p-4 space-y-4 pb-8">
-        {/* Push notification banner */}
-        {!pushEnabled && (
+        {/* Push notification banner - hide on browsers without Notification support (Safari iOS) */}
+        {!pushEnabled && ('Notification' in window) && (
           <button onClick={enablePush}
             className="w-full flex items-center gap-3 bg-brand-600/20 border border-brand-500/30 rounded-2xl p-4 text-left">
             <Bell size={20} className="text-brand-400 flex-shrink-0" />
             <div>
               <p className="text-white text-sm font-medium">Activer les notifications push</p>
-              <p className="text-gray-400 text-xs">Sois averti dès qu'un athlète termine sa séance</p>
+              <p className="text-gray-400 text-xs">Sois averti des qu un athlete termine sa seance</p>
             </div>
           </button>
         )}
         {pushEnabled && (
           <div className="flex items-center gap-2 text-green-400 text-sm px-1">
             <BellOff size={15} />
-            <span>Notifications push activées</span>
+            <span>Notifications push activees</span>
           </div>
         )}
 
@@ -118,7 +118,7 @@ export default function CoachDashboard() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { icon: Users, label: 'Clients', value: clients.length, color: 'text-brand-400' },
-            { icon: CheckCircle, label: "Séances aujourd'hui", value: activeToday, color: 'text-green-400' },
+            { icon: CheckCircle, label: "Seances aujourd hui", value: activeToday, color: 'text-green-400' },
             { icon: Activity, label: 'En cours', value: clients.filter(c => getClientStatus(c) === 'in-progress').length, color: 'text-orange-400' },
           ].map(({ icon: Icon, label, value, color }) => (
             <Card key={label} className="p-3 text-center">
@@ -134,7 +134,7 @@ export default function CoachDashboard() {
           <Card className="overflow-hidden">
             <div className="px-4 pt-4 pb-2 flex items-center gap-2">
               <Activity size={15} className="text-brand-400" />
-              <h2 className="text-sm font-semibold text-white">Activité récente</h2>
+              <h2 className="text-sm font-semibold text-white">Activite recente</h2>
             </div>
             <div className="divide-y divide-white/5">
               {recentActivity.slice(0, 4).map(s => (
@@ -144,11 +144,11 @@ export default function CoachDashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium truncate">{s.profiles?.name}</p>
-                    <p className="text-gray-500 text-xs truncate">{s.day_title || 'Séance'}</p>
+                    <p className="text-gray-500 text-xs truncate">{s.day_title || 'Seance'}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-gray-400 text-xs">{formatTime(s.completed_at)}</p>
-                    <Badge color="green">Complété</Badge>
+                    <Badge color="green">Complete</Badge>
                   </div>
                 </div>
               ))}
@@ -184,7 +184,7 @@ export default function CoachDashboard() {
             </div>
           ) : filtered.length === 0 ? (
             <Card className="p-8 text-center">
-              <p className="text-gray-500 text-sm">Aucun client pour l'instant.</p>
+              <p className="text-gray-500 text-sm">Aucun client pour l instant.</p>
               <button onClick={() => navigate('/coach/add-client')}
                 className="mt-3 text-brand-400 text-sm font-medium">
                 + Ajouter un premier client
@@ -208,7 +208,7 @@ export default function CoachDashboard() {
                           <StatusBadge status={status} />
                         </div>
                         <p className="text-gray-500 text-xs mt-0.5 truncate">
-                          {[client.sport, client.position].filter(Boolean).join(' · ')}
+                          {[client.sport, client.position].filter(Boolean).join(' . ')}
                         </p>
                       </div>
                     </div>
@@ -225,9 +225,9 @@ export default function CoachDashboard() {
 
 function StatusBadge({ status }) {
   const map = {
-    'done-today': { color: 'green', label: '✓ Aujourd\'hui' },
-    'in-progress': { color: 'orange', label: '● En cours' },
-    'done': { color: 'blue', label: 'Complété' },
+    'done-today': { color: 'green', label: 'Aujourd hui' },
+    'in-progress': { color: 'orange', label: 'En cours' },
+    'done': { color: 'blue', label: 'Complete' },
     'no-session': { color: 'gray', label: 'En attente' },
   }
   const { color, label } = map[status] || map['no-session']
