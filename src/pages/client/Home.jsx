@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { PageLayout, Card, Badge } from '../../components/Layout'
-import { Play, CheckCircle, Calendar, TrendingUp, ChevronRight } from 'lucide-react'
+import { Play, CheckCircle, Calendar, ChevronRight, Dumbbell } from 'lucide-react'
 
 export default function ClientHome() {
   const { profile } = useAuth()
@@ -42,12 +42,14 @@ export default function ClientHome() {
       .limit(5)
     setRecentSessions(recent || [])
 
-    // Program assignment
+    // Program assignment (new schema)
     const { data: assignment } = await supabase
-      .from('assignments')
-      .select('*, programs(*)')
+      .from('programs')
+      .select('id, name')
       .eq('client_id', profile.id)
       .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle()
     setProgram(assignment)
 
@@ -67,7 +69,7 @@ export default function ClientHome() {
     if (data) navigate(`/client/session/${data.id}`)
   }
 
-  const DAYS= [
+  const DAYS = [
     { n: 1, title: 'Jour 1 – Force' },
     { n: 2, title: 'Jour 2 – Puissance' },
     { n: 3, title: 'Jour 3 – Haut du corps' },
@@ -102,6 +104,19 @@ export default function ClientHome() {
           </div>
         </div>
 
+        {/* Programme card */}
+        <button onClick={() => navigate('/client/program')}
+          className="w-full bg-gradient-to-r from-brand-700 to-brand-900 border border-brand-500/30 rounded-2xl p-4 flex items-center gap-3 text-left">
+          <div className="w-10 h-10 bg-brand-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Dumbbell size={20} className="text-brand-300" />
+          </div>
+          <div className="flex-1">
+            <p className="text-white text-sm font-semibold">Mon programme</p>
+            <p className="text-brand-300 text-xs">Voir mes séances et les enregistrer</p>
+          </div>
+          <ChevronRight size={16} className="text-brand-400" />
+        </button>
+
         {/* Today's session */}
         {todaySession ? (
           <Card className="overflow-hidden">
@@ -117,7 +132,7 @@ export default function ClientHome() {
               <div className="flex-1">
                 <p className="text-white font-semibold">{todaySession.day_title || "Séance d'aujourd'hui"}</p>
                 <p className="text-gray-400 text-sm">
-                  {todaySession.status === 'completed' ? '✒ Séance terminée !' : 'En cours…'}
+                  {todaySession.status === 'completed' ? '\u2713 Séance terminée !' : 'En cours…'}
                 </p>
               </div>
               {todaySession.status !== 'completed' && (
@@ -142,7 +157,7 @@ export default function ClientHome() {
                 onClick={() => startNewSession(n, title)}
                 className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition-colors text-left">
                 <div className="w-9 h-9 bg-brand-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <span className="text-brand-400 font-bold text-sm">J{nn}</span>
+                  <span className="text-brand-400 font-bold text-sm">J{n}</span>
                 </div>
                 <div className="flex-1">
                   <p className="text-white text-sm font-medium">{title}</p>
@@ -175,7 +190,7 @@ export default function ClientHome() {
                     <p className="text-gray-500 text-xs">{formatDate(s.session_date)}</p>
                   </div>
                   <Badge color={s.status === 'completed' ? 'green' : 'orange'}>
-                    {s.status === 'completed' ? '✓' : '…'}
+                    {s.status === 'completed' ? '\u2713' : '\u2026'}
                   </Badge>
                 </div>
               ))}
