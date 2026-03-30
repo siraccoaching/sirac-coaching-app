@@ -4,14 +4,14 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
 
-const SPORTS = ['Football US','Rugby','Basketball','Athlétisme','Football','Handball','Tennis','Fitness','Autre']
+const SPORTS = ['Football US','Rugby','Basketball','Athletisme','Football','Handball','Tennis','Fitness','Autre']
 const POSITIONS_BY_SPORT = {
   'Football US': ['QB','WR','RB','TE','OL','DL','LB','CB','S'],
-  'Rugby': ['Pilier','Talonneur','Troisième ligne','Demi de mêlée','Centre','Ailier','Arrière'],
-  'Basketball': ['Meneur','Arrière','Ailier','Ailier fort','Pivot'],
-  'Athlétisme': ['Sprint','Demi-fond','Fond','Saut','Lancer'],
-  'Football': ['Gardien','Léfenseur','Milieu','Attaquant'],
-  'Handball': ['Gardien','Ailier','Arrière','Pivot','Demi-centre'],
+  'Rugby': ['Pilier','Talonneur','Troisieme ligne','Demi de melee','Centre','Ailier','Arriere'],
+  'Basketball': ['Meneur','Arriere','Ailier','Ailier fort','Pivot'],
+  'Athletisme': ['Sprint','Demi-fond','Fond','Saut','Lancer'],
+  'Football': ['Gardien','Defenseur','Milieu','Attaquant'],
+  'Handball': ['Gardien','Ailier','Arriere','Pivot','Demi-centre'],
 }
 
 export default function AddClient() {
@@ -29,37 +29,27 @@ export default function AddClient() {
     setLoading(true)
     setError('')
 
-    // Create auth user via admin (or invite)
-    const { data: authData, error: authErr } = await supabase.auth.admin?.createUser({
-      email: form.email,
-      password: form.password,
-      email_confirm: true
-    }).catch(() => ({ data: null, error: null }))
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { setError('Session expiree, reconnecte-toi.'); setLoading(false); return }
 
-    // Fallback: signup
-    let userId
-    if (!authData?.user) {
-      const { data, error: signupErr } = await supabase.auth.signUp({ email: form.email, password: form.password })
-      if (signupErr) { setError('Erreur lors de la création du compte.'); setLoading(false); return }
-      userId = data.user?.id
-    } else {
-      userId = authData.user.id
-    }
-
-    if (!userId) { setError('Impossible de créer le compte client.'); setLoading(false); return }
-
-    const { error: profileErr } = await supabase.from('profiles').insert({
-      id: userId,
-      name: form.name,
-      email: form.email,
-      role: 'client',
-      sport: form.sport,
-      position: form.position,
-      coach_id: profile.id,
-      current_phase: form.phase,
+    const res = await fetch('/api/create-client', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password,
+        name: form.name,
+        sport: form.sport,
+        position: form.position,
+        phase: form.phase,
+      }),
     })
 
-    if (profileErr) { setError(profileErr.message); setLoading(false); return }
+    const data = await res.json()
+    if (!res.ok) { setError(data.error || 'Erreur lors de la creation du compte.'); setLoading(false); return }
     navigate('/coach')
   }
 
@@ -70,9 +60,9 @@ export default function AddClient() {
           <Card className="p-4 space-y-4">
             <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Informations personnelles</h3>
             {[
-              { label: 'Nom complet', key: 'name', type: 'text', placeholder: 'Prénom Nom' },
+              { label: 'Nom complet', key: 'name', type: 'text', placeholder: 'Prenom Nom' },
               { label: 'Email', key: 'email', type: 'email', placeholder: 'client@email.com' },
-              { label: 'Mot de passe temporaire', key: 'password', type: 'password', placeholder: 'Min. 8 caractères' },
+              { label: 'Mot de passe temporaire', key: 'password', type: 'password', placeholder: 'Min. 8 caracteres' },
             ].map(({ label, key, type, placeholder }) => (
               <div key={key}>
                 <label className="block text-sm text-gray-400 mb-1.5">{label}</label>
@@ -118,7 +108,7 @@ export default function AddClient() {
               <label className="block text-sm text-gray-400 mb-1.5">Phase actuelle</label>
               <select value={form.phase} onChange={e => update('phase', e.target.value)}
                 className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500">
-                {['Hors-Saison','Pré-Saison','Saison Compétitive','Post-Saison'].map(p => <option key={p}>{p}</option>)}
+                {['Hors-Saison','Pre-Saison','Saison Competitive','Post-Saison'].map(p => <option key={p}>{p}</option>)}
               </select>
             </div>
           </Card>
@@ -127,7 +117,7 @@ export default function AddClient() {
 
           <button type="submit" disabled={loading}
             className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold py-4 rounded-2xl transition-colors text-base">
-            {loading ? 'Création…' : 'Créer le client'}
+            {loading ? 'Creation...' : 'Creer le client'}
           </button>
         </form>
       </div>
