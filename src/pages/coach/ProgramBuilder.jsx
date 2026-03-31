@@ -3,13 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
-import { Plus, Trash2, ChevronDown, ChevronUp, Save, Dumbbell, Clock, Target } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, Save, Dumbbell, Clock, Link } from 'lucide-react'
 
 let _tmpId = 0
 const tmpId = () => `tmp_${++_tmpId}`
 
 function emptyExercise() {
-  return { _id: tmpId(), name: '', sets: 3, reps: '8', load: '', rpe: '', rest_seconds: 120, notes: '' }
+  return { _id: tmpId(), name: '', sets: 3, reps: '8', load: '', rpe: '', rest_seconds: 120, notes: '', video_url: '' }
 }
 function emptySession(blockId = null) {
   return { _id: tmpId(), block_id: blockId, name: '', notes: '', exercises: [emptyExercise()] }
@@ -53,8 +53,6 @@ export default function ProgramBuilder() {
   async function loadProgram() {
     // TODO: load existing program for editing
   }
-
-  // ─── Updater helpers ───────────────────────────────────────────────────────
 
   const setField = (k, v) => setProg(p => ({ ...p, [k]: v }))
 
@@ -121,8 +119,6 @@ export default function ProgramBuilder() {
     return { ...p, blocks }
   })
 
-  // ─── Save ──────────────────────────────────────────────────────────────────
-
   async function handleSave() {
     if (!prog.name.trim()) { setError('Donne un nom au programme.'); return }
     setSaving(true); setError('')
@@ -133,7 +129,6 @@ export default function ProgramBuilder() {
     const hasSession = allSessions.some(s => s.name.trim())
     if (!hasSession) { setError('Ajoute au moins une séance avec un nom.'); setSaving(false); return }
 
-    // 1. Insert program
     const { data: progData, error: progErr } = await supabase
       .from('programs')
       .insert({ name: prog.name.trim(), description: prog.description, type: prog.type, client_id: prog.client_id || null, coach_id: profile.id })
@@ -146,13 +141,11 @@ export default function ProgramBuilder() {
       for (let bi = 0; bi < prog.blocks.length; bi++) {
         const block = prog.blocks[bi]
         if (!block.name.trim()) continue
-
         const { data: blockData, error: blockErr } = await supabase
           .from('program_blocks')
           .insert({ program_id: programId, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, order_index: bi })
           .select().single()
         if (blockErr) { setError(blockErr.message); setSaving(false); return }
-
         await saveSessions(programId, blockData.id, block.sessions)
       }
     } else {
@@ -166,7 +159,6 @@ export default function ProgramBuilder() {
     for (let si = 0; si < sessions.length; si++) {
       const sess = sessions[si]
       if (!sess.name.trim()) continue
-
       const { data: sessData, error: sessErr } = await supabase
         .from('program_sessions')
         .insert({ program_id: programId, block_id: blockId, name: sess.name.trim(), notes: sess.notes, order_index: si })
@@ -185,6 +177,7 @@ export default function ProgramBuilder() {
             rpe: ex.rpe ? Number(ex.rpe) : null,
             rest_seconds: Number(ex.rest_seconds) || 120,
             notes: ex.notes || '',
+            video_url: ex.video_url || null,
             order_index: ei,
           }))
         )
@@ -193,13 +186,11 @@ export default function ProgramBuilder() {
   }
 
   const isSimple = prog.type === 'simple'
-  const sessionList = isSimple ? prog.simpleSessions : null
 
   return (
     <PageLayout title={isEdit ? 'Modifier programme' : 'Nouveau programme'} back="/coach/programs">
       <div className="p-4 pb-10 space-y-4">
 
-        {/* ── Programme info ── */}
         <Card className="p-4 space-y-3">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Programme</h3>
           <input value={prog.name} onChange={e => setField('name', e.target.value)}
@@ -209,7 +200,6 @@ export default function ProgramBuilder() {
             placeholder="Description (optionnel)"
             className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm" />
 
-          {/* Type toggle */}
           <div className="flex gap-2">
             {[['block', 'Blocs (athlètes)'], ['simple', 'Simple (fitness)']].map(([val, label]) => (
               <button key={val} type="button" onClick={() => setField('type', val)}
@@ -221,7 +211,6 @@ export default function ProgramBuilder() {
             ))}
           </div>
 
-          {/* Client assignment */}
           <select value={prog.client_id} onChange={e => setField('client_id', e.target.value)}
             className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 text-sm">
             <option value="">— Assigner à un client (optionnel) —</option>
@@ -229,19 +218,15 @@ export default function ProgramBuilder() {
           </select>
         </Card>
 
-        {/* ── BLOC MODE ── */}
         {!isSimple && (
           <div className="space-y-3">
             {prog.blocks.map((block, bi) => (
               <Card key={block._id} className="overflow-hidden">
-                {/* Block header */}
                 <div className="flex items-center gap-2 p-3 bg-brand-600/10 border-b border-white/5">
                   <button onClick={() => setOpenBlocks(ob => ({ ...ob, [bi]: !ob[bi] }))}
                     className="flex-1 flex items-center gap-2 text-left">
                     {openBlocks[bi] ? <ChevronUp size={15} className="text-brand-400" /> : <ChevronDown size={15} className="text-brand-400" />}
-                    <span className="text-brand-300 text-xs font-semibold uppercase tracking-wider">
-                      Bloc {bi + 1}
-                    </span>
+                    <span className="text-brand-300 text-xs font-semibold uppercase tracking-wider">Bloc {bi + 1}</span>
                   </button>
                   {prog.blocks.length > 1 && (
                     <button onClick={() => removeBlock(bi)} className="p-1 text-gray-600 hover:text-red-400 transition-colors">
@@ -263,8 +248,6 @@ export default function ProgramBuilder() {
                         <span className="text-gray-500 text-xs">sem</span>
                       </div>
                     </div>
-
-                    {/* Sessions in block */}
                     <div className="space-y-2">
                       {block.sessions.map((sess, si) => (
                         <SessionCard key={sess._id}
@@ -288,7 +271,6 @@ export default function ProgramBuilder() {
                 )}
               </Card>
             ))}
-
             <button onClick={addBlock}
               className="w-full py-3 border border-dashed border-brand-500/30 rounded-2xl text-brand-400 text-sm hover:border-brand-500/60 transition-colors flex items-center justify-center gap-2">
               <Plus size={14} /> Ajouter un bloc
@@ -296,7 +278,6 @@ export default function ProgramBuilder() {
           </div>
         )}
 
-        {/* ── SIMPLE MODE ── */}
         {isSimple && (
           <div className="space-y-2">
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1">Séances</h3>
@@ -334,8 +315,6 @@ export default function ProgramBuilder() {
   )
 }
 
-// ─── Session card subcomponent ──────────────────────────────────────────────
-
 function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, onUpdateExercise, onAddExercise, onRemoveExercise }) {
   return (
     <div className="border border-white/8 rounded-xl overflow-hidden">
@@ -363,7 +342,6 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
             placeholder="Notes de séance (optionnel)"
             className="w-full bg-dark-800 border border-white/8 rounded-lg px-3 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
 
-          {/* Exercises */}
           <div className="space-y-2">
             {sess.exercises.map((ex, ei) => (
               <ExerciseRow key={ex._id} ex={ex} ei={ei}
@@ -382,8 +360,6 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
     </div>
   )
 }
-
-// ─── Exercise row ─────────────────────────────────────────────────────────────
 
 function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
   const inp = 'bg-dark-700 border border-white/8 rounded-lg text-white text-xs focus:outline-none focus:border-brand-500 text-center'
@@ -433,6 +409,13 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
       <input value={ex.notes} onChange={e => onUpdate('notes', e.target.value)}
         placeholder="Notes (ex: tempo 30X1, grip serré...)"
         className="w-full bg-dark-700 border border-white/8 rounded-lg px-2.5 py-1.5 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
+
+      <div className="flex items-center gap-2">
+        <Link size={10} className="text-gray-600 flex-shrink-0" />
+        <input value={ex.video_url} onChange={e => onUpdate('video_url', e.target.value)}
+          placeholder="Lien vidéo YouTube / Vimeo (optionnel)"
+          className="flex-1 bg-dark-700 border border-white/8 rounded-lg px-2.5 py-1.5 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
+      </div>
     </div>
   )
 }
