@@ -51,7 +51,46 @@ export default function ProgramBuilder() {
   }
 
   async function loadProgram() {
-    // TODO: load existing program for editing
+    const { data } = await supabase
+      .from('programs')
+      .select(`
+        *,
+        program_blocks(*, program_sessions(*, program_exercises(*))),
+        program_sessions!program_sessions_program_id_fkey(*, program_exercises(*))
+      `)
+      .eq('id', id)
+      .single()
+    if (!data) return
+
+    let _c = 1000
+    const nid = () => `tmp_${++_c}`
+    const toEx = ex => ({
+      _id: nid(), name: ex.name, sets: ex.sets, reps: ex.reps,
+      load: ex.load || '', rpe: ex.rpe || '', rest_seconds: ex.rest_seconds || 120,
+      notes: ex.notes || '', video_url: ex.video_url || '',
+    })
+    const toSess = sess => ({
+      _id: nid(), name: sess.name, notes: sess.notes || '',
+      exercises: (sess.program_exercises || []).sort((a,b) => a.order_index - b.order_index).map(toEx),
+    })
+    const toBlock = block => ({
+      _id: nid(), name: block.name, duration_weeks: block.duration_weeks,
+      description: block.description || '',
+      sessions: (block.program_sessions || []).sort((a,b) => a.order_index - b.order_index).map(toSess),
+    })
+
+    const blocks = (data.program_blocks || []).sort((a,b) => a.order_index - b.order_index).map(toBlock)
+    const simple = (data.program_sessions || []).filter(s => !s.block_id).sort((a,b) => a.order_index - b.order_index).map(toSess)
+
+    setProg({
+      name: data.name,
+      description: data.description || '',
+      type: data.type,
+      client_id: data.client_id || '',
+      blocks: blocks.length > 0 ? blocks : [emptyBlock()],
+      simpleSessions: simple.length > 0 ? simple : [emptySession()],
+    })
+    setOpenBlocks({ 0: true })
   }
 
   const setField = (k, v) => setProg(p => ({ ...p, [k]: v }))
@@ -123,11 +162,41 @@ export default function ProgramBuilder() {
     if (!prog.name.trim()) { setError('Donne un nom au programme.'); return }
     setSaving(true); setError('')
 
-    const allSessions = prog.type === 'block'
-      ? prog.blocks.flatMap(b => b.sessions)
-      : prog.simpleSessions
+    const allSessions = prog.type === 'block' ? prog.blocks.flatMap(b => b.sessions) : prog.simpleSessions
     const hasSession = allSessions.some(s => s.name.trim())
     if (!hasSession) { setError('Ajoute au moins une séance avec un nom.'); setSaving(false); return }
+
+    if (isEdit) {
+      const { error: upErr } = await supabase
+        .from('programs')
+        .update({ name: prog.name.trim(), description: prog.description, type: prog.type, client_id: prog.client_id || null })
+        .eq('id', id)
+      if (upErr) { setError(upErr.message); setSaving(false); return }
+
+      const { data: existSess } = await supabase.from('program_sessions').select('id').eq('program_id', id)
+      if (existSess?.length > 0) {
+        await supabase.from('program_exercises').delete().in('session_id', existSess.map(s => s.id))
+      }
+      await supabase.from('program_sessions').delete().eq('program_id', id)
+      await supabase.from('program_blocks').delete().eq('program_id', id)
+
+      if (prog.type === 'block') {
+        for (let bi = 0; bi < prog.blocks.length; bi++) {
+          const block = prog.blocks[bi]
+          if (!block.name.trim()) continue
+          const { data: blockData, error: blockErr } = await supabase
+            .from('program_blocks')
+            .insert({ program_id: id, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, order_index: bi })
+            .select().single()
+          if (blockErr) { setError(blockErr.message); setSaving(false); return }
+          await saveSessions(id, blockData.id, block.sessions)
+        }
+      } else {
+        await saveSessions(id, null, prog.simpleSessions)
+      }
+      navigate(`/coach/programs/${id}`)
+      return
+    }
 
     const { data: progData, error: progErr } = await supabase
       .from('programs')
@@ -151,7 +220,6 @@ export default function ProgramBuilder() {
     } else {
       await saveSessions(programId, null, prog.simpleSessions)
     }
-
     navigate(`/coach/programs/${programId}`)
   }
 
@@ -164,7 +232,6 @@ export default function ProgramBuilder() {
         .insert({ program_id: programId, block_id: blockId, name: sess.name.trim(), notes: sess.notes, order_index: si })
         .select().single()
       if (sessErr) throw sessErr
-
       const validExercises = sess.exercises.filter(e => e.name.trim())
       if (validExercises.length > 0) {
         await supabase.from('program_exercises').insert(
@@ -234,7 +301,6 @@ export default function ProgramBuilder() {
                     </button>
                   )}
                 </div>
-
                 {openBlocks[bi] && (
                   <div className="p-3 space-y-3">
                     <div className="flex gap-2">
@@ -308,7 +374,7 @@ export default function ProgramBuilder() {
         <button onClick={handleSave} disabled={saving}
           className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2">
           <Save size={17} />
-          {saving ? 'Enregistrement...' : 'Créer le programme'}
+          {saving ? 'Enregistrement...' : isEdit ? 'Enregistrer les modifications' : 'Créer le programme'}
         </button>
       </div>
     </PageLayout>
@@ -332,7 +398,6 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
           </button>
         )}
       </div>
-
       {open && (
         <div className="p-3 space-y-3 bg-dark-900/50">
           <input value={sess.name} onChange={e => onUpdate('name', e.target.value)}
@@ -341,7 +406,6 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
           <input value={sess.notes} onChange={e => onUpdate('notes', e.target.value)}
             placeholder="Notes de séance (optionnel)"
             className="w-full bg-dark-800 border border-white/8 rounded-lg px-3 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
-
           <div className="space-y-2">
             {sess.exercises.map((ex, ei) => (
               <ExerciseRow key={ex._id} ex={ex} ei={ei}
@@ -363,7 +427,6 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
 
 function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
   const inp = 'bg-dark-700 border border-white/8 rounded-lg text-white text-xs focus:outline-none focus:border-brand-500 text-center'
-
   return (
     <div className="bg-dark-800 border border-white/5 rounded-lg p-2.5 space-y-2">
       <div className="flex items-center gap-2">
@@ -377,7 +440,6 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
           </button>
         )}
       </div>
-
       <div className="grid grid-cols-5 gap-1.5">
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">Séries</p>
@@ -405,11 +467,9 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
             className={`${inp} w-full py-1.5`} />
         </div>
       </div>
-
       <input value={ex.notes} onChange={e => onUpdate('notes', e.target.value)}
         placeholder="Notes (ex: tempo 30X1, grip serré...)"
         className="w-full bg-dark-700 border border-white/8 rounded-lg px-2.5 py-1.5 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
-
       <div className="flex items-center gap-2">
         <Link size={10} className="text-gray-600 flex-shrink-0" />
         <input value={ex.video_url} onChange={e => onUpdate('video_url', e.target.value)}
