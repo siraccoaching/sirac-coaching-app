@@ -40,68 +40,30 @@ function Loader() {
 
 export default function App() {
   const { user, profile, loading } = useAuth()
-
   if (loading) return <Loader />
-
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={
           user ? <Navigate to={profile?.role === 'coach' ? '/coach' : '/client'} replace /> : <Login />
         } />
-
-        {/* Coach routes */}
-        <Route path="/coach" element={
-          <ProtectedRoute requiredRole="coach"><CoachDashboard /></ProtectedRoute>
-        } />
-        <Route path="/coach/client/:id" element={
-          <ProtectedRoute requiredRole="coach"><ClientDetail /></ProtectedRoute>
-        } />
-        <Route path="/coach/add-client" element={
-          <ProtectedRoute requiredRole="coach"><AddClient /></ProtectedRoute>
-        } />
-        <Route path="/coach/programs" element={
-          <ProtectedRoute requiredRole="coach"><Programs /></ProtectedRoute>
-        } />
-        <Route path="/coach/programs/new" element={
-          <ProtectedRoute requiredRole="coach"><ProgramBuilder /></ProtectedRoute>
-        } />
-        <Route path="/coach/programs/:id" element={
-          <ProtectedRoute requiredRole="coach"><ProgramDetail /></ProtectedRoute>
-        } />
-        <Route path="/coach/settings" element={
-          <ProtectedRoute requiredRole="coach"><CoachSettings /></ProtectedRoute>
-        } />
-
-        {/* Client routes */}
-        <Route path="/client" element={
-          <ProtectedRoute requiredRole="client"><ClientHome /></ProtectedRoute>
-        } />
-        <Route path="/client/session/:sessionId" element={
-          <ProtectedRoute requiredRole="client"><SessionLog /></ProtectedRoute>
-        } />
-        <Route path="/client/history" element={
-          <ProtectedRoute requiredRole="client"><SessionHistory /></ProtectedRoute>
-        } />
-        <Route path="/client/program" element={
-          <ProtectedRoute requiredRole="client"><MyProgram /></ProtectedRoute>
-        } />
-        <Route path="/client/session-log/:sessionId" element={
-          <ProtectedRoute requiredRole="client"><SessionLogger /></ProtectedRoute>
-        } />
-        <Route path="/client/measurements" element={
-          <ProtectedRoute requiredRole="client"><Measurements /></ProtectedRoute>
-        } />
-        <Route path="/client/checkin" element={
-          <ProtectedRoute requiredRole="client"><WeeklyCheckin /></ProtectedRoute>
-        } />
-        <Route path="/client/book" element={
-          <ProtectedRoute requiredRole="client"><BookSession /></ProtectedRoute>
-        } />
-
-        <Route path="*" element={
-          <Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />
-        } />
+        <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><CoachDashboard /></ProtectedRoute>} />
+        <Route path="/coach/client/:id" element={<ProtectedRoute requiredRole="coach"><ClientDetail /></ProtectedRoute>} />
+        <Route path="/coach/add-client" element={<ProtectedRoute requiredRole="coach"><AddClient /></ProtectedRoute>} />
+        <Route path="/coach/programs" element={<ProtectedRoute requiredRole="coach"><Programs /></ProtectedRoute>} />
+        <Route path="/coach/programs/new" element={<ProtectedRoute requiredRole="coach"><ProgramBuilder /></ProtectedRoute>} />
+        <Route path="/coach/programs/:id/edit" element={<ProtectedRoute requiredRole="coach"><ProgramBuilder /></ProtectedRoute>} />
+        <Route path="/coach/programs/:id" element={<ProtectedRoute requiredRole="coach"><ProgramDetail /></ProtectedRoute>} />
+        <Route path="/coach/settings" element={<ProtectedRoute requiredRole="coach"><CoachSettings /></ProtectedRoute>} />
+        <Route path="/client" element={<ProtectedRoute requiredRole="client"><ClientHome /></ProtectedRoute>} />
+        <Route path="/client/session/:sessionId" element={<ProtectedRoute requiredRole="client"><SessionLog /></ProtectedRoute>} />
+        <Route path="/client/history" element={<ProtectedRoute requiredRole="client"><SessionHistory /></ProtectedRoute>} />
+        <Route path="/client/program" element={<ProtectedRoute requiredRole="client"><MyProgram /></ProtectedRoute>} />
+        <Route path="/client/session-log/:sessionId" element={<ProtectedRoute requiredRole="client"><SessionLogger /></ProtectedRoute>} />
+        <Route path="/client/measurements" element={<ProtectedRoute requiredRole="client"><Measurements /></ProtectedRoute>} />
+        <Route path="/client/checkin" element={<ProtectedRoute requiredRole="client"><WeeklyCheckin /></ProtectedRoute>} />
+        <Route path="/client/book" element={<ProtectedRoute requiredRole="client"><BookSession /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
   )
