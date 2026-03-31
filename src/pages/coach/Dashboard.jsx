@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth, useClients } from '../../lib/hooks'
 import { supabase, subscribeToPush } from '../../lib/supabase'
 import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
-import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell } from 'lucide-react'
+import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, Settings } from 'lucide-react'
 
 export default function CoachDashboard() {
   const { profile } = useAuth()
@@ -17,7 +17,6 @@ export default function CoachDashboard() {
     checkPushStatus()
     fetchRecentActivity()
 
-    // Real-time notification channel
     const channel = supabase.channel('coach-notifications')
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'sessions',
@@ -57,8 +56,8 @@ export default function CoachDashboard() {
   }
 
   function triggerNotification(session) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('🏋️ Séance complétée !', {
+    if (Notification.permission === 'granted') {
+      new Notification('🏋️ Séance complétée !', {
         body: `Un athlète vient de terminer sa séance – ${session.day_title || 'Entraînement'}`,
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',
@@ -90,6 +89,10 @@ export default function CoachDashboard() {
       subtitle={`${clients.length} client${clients.length > 1 ? 's' : ''} actif${clients.length > 1 ? 's' : ''}`}
       action={
         <div className="flex gap-2">
+          <button onClick={() => navigate('/coach/settings')}
+            className="flex items-center gap-1.5 bg-dark-700 border border-white/10 hover:bg-dark-600 text-white text-sm font-medium px-2 py-2 rounded-xl transition-colors">
+            <Settings size={15} />
+          </button>
           <button onClick={() => navigate('/coach/programs')}
             className="flex items-center gap-1.5 bg-dark-700 border border-white/10 hover:bg-dark-600 text-white text-sm font-medium px-3 py-2 rounded-xl transition-colors">
             <Dumbbell size={15} />
@@ -104,7 +107,6 @@ export default function CoachDashboard() {
       }
     >
       <div className="p-4 space-y-4 pb-8">
-        {/* Push notification banner */}
         {!pushEnabled && ('Notification' in window) && (
           <button onClick={enablePush}
             className="w-full flex items-center gap-3 bg-brand-600/20 border border-brand-500/30 rounded-2xl p-4 text-left">
@@ -122,7 +124,6 @@ export default function CoachDashboard() {
           </div>
         )}
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
             { icon: Users, label: 'Clients', value: clients.length, color: 'text-brand-400' },
@@ -137,7 +138,6 @@ export default function CoachDashboard() {
           ))}
         </div>
 
-        {/* Recent activity */}
         {recentActivity.length > 0 && (
           <Card className="overflow-hidden">
             <div className="px-4 pt-4 pb-2 flex items-center gap-2">
@@ -164,7 +164,6 @@ export default function CoachDashboard() {
           </Card>
         )}
 
-        {/* Sport filters */}
         {sports.length > 2 && (
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {sports.map(s => (
@@ -179,7 +178,6 @@ export default function CoachDashboard() {
           </div>
         )}
 
-        {/* Client list */}
         <div>
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
             Mes clients ({filtered.length})
@@ -233,8 +231,8 @@ export default function CoachDashboard() {
 
 function StatusBadge({ status }) {
   const map = {
-    'done-today': { color: 'green', label: '\u2713 Aujourd\'hui' },
-    'in-progress': { color: 'orange', label: '\u25cf En cours' },
+    'done-today': { color: 'green', label: "✓ Aujourd'hui" },
+    'in-progress': { color: 'orange', label: '● En cours' },
     'done': { color: 'blue', label: 'Complété' },
     'no-session': { color: 'gray', label: 'En attente' },
   }
