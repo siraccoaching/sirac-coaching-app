@@ -4,6 +4,7 @@ import { useAuth, useClients } from '../../lib/hooks'
 import { supabase, subscribeToPush } from '../../lib/supabase'
 import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
 import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, Settings, Calendar, MessageCircle, BookOpen, LayoutTemplate } from 'lucide-react'
+import CoachAlerts from './CoachAlerts'
 
 export default function CoachDashboard() {
   const { profile } = useAuth()
@@ -107,6 +108,7 @@ export default function CoachDashboard() {
       }
     >
       <div className="p-4 space-y-4 pb-8">
+        <CoachAlerts clients={clients} />
         {!pushEnabled && ('Notification' in window) && (
           <button onClick={enablePush}
             className="w-full flex items-center gap-3 bg-brand-600/20 border border-brand-500/30 rounded-2xl p-4 text-left">
