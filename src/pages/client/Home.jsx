@@ -3,90 +3,185 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { PageLayout, Card, Badge } from '../../components/Layout'
-import { Play, CheckCircle, Calendar, ChevronRight, Dumbbell, Ruler, ClipboardList, TrendingUp, MessageCircle } from 'lucide-react'
+import { Play, CheckCircle, Calendar, ChevronRight, Dumbbell, Ruler, ClipboardList, TrendingUp, MessageCircle, Trophy, Flame, Zap } from 'lucide-react'
 
 export default function ClientHome() {
   const { profile } = useAuth()
   const navigate = useNavigate()
-  const [todaySession, setTodaySession] = useState(null)
-  const [recentSessions, setRecentSessions] = useState([])
-  const [program, setProgram] = useState(null)
+  const [nextSession, setNextSession] = useState(null)
+  const [lastCompletion, setLastCompletion] = useState(null)
+  const [topPRs, setTopPRs] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [totalSessions, setTotalSessions] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { if (!profile) return; fetchData() }, [profile])
+  useEffect(() => { if (profile?.id) loadDashboard() }, [profile?.id])
 
-  async function fetchData() {
-    const today = new Date().toISOString().split('T')[0]
-    const { data: existing } = await supabase.from('sessions').select('*, session_logs(*)').eq('client_id', profile.id).eq('session_date', today).order('created_at', { ascending: false }).limit(1).maybeSingle()
-    setTodaySession(existing)
-    const { data: recent } = await supabase.from('sessions').select('*').eq('client_id', profile.id).order('created_at', { ascending: false }).limit(5)
-    setRecentSessions(recent || [])
-    const { data: assignment } = await supabase.from('programs').select('id, name').eq('client_id', profile.id).eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle()
-    setProgram(assignment)
+  async function loadDashboard() {
+    setLoading(true)
+    await Promise.all([loadNextSession(), loadCompletions(), loadMessages()])
     setLoading(false)
   }
 
-  async function startNewSession(dayNumber, dayTitle) {
-    const today = new Date().toISOString().split('T')[0]
-    const { data } = await supabase.from('sessions').insert({ client_id: profile.id, assignment_id: program?.id, session_date: today, day_number: dayNumber, day_title: dayTitle, status: 'in_progress' }).select().single()
-    if (data) navigate(`/client/session/${data.id}`)
+  async function loadNextSession() {
+    const { data: prog } = await supabase
+      .from('programs').select('id, name, type, program_sessions(id, name, program_exercises(id))')
+      .eq('client_id', profile.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+    if (!prog) return
+    const sessions = prog.program_sessions || []
+    const { data: done } = await supabase.from('session_completions')
+      .select('program_session_id').eq('client_id', profile.id)
+    const doneIds = new Set((done || []).map(d => d.program_session_id))
+    const next = sessions.find(s => !doneIds.has(s.id)) || sessions[0]
+    if (next) setNextSession({ ...next, programName: prog.name })
   }
 
-  const DAYS = [{ n: 1, title: 'Jour 1 – Force' }, { n: 2, title: 'Jour 2 – Puissance' }, { n: 3, title: 'Jour 3 – Haut du corps' }, { n: 4, title: 'Jour 4 – Vitesse & Agilité' }]
-  const weekSessions = recentSessions.filter(s => { const diff = (Date.now() - new Date(s.session_date)) / 86400000; return diff <= 7 && s.status === 'completed' }).length
+  async function loadCompletions() {
+    const { data: comps } = await supabase.from('session_completions')
+      .select('id, created_at, program_sessions(name), exercise_logs(exercise_id, set_data, exercise:program_exercises(name))')
+      .eq('client_id', profile.id).order('created_at', { ascending: false })
+    if (!comps?.length) return
+    setTotalSessions(comps.length)
+    setLastCompletion(comps[0])
+    // Streak
+    const dates = [...new Set(comps.map(c => new Date(c.created_at).toDateString()))].map(d => new Date(d)).sort((a,b) => b-a)
+    let s = 0, cur = new Date(); cur.setHours(0,0,0,0)
+    for (const d of dates) { const dd = new Date(d); dd.setHours(0,0,0,0); if (Math.round((cur-dd)/86400000) <= 1) { s++; cur = dd } else break }
+    setStreak(s)
+    // Top PRs
+    const exMaxes = {}
+    for (const comp of [...comps].reverse()) {
+      for (const log of comp.exercise_logs || []) {
+        const name = log.exercise?.name
+        if (!name) continue
+        const sets = (log.set_data || []).filter(s => parseFloat(s.load) > 0)
+        if (!sets.length) continue
+        const m = Math.max(...sets.map(s => parseFloat(s.load)||0))
+        if (!exMaxes[name] || m > exMaxes[name]) exMaxes[name] = m
+      }
+    }
+    const sorted = Object.entries(exMaxes).sort((a,b) => b[1]-a[1]).slice(0, 4)
+    setTopPRs(sorted)
+  }
+
+  async function loadMessages() {
+    if (!profile?.coach_id) return
+    const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true })
+      .eq('receiver_id', profile.id).is('read_at', null)
+    setUnreadCount(count || 0)
+  }
+
+  const timeAgo = (ts) => {
+    const d = Math.floor((Date.now() - new Date(ts)) / 86400000)
+    if (d === 0) return "aujourd'hui"
+    if (d === 1) return "hier"
+    return "il y a " + d + " j"
+  }
 
   return (
-    <PageLayout title="Mon Programme" subtitle={profile?.name}>
-      <div className="p-4 space-y-4 pb-8">
-        <div className="bg-gradient-to-br from-brand-600 to-brand-900 rounded-3xl p-5">
-          <p className="text-brand-200 text-sm font-medium">Bonjour {profile?.name?.split(' ')[0]} 👋</p>
-          <h2 className="text-white font-bold text-xl mt-1">{profile?.sport || 'Préparation physique'}</h2>
-          <div className="flex items-center gap-2 mt-2">{profile?.position && <Badge color="blue">{profile.position}</Badge>}{profile?.current_phase && <Badge color="gray">{profile.current_phase}</Badge>}</div>
-          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/20">
-            <div className="text-center"><p className="text-white font-bold text-2xl">{weekSessions}</p><p className="text-brand-300 text-xs">séances cette semaine</p></div>
-            <div className="text-center"><p className="text-white font-bold text-2xl">{recentSessions.filter(s => s.status === 'completed').length}</p><p className="text-brand-300 text-xs">total complétées</p></div>
+    <PageLayout title={"Bonjour " + (profile?.full_name?.split(' ')[0] || '') + " 👋"} subtitle="Ton espace entraînement">
+      <div className="space-y-4">
+
+        {/* Stats bar */}
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8}}>
+          <div style={{background:'#1e1e2e', borderRadius:12, padding:'10px 8px', textAlign:'center'}}>
+            <p style={{margin:0, fontSize:22, fontWeight:800, color:'#6366f1'}}>{totalSessions}</p>
+            <p style={{margin:0, fontSize:10, color:'#888'}}>séances</p>
+          </div>
+          <div style={{background:'#1e1e2e', borderRadius:12, padding:'10px 8px', textAlign:'center'}}>
+            <p style={{margin:0, fontSize:22, fontWeight:800, color:'#f59e0b'}}>{streak} 🔥</p>
+            <p style={{margin:0, fontSize:10, color:'#888'}}>jours streak</p>
+          </div>
+          <div style={{background:'#1e1e2e', borderRadius:12, padding:'10px 8px', textAlign:'center'}}>
+            <p style={{margin:0, fontSize:22, fontWeight:800, color:'#22c55e'}}>{topPRs.length}</p>
+            <p style={{margin:0, fontSize:10, color:'#888'}}>records</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <button onClick={() => navigate('/client/program')} className="bg-gradient-to-br from-brand-700 to-brand-900 border border-brand-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left">
-            <div className="w-9 h-9 bg-brand-500/20 rounded-xl flex items-center justify-center"><Dumbbell size={18} className="text-brand-300" /></div>
-            <div><p className="text-white text-sm font-semibold">Mon programme</p><p className="text-brand-300 text-xs">Voir mes séances</p></div>
+        {/* Next session CTA */}
+        {nextSession ? (
+          <div style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)', borderRadius:16, padding:'16px 18px', cursor:'pointer'}}
+            onClick={() => navigate('/client/session-log/' + nextSession.id)}>
+            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+              <div>
+                <p style={{margin:'0 0 3px', fontSize:12, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'0.05em'}}>Prochaine séance</p>
+                <p style={{margin:'0 0 2px', fontSize:17, fontWeight:700, color:'white'}}>{nextSession.name}</p>
+                <p style={{margin:0, fontSize:12, color:'rgba(255,255,255,0.6)'}}>{nextSession.programName} · {nextSession.program_exercises?.length || 0} exercices</p>
+              </div>
+              <div style={{width:44, height:44, borderRadius:'50%', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
+                <Play size={20} color="white" fill="white"/>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{background:'#1e1e2e', borderRadius:16, padding:'16px 18px', textAlign:'center', cursor:'pointer'}} onClick={() => navigate('/client/program')}>
+            <p style={{margin:'0 0 4px', fontSize:15, color:'#888'}}>Aucun programme actif</p>
+            <p style={{margin:0, fontSize:12, color:'#6366f1'}}>Voir mes programmes →</p>
+          </div>
+        )}
+
+        {/* Last workout */}
+        {lastCompletion && (
+          <div style={{background:'#1e1e2e', borderRadius:14, padding:'12px 16px', display:'flex', alignItems:'center', gap:12}}>
+            <div style={{width:36, height:36, borderRadius:10, background:'#22c55e22', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
+              <CheckCircle size={18} color="#22c55e"/>
+            </div>
+            <div style={{flex:1}}>
+              <p style={{margin:0, fontSize:13, fontWeight:600, color:'white'}}>{lastCompletion.program_sessions?.name || 'Séance libre'}</p>
+              <p style={{margin:0, fontSize:11, color:'#888'}}>Dernière séance · {timeAgo(lastCompletion.created_at)}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Top PRs */}
+        {topPRs.length > 0 && (
+          <div>
+            <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:8}}>
+              <Trophy size={13} color="#f59e0b"/>
+              <p style={{margin:0, fontSize:12, color:'#888', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>Tes records</p>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+              {topPRs.map(([name, load]) => (
+                <div key={name} style={{background:'#1e1e2e', borderRadius:10, padding:'10px 12px'}}>
+                  <p style={{margin:'0 0 2px', fontSize:11, color:'#888', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{name}</p>
+                  <p style={{margin:0, fontSize:18, fontWeight:800, color:'#f59e0b'}}>{load} <span style={{fontSize:12, fontWeight:400}}>kg</span></p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quick actions grid */}
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+          <button onClick={() => navigate('/client/program')} style={{background:'linear-gradient(135deg,#312e81aa,#4c1d95aa)', border:'1px solid #6366f133', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
+            <div style={{width:32,height:32,background:'#6366f122',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><Dumbbell size={16} color="#818cf8"/></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Mon programme</p><p style={{margin:0,fontSize:11,color:'#818cf8'}}>Voir mes séances</p></div>
           </button>
-          <button onClick={() => navigate('/client/book')} className="bg-gradient-to-br from-purple-800/60 to-purple-900/60 border border-purple-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left">
-            <div className="w-9 h-9 bg-purple-500/20 rounded-xl flex items-center justify-center"><Calendar size={18} className="text-purple-300" /></div>
-            <div><p className="text-white text-sm font-semibold">Réserver</p><p className="text-purple-300 text-xs">Prendre un RDV</p></div>
+          <button onClick={() => navigate('/client/messages')} style={{position:'relative', background:'linear-gradient(135deg,#14532daa,#15803daa)', border:'1px solid #22c55e33', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
+            {unreadCount > 0 && <span style={{position:'absolute',top:8,right:8,background:'#ef4444',borderRadius:'50%',width:18,height:18,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'white'}}>{unreadCount}</span>}
+            <div style={{width:32,height:32,background:'#22c55e22',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><MessageCircle size={16} color="#4ade80"/></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Mon coach</p><p style={{margin:0,fontSize:11,color:'#4ade80'}}>Messages</p></div>
           </button>
-          <button onClick={() => navigate('/client/measurements')} className="bg-gradient-to-br from-teal-800/60 to-teal-900/60 border border-teal-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left">
-            <div className="w-9 h-9 bg-teal-500/20 rounded-xl flex items-center justify-center"><Ruler size={18} className="text-teal-300" /></div>
-            <div><p className="text-white text-sm font-semibold">Mensurations</p><p className="text-teal-300 text-xs">Suivi du corps</p></div>
+          <button onClick={() => navigate('/client/progress')} style={{background:'linear-gradient(135deg,#78350faa,#92400eaa)', border:'1px solid #f59e0b33', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
+            <div style={{width:32,height:32,background:'#f59e0b22',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><TrendingUp size={16} color="#fbbf24"/></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Progression</p><p style={{margin:0,fontSize:11,color:'#fbbf24'}}>Courbes & records</p></div>
           </button>
-          <button onClick={() => navigate('/client/checkin')} className="bg-gradient-to-br from-orange-800/60 to-orange-900/60 border border-orange-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left">
-            <div className="w-9 h-9 bg-orange-500/20 rounded-xl flex items-center justify-center"><ClipboardList size={18} className="text-orange-300" /></div>
-            <div><p className="text-white text-sm font-semibold">Bilan semaine</p><p className="text-orange-300 text-xs">Ton ressenti</p></div>
+          <button onClick={() => navigate('/client/measurements')} style={{background:'linear-gradient(135deg,#134e4aaa,#115e59aa)', border:'1px solid #14b8a633', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
+            <div style={{width:32,height:32,background:'#14b8a622',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><Ruler size={16} color="#2dd4bf"/></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Mensurations</p><p style={{margin:0,fontSize:11,color:'#2dd4bf'}}>Suivi du corps</p></div>
+          </button>
+          <button onClick={() => navigate('/client/book')} style={{background:'linear-gradient(135deg,#4c1d95aa,#5b21b6aa)', border:'1px solid #7c3aed33', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
+            <div style={{width:32,height:32,background:'#7c3aed22',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><Calendar size={16} color="#a78bfa"/></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Réserver</p><p style={{margin:0,fontSize:11,color:'#a78bfa'}}>Prendre RDV</p></div>
+          </button>
+          <button onClick={() => navigate('/client/checkin')} style={{background:'linear-gradient(135deg,#7c2d12aa,#9a3412aa)', border:'1px solid #f9731633', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
+            <div style={{width:32,height:32,background:'#f9731622',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><ClipboardList size={16} color="#fb923c"/></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Bilan semaine</p><p style={{margin:0,fontSize:11,color:'#fb923c'}}>Ton ressenti</p></div>
           </button>
         </div>
-          <button onClick={() => navigate('/client/messages')} className="bg-gradient-to-br from-indigo-800/60 to-indigo-900/60 border border-indigo-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left">
-            <div className="w-9 h-9 bg-indigo-500/20 rounded-xl flex items-center justify-center"><MessageCircle size={18} className="text-indigo-300" /></div>
-            <div><p className="text-white text-sm font-semibold">Mon coach</p><p className="text-indigo-300 text-xs">Envoyer un message</p></div>
-          </button>
-          <button onClick={() => navigate('/client/progress')} className="bg-gradient-to-br from-green-800/60 to-green-900/60 border border-green-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left col-span-2">
-            <div className="w-9 h-9 bg-green-500/20 rounded-xl flex items-center justify-center"><TrendingUp size={18} className="text-green-300" /></div>
-            <div><p className="text-white text-sm font-semibold">Ma progression</p><p className="text-green-300 text-xs">Courbes de charges & évolution</p></div>
-          </button>
-        </div>
 
-        {todaySession ? (<Card className="overflow-hidden"><div className="p-4 flex items-center gap-3"><div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${todaySession.status === 'completed' ? 'bg-green-500/20' : 'bg-orange-500/20'}`}>{todaySession.status === 'completed' ? <CheckCircle size={20} className="text-green-400" /> : <Play size={20} className="text-orange-400" />}</div><div className="flex-1"><p className="text-white font-semibold">{todaySession.day_title || "Séance d'aujourd'hui"}</p><p className="text-gray-400 text-sm">{todaySession.status === 'completed' ? '✓ Séance terminée !' : 'En cours…'}</p></div>{todaySession.status !== 'completed' && (<button onClick={() => navigate(`/client/session/${todaySession.id}`)} className="bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-xl">Continuer</button>)}</div></Card>) : null}
-
-        <Card className="overflow-hidden">
-          <div className="px-4 pt-4 pb-2"><h3 className="text-white font-semibold text-sm">Commencer une séance</h3><p className="text-gray-500 text-xs mt-0.5">Choisis ton entraînement du jour</p></div>
-          <div className="divide-y divide-white/5">{DAYS.map(({ n, title }) => (<button key={n} onClick={() => startNewSession(n, title)} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/5 transition-colors text-left"><div className="w-9 h-9 bg-brand-600/20 rounded-xl flex items-center justify-center flex-shrink-0"><span className="text-brand-400 font-bold text-sm">J{n}</span></div><div className="flex-1"><p className="text-white text-sm font-medium">{title}</p></div><Play size={15} className="text-gray-500" /></button>))}</div>
-        </Card>
-
-        {recentSessions.length > 0 && (<Card className="overflow-hidden"><div className="px-4 pt-4 pb-2 flex items-center justify-between"><div className="flex items-center gap-2"><Calendar size={15} className="text-gray-400" /><h3 className="text-white font-semibold text-sm">Historique récent</h3></div><button onClick={() => navigate('/client/history')} className="text-brand-400 text-xs font-medium flex items-center gap-1">Tout voir <ChevronRight size={12} /></button></div><div className="divide-y divide-white/5">{recentSessions.slice(0, 4).map(s => (<div key={s.id} className="flex items-center gap-3 px-4 py-3"><div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.status === 'completed' ? 'bg-green-400' : 'bg-orange-400'}`} /><div className="flex-1 min-w-0"><p className="text-white text-sm truncate">{s.day_title || 'Séance'}</p><p className="text-gray-500 text-xs">{formatDate(s.session_date)}</p></div><Badge color={s.status === 'completed' ? 'green' : 'orange'}>{s.status === 'completed' ? '✓' : '…'}</Badge></div>))}</div></Card>)}
       </div>
     </PageLayout>
   )
 }
-
-function formatDate(d) { if (!d) return ''; return new Date(d).toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' }) }
