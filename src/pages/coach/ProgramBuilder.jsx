@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
-import { Plus, Trash2, ChevronDown, ChevronUp, Save, Dumbbell, Clock, Link } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, Save, Dumbbell, Clock, Link, BookOpen } from 'lucide-react'
 
 let _tmpId = 0
 const tmpId = () => `tmp_${++_tmpId}`
@@ -29,6 +29,12 @@ export default function ProgramBuilder() {
   const [error, setError] = useState('')
   const [openBlocks, setOpenBlocks] = useState({ 0: true })
   const [openSessions, setOpenSessions] = useState({})
+  const [showLibPicker, setShowLibPicker] = useState(false)
+  const [libTarget, setLibTarget] = useState(null)
+  const [libExercises, setLibExercises] = useState([])
+  const [libSearch, setLibSearch] = useState('')
+  const [libLoading, setLibLoading] = useState(false)
+  const location = useLocation()
 
   const [prog, setProg] = useState({
     name: '',
@@ -43,6 +49,18 @@ export default function ProgramBuilder() {
     if (!profile?.id) return
     loadClients()
     if (isEdit) loadProgram()
+    const tpl = location.state?.template
+    if (tpl && !isEdit) {
+      const toEx = ex => ({ _id: tmpId(), name: ex.name, sets: ex.sets||3, reps: String(ex.reps||'8'), load: '', rpe: '', rest_seconds: ex.rest_seconds||120, notes: ex.notes||'', video_url: ex.video_url||'' })
+      const toSess = s => ({ _id: tmpId(), name: s.name, notes: '', exercises: (s.exercises||[]).map(toEx) })
+      if (tpl.type === 'block') {
+        const blocks = (tpl.blocks||[]).map(b => ({ _id: tmpId(), name: b.name, duration_weeks: b.duration_weeks||4, description: '', sessions: (b.sessions||[]).map(toSess) }))
+        setProg(p => ({ ...p, name: tpl.name, description: tpl.description||'', type: 'block', blocks }))
+      } else {
+        const simpleSessions = (tpl.sessions||[]).map(toSess)
+        setProg(p => ({ ...p, name: tpl.name, description: tpl.description||'', type: 'simple', simpleSessions }))
+      }
+    }
   }, [profile?.id])
 
   async function loadClients() {
@@ -141,6 +159,33 @@ export default function ProgramBuilder() {
     blocks[bi] = { ...blocks[bi], sessions }
     return { ...p, blocks }
   })
+  async function openLibPicker(target) {
+    setLibTarget(target)
+    setLibSearch('')
+    setShowLibPicker(true)
+    if (libExercises.length === 0) {
+      setLibLoading(true)
+      const { data } = await supabase.from('exercises').select('*').eq('coach_id', profile.id).order('name')
+      setLibExercises(data || [])
+      setLibLoading(false)
+    }
+  }
+
+  function addExerciseFromLib(libEx) {
+    if (!libTarget) return
+    const { bi, si, isSimple } = libTarget
+    const newEx = { _id: tmpId(), name: libEx.name, sets: 3, reps: '8', load: '', rpe: '', rest_seconds: 120, notes: libEx.description||'', video_url: libEx.video_url||'' }
+    setProg(p => {
+      const sessions = isSimple ? [...p.simpleSessions] : [...p.blocks[bi].sessions]
+      sessions[si] = { ...sessions[si], exercises: [...sessions[si].exercises, newEx] }
+      if (isSimple) return { ...p, simpleSessions: sessions }
+      const blocks = [...p.blocks]
+      blocks[bi] = { ...blocks[bi], sessions }
+      return { ...p, blocks }
+    })
+    setShowLibPicker(false)
+  }
+
   const addExercise = (bi, si, isSimple = false) => setProg(p => {
     const sessions = isSimple ? [...p.simpleSessions] : [...p.blocks[bi].sessions]
     sessions[si] = { ...sessions[si], exercises: [...sessions[si].exercises, emptyExercise()] }
@@ -331,6 +376,7 @@ export default function ProgramBuilder() {
                           canRemove={block.sessions.length > 1}
                           onUpdateExercise={(ei, k, v) => updateExercise(bi, si, ei, k, v)}
                           onAddExercise={() => addExercise(bi, si)}
+                          onOpenLibrary={() => openLibPicker({ bi, si, isSimple: false })}
                           onRemoveExercise={(ei) => removeExercise(bi, si, ei)}
                         />
                       ))}
@@ -364,6 +410,7 @@ export default function ProgramBuilder() {
                   canRemove={prog.simpleSessions.length > 1}
                   onUpdateExercise={(ei, k, v) => updateExercise(0, si, ei, k, v, true)}
                   onAddExercise={() => addExercise(0, si, true)}
+                  onOpenLibrary={() => openLibPicker({ bi: 0, si, isSimple: true })}
                   onRemoveExercise={(ei) => removeExercise(0, si, ei, true)}
                 />
               </Card>
@@ -383,11 +430,43 @@ export default function ProgramBuilder() {
           {saving ? 'Enregistrement...' : isEdit ? 'Enregistrer les modifications' : 'Créer le programme'}
         </button>
       </div>
+
+      {showLibPicker && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:1000,display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
+          <div style={{background:'#1e1e2e',borderRadius:'20px 20px 0 0',padding:'20px 16px 36px',width:'100%',maxWidth:480,maxHeight:'75vh',display:'flex',flexDirection:'column'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+              <p style={{margin:0,fontWeight:700,fontSize:16,color:'white'}}>Bibliothèque d'exercices</p>
+              <button onClick={() => setShowLibPicker(false)} style={{background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:20}}>✕</button>
+            </div>
+            <input value={libSearch} onChange={e => setLibSearch(e.target.value)} placeholder="Rechercher un exercice..."
+              style={{background:'#2a2a3e',border:'1px solid #3a3a4e',borderRadius:10,padding:'9px 14px',color:'white',fontSize:14,marginBottom:12,WebkitTextFillColor:'white',WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
+            <div style={{overflowY:'auto',flex:1}}>
+              {libLoading ? <p style={{color:'#888',textAlign:'center',marginTop:20}}>Chargement...</p> :
+               libExercises.length === 0 ? (
+                <div style={{textAlign:'center',marginTop:20,color:'#888'}}>
+                  <p>Bibliothèque vide</p>
+                  <p style={{fontSize:12}}>Ajoute des exercices dans Bibliothèque d'exercices.</p>
+                </div>
+               ) : libExercises.filter(e => !libSearch || e.name.toLowerCase().includes(libSearch.toLowerCase()) || (e.muscles||'').toLowerCase().includes(libSearch.toLowerCase())).map(ex => (
+                <button key={ex.id} onClick={() => addExerciseFromLib(ex)}
+                  style={{width:'100%',background:'#2a2a3e',border:'none',borderRadius:10,padding:'10px 14px',marginBottom:6,textAlign:'left',cursor:'pointer',display:'flex',alignItems:'center',gap:10}}>
+                  <div style={{flex:1}}>
+                    <p style={{margin:0,fontWeight:600,color:'white',fontSize:14}}>{ex.name}</p>
+                    {ex.muscles && <p style={{margin:0,fontSize:11,color:'#888'}}>{ex.muscles}{ex.category ? ' · ' + ex.category : ''}</p>}
+                  </div>
+                  <span style={{color:'#6366f1',fontSize:18}}>+</span>
+                </button>
+               ))
+              }
+            </div>
+          </div>
+        </div>
+      )}
     </PageLayout>
   )
 }
 
-function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, onUpdateExercise, onAddExercise, onRemoveExercise }) {
+function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, onUpdateExercise, onAddExercise, onRemoveExercise, onOpenLibrary }) {
   return (
     <div className="border border-white/8 rounded-xl overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 bg-dark-800">
@@ -421,10 +500,18 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
               />
             ))}
           </div>
-          <button onClick={onAddExercise}
-            className="w-full py-2 border border-dashed border-white/10 rounded-lg text-gray-600 text-xs hover:border-brand-500/40 hover:text-brand-400 transition-colors flex items-center justify-center gap-1">
-            <Plus size={11} /> Ajouter un exercice
-          </button>
+          <div style={{display:'flex',gap:6}}>
+            <button onClick={onAddExercise}
+              className="flex-1 py-2 border border-dashed border-white/10 rounded-lg text-gray-600 text-xs hover:border-brand-500/40 hover:text-brand-400 transition-colors flex items-center justify-center gap-1">
+              <Plus size={11} /> Exercice libre
+            </button>
+            {onOpenLibrary && (
+              <button onClick={onOpenLibrary}
+                className="flex-1 py-2 border border-dashed border-brand-500/40 rounded-lg text-brand-400 text-xs hover:border-brand-400 hover:bg-brand-500/10 transition-colors flex items-center justify-center gap-1">
+                <BookOpen size={11} /> Depuis la biblio
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
