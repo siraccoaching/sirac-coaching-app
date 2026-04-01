@@ -1,291 +1,196 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Dumbbell, Zap, Heart, Target } from 'lucide-react'
+import { PageLayout } from '../../components/Layout'
+import { Dumbbell, Users, Zap } from 'lucide-react'
 
-// Template library organized by sport
-export const PROGRAM_TEMPLATES = {
-  rugby: {
-    label: 'Rugby', icon: '🏉',
-    positions: {
-      avants: { label: 'Avants (piliers, talonneurs, 2e/3e ligne)' },
-      arrières: { label: 'Arrières (demis, centres, ailiers, arrière)' }
-    },
-    templates: [
+const TEMPLATES = [
+  {
+    id: 'rugby-avants',
+    label: 'Rugby',
+    icon: '🏉',
+    name: 'Force & Puissance - Avants',
+    position: 'avants',
+    type: 'block',
+    description: 'Developpement de la force maximale et puissance pour les avants. 3 blocs progressifs.',
+    blocks: [
       {
-        id: 'rugby_force_avants',
-        name: 'Force & Puissance – Avants',
-        position: 'avants',
-        type: 'block',
-        description: 'Développement de la force maximale et puissance pour le poste d'avant. 3 blocs progressifs.',
-        blocks: [
-          {
-            name: 'Bloc 1 – Fondations (4 semaines)',
-            duration_weeks: 4,
-            sessions: [
-              { name: 'Force Bas du corps', exercises: [
-                { name: 'Squat', sets: 4, reps: '6', rest_seconds: 180 },
-                { name: 'Romanian Deadlift', sets: 3, reps: '8', rest_seconds: 150 },
-                { name: 'Leg Press', sets: 3, reps: '10', rest_seconds: 120 },
-                { name: 'Hip Thrust', sets: 3, reps: '12', rest_seconds: 90 }
-              ]},
-              { name: 'Force Haut du corps', exercises: [
-                { name: 'Développé couché', sets: 4, reps: '6', rest_seconds: 180 },
-                { name: 'Rowing barre', sets: 4, reps: '8', rest_seconds: 150 },
-                { name: 'Développé militaire', sets: 3, reps: '8', rest_seconds: 120 },
-                { name: 'Tractions', sets: 3, reps: '8', rest_seconds: 120 }
-              ]},
-              { name: 'Plaquage & Gainage', exercises: [
-                { name: 'Deadlift', sets: 4, reps: '5', rest_seconds: 180 },
-                { name: 'Gainage planche', sets: 4, reps: '60s', rest_seconds: 60 },
-                { name: 'Rotation du tronc avec charge', sets: 3, reps: '12', rest_seconds: 90 }
-              ]}
-            ]
-          },
-          {
-            name: 'Bloc 2 – Force maximale (4 semaines)',
-            duration_weeks: 4,
-            sessions: [
-              { name: 'Squat lourd', exercises: [
-                { name: 'Squat', sets: 5, reps: '3', rest_seconds: 240 },
-                { name: 'Good Morning', sets: 3, reps: '8', rest_seconds: 120 },
-                { name: 'Fentes bulgares', sets: 3, reps: '8', rest_seconds: 120 }
-              ]},
-              { name: 'Bench & Dos', exercises: [
-                { name: 'Développé couché', sets: 5, reps: '3', rest_seconds: 240 },
-                { name: 'Rowing unilatéral', sets: 4, reps: '8', rest_seconds: 120 },
-                { name: 'Dips', sets: 3, reps: '10', rest_seconds: 90 }
-              ]}
-            ]
-          },
-          {
-            name: 'Bloc 3 – Puissance (3 semaines)',
-            duration_weeks: 3,
-            sessions: [
-              { name: 'Puissance explosivité', exercises: [
-                { name: 'Power clean', sets: 5, reps: '3', rest_seconds: 180 },
-                { name: 'Box jump', sets: 4, reps: '5', rest_seconds: 120 },
-                { name: 'Squat sauté', sets: 4, reps: '6', rest_seconds: 120 }
-              ]},
-              { name: 'Sprint & Gainage', exercises: [
-                { name: 'Sprint 20m', sets: 6, reps: '1', rest_seconds: 120 },
-                { name: 'Gainage latéral', sets: 3, reps: '45s', rest_seconds: 60 },
-                { name: 'Burpees', sets: 4, reps: '10', rest_seconds: 90 }
-              ]}
-            ]
-          }
+        name: 'Bloc 1 - Fondations (4 semaines)',
+        duration_weeks: 4,
+        sessions: [
+          { name: 'Force Bas du corps', exercises: [
+            { name: 'Squat', sets: 4, reps: '6', rest_seconds: 180 },
+            { name: 'Romanian Deadlift', sets: 3, reps: '8', rest_seconds: 150 },
+            { name: 'Leg Press', sets: 3, reps: '10', rest_seconds: 120 },
+            { name: 'Hip Thrust', sets: 3, reps: '12', rest_seconds: 90 }
+          ]},
+          { name: 'Force Haut du corps', exercises: [
+            { name: 'Developpe couche', sets: 4, reps: '6', rest_seconds: 180 },
+            { name: 'Rowing barre', sets: 4, reps: '8', rest_seconds: 150 },
+            { name: 'Developpe militaire', sets: 3, reps: '8', rest_seconds: 120 },
+            { name: 'Tractions', sets: 3, reps: '8', rest_seconds: 120 }
+          ]},
+          { name: 'Puissance & Athletisme', exercises: [
+            { name: 'Power Clean', sets: 5, reps: '3', rest_seconds: 180 },
+            { name: 'Box Jump', sets: 4, reps: '5', rest_seconds: 120 },
+            { name: 'Sprint 20m', sets: 6, reps: '1', rest_seconds: 90 }
+          ]}
         ]
       },
       {
-        id: 'rugby_vitesse_arrieres',
-        name: 'Vitesse & Endurance – Arrières',
-        position: 'arrières',
-        type: 'simple',
-        description: 'Programme axé vitesse, changements d'appui et endurance spécifique.',
+        name: 'Bloc 2 - Intensification (4 semaines)',
+        duration_weeks: 4,
         sessions: [
-          { name: 'Vitesse & Sprint', exercises: [
-            { name: 'Sprint 10m (départ arrêté)', sets: 6, reps: '1', rest_seconds: 120 },
-            { name: 'Sprint 30m', sets: 4, reps: '1', rest_seconds: 180 },
-            { name: 'Ladder agilité', sets: 5, reps: '30s', rest_seconds: 60 }
+          { name: 'Force Max Jambes', exercises: [
+            { name: 'Squat', sets: 5, reps: '4', rest_seconds: 210 },
+            { name: 'Deadlift', sets: 4, reps: '4', rest_seconds: 210 },
+            { name: 'Fentes bulgares', sets: 3, reps: '6', rest_seconds: 150 }
           ]},
-          { name: 'Force athlétique', exercises: [
-            { name: 'Squat', sets: 4, reps: '8', rest_seconds: 120 },
-            { name: 'Fentes marchées', sets: 3, reps: '12', rest_seconds: 90 },
-            { name: 'Hip Thrust', sets: 3, reps: '12', rest_seconds: 90 },
-            { name: 'Gainage planche', sets: 3, reps: '60s', rest_seconds: 60 }
+          { name: 'Force Max Buste', exercises: [
+            { name: 'Developpe couche', sets: 5, reps: '4', rest_seconds: 210 },
+            { name: 'Rowing Yates', sets: 5, reps: '5', rest_seconds: 180 },
+            { name: 'Developpe incline', sets: 3, reps: '6', rest_seconds: 150 }
           ]},
-          { name: 'Endurance spécifique', exercises: [
-            { name: 'Interval 400m', sets: 6, reps: '1', rest_seconds: 90 },
-            { name: 'Agilité cônes', sets: 5, reps: '45s', rest_seconds: 60 }
+          { name: 'Puissance Explosive', exercises: [
+            { name: 'Power Snatch', sets: 5, reps: '3', rest_seconds: 180 },
+            { name: 'Push Jerk', sets: 4, reps: '4', rest_seconds: 180 },
+            { name: 'Sprint 30m', sets: 8, reps: '1', rest_seconds: 90 }
+          ]}
+        ]
+      },
+      {
+        name: 'Bloc 3 - Pic de forme (3 semaines)',
+        duration_weeks: 3,
+        sessions: [
+          { name: 'Peaking Bas du corps', exercises: [
+            { name: 'Squat', sets: 3, reps: '2', rest_seconds: 240 },
+            { name: 'Deadlift', sets: 3, reps: '2', rest_seconds: 240 }
+          ]},
+          { name: 'Peaking Haut du corps', exercises: [
+            { name: 'Developpe couche', sets: 3, reps: '2', rest_seconds: 240 },
+            { name: 'Rowing barre', sets: 3, reps: '3', rest_seconds: 210 }
+          ]},
+          { name: 'Vitesse & Explosivite', exercises: [
+            { name: 'Sprint 10m', sets: 8, reps: '1', rest_seconds: 60 },
+            { name: 'Jump Squat', sets: 4, reps: '4', rest_seconds: 120 }
           ]}
         ]
       }
     ]
   },
-  fitness: {
-    label: 'Fitness / Musculation', icon: '💪',
-    positions: {
-      debutant: { label: 'Débutant (< 1 an)' },
-      intermediaire: { label: 'Intermédiaire (1–3 ans)' },
-      avance: { label: 'Avancé (3+ ans)' }
-    },
-    templates: [
-      {
-        id: 'fitness_ppl_inter',
-        name: 'Push / Pull / Legs – Intermédiaire',
-        position: 'intermediaire',
-        type: 'simple',
-        description: 'Programme 3 jours classique Push/Pull/Legs pour la prise de masse.',
-        sessions: [
-          { name: 'Push (Pecs / Épaules / Triceps)', exercises: [
-            { name: 'Développé couché', sets: 4, reps: '8-10', rest_seconds: 120 },
-            { name: 'Développé incliné haltères', sets: 3, reps: '10-12', rest_seconds: 90 },
-            { name: 'Écarté poulie basse', sets: 3, reps: '12-15', rest_seconds: 75 },
-            { name: 'Développé militaire', sets: 3, reps: '10', rest_seconds: 90 },
-            { name: 'Élévations latérales', sets: 3, reps: '15', rest_seconds: 60 },
-            { name: 'Dips triceps', sets: 3, reps: '12', rest_seconds: 75 }
-          ]},
-          { name: 'Pull (Dos / Biceps)', exercises: [
-            { name: 'Tractions', sets: 4, reps: '8', rest_seconds: 120 },
-            { name: 'Rowing barre', sets: 4, reps: '8-10', rest_seconds: 120 },
-            { name: 'Tirage poulie haute', sets: 3, reps: '12', rest_seconds: 90 },
-            { name: 'Rowing haltère', sets: 3, reps: '12', rest_seconds: 90 },
-            { name: 'Curl barre', sets: 3, reps: '12', rest_seconds: 60 },
-            { name: 'Curl marteau', sets: 3, reps: '12', rest_seconds: 60 }
-          ]},
-          { name: 'Legs (Jambes)', exercises: [
-            { name: 'Squat', sets: 4, reps: '8-10', rest_seconds: 150 },
-            { name: 'Leg Press', sets: 3, reps: '12', rest_seconds: 120 },
-            { name: 'Fentes marchées', sets: 3, reps: '12', rest_seconds: 90 },
-            { name: 'Leg Curl', sets: 3, reps: '12', rest_seconds: 90 },
-            { name: 'Mollets debout', sets: 4, reps: '15', rest_seconds: 60 }
-          ]}
-        ]
-      },
-      {
-        id: 'fitness_fullbody_debutant',
-        name: 'Full Body – Débutant',
-        position: 'debutant',
-        type: 'simple',
-        description: 'Programme 3 jours full body pour acquérir les bases techniques et la force initiale.',
-        sessions: [
-          { name: 'Full Body A', exercises: [
-            { name: 'Squat', sets: 3, reps: '10', rest_seconds: 120 },
-            { name: 'Développé couché', sets: 3, reps: '10', rest_seconds: 120 },
-            { name: 'Rowing barre', sets: 3, reps: '10', rest_seconds: 120 },
-            { name: 'Gainage planche', sets: 3, reps: '30s', rest_seconds: 60 }
-          ]},
-          { name: 'Full Body B', exercises: [
-            { name: 'Romanian Deadlift', sets: 3, reps: '10', rest_seconds: 120 },
-            { name: 'Développé militaire', sets: 3, reps: '10', rest_seconds: 120 },
-            { name: 'Tractions assistées', sets: 3, reps: '8', rest_seconds: 120 },
-            { name: 'Crunch', sets: 3, reps: '15', rest_seconds: 60 }
-          ]}
-        ]
-      }
+  {
+    id: 'fitness-perte-poids',
+    label: 'Fitness',
+    icon: '🔥',
+    name: 'Perte de poids & Remise en forme',
+    type: 'simple',
+    description: 'Programme complet 3 seances par semaine pour la perte de poids et le renforcement musculaire.',
+    sessions: [
+      { name: 'Full Body A', exercises: [
+        { name: 'Squat goblet', sets: 3, reps: '15', rest_seconds: 60 },
+        { name: 'Pompes', sets: 3, reps: '12', rest_seconds: 60 },
+        { name: 'Rowing haltere', sets: 3, reps: '12', rest_seconds: 60 },
+        { name: 'Fentes marchees', sets: 3, reps: '10', rest_seconds: 60 },
+        { name: 'Planche', sets: 3, reps: '30s', rest_seconds: 45 }
+      ]},
+      { name: 'Full Body B', exercises: [
+        { name: 'Deadlift roumain', sets: 3, reps: '12', rest_seconds: 75 },
+        { name: 'Developpe halteres', sets: 3, reps: '12', rest_seconds: 60 },
+        { name: 'Tractions assistees', sets: 3, reps: '10', rest_seconds: 75 },
+        { name: 'Hip Thrust', sets: 3, reps: '15', rest_seconds: 60 },
+        { name: 'Crunchs', sets: 3, reps: '20', rest_seconds: 45 }
+      ]},
+      { name: 'Circuit Cardio-Muscu', exercises: [
+        { name: 'Burpees', sets: 4, reps: '10', rest_seconds: 45 },
+        { name: 'Kettlebell swing', sets: 4, reps: '15', rest_seconds: 45 },
+        { name: 'Mountain climbers', sets: 4, reps: '20', rest_seconds: 45 },
+        { name: 'Box step-up', sets: 4, reps: '12', rest_seconds: 45 }
+      ]}
     ]
   },
-  football: {
-    label: 'Football', icon: '⚽',
-    positions: {
-      gardien: { label: 'Gardien' },
-      defenseur: { label: 'Défenseur' },
-      milieu: { label: 'Milieu' },
-      attaquant: { label: 'Attaquant' }
-    },
-    templates: [
-      {
-        id: 'foot_physique_terrain',
-        name: 'Physique terrain – Défenseur/Milieu',
-        position: 'defenseur',
-        type: 'simple',
-        description: 'Force athlétique et endurance spécifique au football.',
-        sessions: [
-          { name: 'Force athlétique', exercises: [
-            { name: 'Squat', sets: 4, reps: '6', rest_seconds: 150 },
-            { name: 'Fentes bulgares', sets: 3, reps: '10', rest_seconds: 90 },
-            { name: 'Hip Thrust', sets: 3, reps: '12', rest_seconds: 90 },
-            { name: 'Gainage', sets: 3, reps: '60s', rest_seconds: 60 }
-          ]},
-          { name: 'Vitesse & Agilité', exercises: [
-            { name: 'Sprint 10m réaction', sets: 8, reps: '1', rest_seconds: 90 },
-            { name: 'Changements direction', sets: 6, reps: '20s', rest_seconds: 60 },
-            { name: 'Box jump', sets: 4, reps: '5', rest_seconds: 90 }
-          ]},
-          { name: 'Endurance spécifique', exercises: [
-            { name: 'Intermittent 30-30', sets: 10, reps: '1', rest_seconds: 30 },
-            { name: 'Navette 20m', sets: 6, reps: '1', rest_seconds: 60 }
-          ]}
-        ]
-      }
+  {
+    id: 'football-vitesse',
+    label: 'Football',
+    icon: '⚽',
+    name: 'Vitesse & Endurance - Football',
+    type: 'simple',
+    description: 'Programme athletique pour footballeurs. Priorite vitesse, explosivite et endurance specifique.',
+    sessions: [
+      { name: 'Vitesse & Sprint', exercises: [
+        { name: 'Sprint 10m depart arrete', sets: 8, reps: '1', rest_seconds: 60 },
+        { name: 'Sprint 30m', sets: 6, reps: '1', rest_seconds: 90 },
+        { name: 'Navettes 5-10-5', sets: 5, reps: '1', rest_seconds: 90 },
+        { name: 'Sauts horizontaux', sets: 4, reps: '5', rest_seconds: 60 }
+      ]},
+      { name: 'Force - Membres inferieurs', exercises: [
+        { name: 'Squat', sets: 4, reps: '6', rest_seconds: 150 },
+        { name: 'Fentes bulgares', sets: 3, reps: '8', rest_seconds: 120 },
+        { name: 'Nordic Curl', sets: 3, reps: '6', rest_seconds: 120 },
+        { name: 'Calf raises', sets: 4, reps: '15', rest_seconds: 60 }
+      ]},
+      { name: 'Endurance specifique', exercises: [
+        { name: 'Fractionne 30/30', sets: 10, reps: '1', rest_seconds: 30 },
+        { name: 'Carre 40m', sets: 6, reps: '1', rest_seconds: 60 },
+        { name: 'Jeu de jambes echelle', sets: 5, reps: '1', rest_seconds: 45 }
+      ]},
+      { name: 'Prevention & Gainage', exercises: [
+        { name: 'Planche', sets: 3, reps: '45s', rest_seconds: 45 },
+        { name: 'Pont fessier', sets: 3, reps: '15', rest_seconds: 45 },
+        { name: 'Copenhagen plank', sets: 3, reps: '20s', rest_seconds: 45 },
+        { name: 'Rotation epaules', sets: 2, reps: '15', rest_seconds: 30 }
+      ]}
     ]
   }
-}
+]
+
+const categoryIcons = { Rugby: <Users size={16} />, Fitness: <Dumbbell size={16} />, Football: <Zap size={16} /> }
 
 export default function ProgramTemplates() {
   const navigate = useNavigate()
-  const [selectedSport, setSelectedSport] = useState(null)
-  const [selectedTemplate, setSelectedTemplate] = useState(null)
 
-  const sports = Object.entries(PROGRAM_TEMPLATES)
-  const currentSport = selectedSport ? PROGRAM_TEMPLATES[selectedSport] : null
-  const templates = currentSport?.templates || []
-
-  if (selectedTemplate) {
-    const tpl = templates.find(t => t.id === selectedTemplate)
-    return (
-      <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:80}}>
-        <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
-          <button onClick={() => setSelectedTemplate(null)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><ArrowLeft size={20}/></button>
-          <h2 style={{margin:0, fontSize:16}}>{tpl?.name}</h2>
-        </div>
-        <div style={{padding:16}}>
-          <p style={{color:'#888', fontSize:13, marginBottom:16}}>{tpl?.description}</p>
-          <button onClick={() => navigate('/coach/programs/new', { state: { template: tpl } })}
-            style={{width:'100%', padding:'14px 0', background:'linear-gradient(135deg,#6366f1,#8b5cf6)', border:'none', borderRadius:14, color:'white', fontSize:16, fontWeight:700, cursor:'pointer', marginBottom:20}}>
-            Utiliser ce template
-          </button>
-          {(tpl?.blocks || tpl?.sessions || []).map((item, i) => (
-            <div key={i} style={{background:'#1e1e2e', borderRadius:12, padding:'12px 14px', marginBottom:10}}>
-              <p style={{margin:'0 0 8px', fontWeight:700, fontSize:14, color:'#a78bfa'}}>{item.name}{item.duration_weeks ? ' (' + item.duration_weeks + ' sem.)' : ''}</p>
-              {(item.sessions || []).map((s, j) => (
-                <div key={j} style={{marginBottom:8}}>
-                  <p style={{margin:'0 0 4px', fontSize:13, fontWeight:600, color:'#ccc'}}>{s.name}</p>
-                  {s.exercises.map((ex, k) => (
-                    <p key={k} style={{margin:'2px 0', fontSize:12, color:'#888', paddingLeft:10}}>• {ex.name} — {ex.sets}×{ex.reps}</p>
-                  ))}
-                </div>
-              ))}
-              {(item.exercises || []).map((ex, k) => (
-                <p key={k} style={{margin:'2px 0', fontSize:12, color:'#888', paddingLeft:10}}>• {ex.name} — {ex.sets}×{ex.reps}</p>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+  function useTemplate(tpl) {
+    navigate('/coach/programs/new', { state: { template: tpl } })
   }
 
   return (
-    <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:40}}>
-      <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
-        <button onClick={() => selectedSport ? setSelectedSport(null) : navigate(-1)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><ArrowLeft size={20}/></button>
-        <h2 style={{margin:0, fontSize:18}}>{selectedSport ? currentSport?.label : 'Templates de programmes'}</h2>
+    <PageLayout title="Gabarits de programmes" back="/coach">
+      <div className="p-4 pb-10 space-y-6">
+        {['Rugby', 'Fitness', 'Football'].map(cat => {
+          const tpls = TEMPLATES.filter(t => t.label === cat)
+          return (
+            <div key={cat}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-purple-400">{categoryIcons[cat]}</span>
+                <p className="text-sm font-semibold text-white">{cat}</p>
+              </div>
+              <div className="space-y-3">
+                {tpls.map(tpl => (
+                  <div key={tpl.id} style={{background:'#ffffff08', border:'1px solid #ffffff12', borderRadius:14, padding:16}}>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span style={{fontSize:22}}>{tpl.icon}</span>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{tpl.name}</p>
+                          <p style={{fontSize:11, color:'#888', marginTop:2}}>
+                            {tpl.type === 'block'
+                              ? tpl.blocks?.length + ' blocs - ' + tpl.blocks?.reduce((a, b) => a + (b.sessions?.length || 0), 0) + ' seances'
+                              : tpl.sessions?.length + ' seances'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => useTemplate(tpl)}
+                        style={{flexShrink:0, background:'linear-gradient(135deg,#7c3aed,#4f46e5)', color:'white', border:'none', borderRadius:10, padding:'8px 14px', fontSize:12, fontWeight:700, cursor:'pointer'}}
+                      >
+                        Utiliser
+                      </button>
+                    </div>
+                    <p style={{fontSize:12, color:'#888', margin:0, lineHeight:1.5}}>{tpl.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
-
-      <div style={{padding:16}}>
-        {!selectedSport ? (
-          <>
-            <p style={{color:'#888', fontSize:13, marginBottom:16}}>Choisis un sport pour voir les templates disponibles</p>
-            {sports.map(([key, sport]) => (
-              <button key={key} onClick={() => setSelectedSport(key)}
-                style={{width:'100%', background:'#1e1e2e', border:'none', borderRadius:12, padding:'16px', marginBottom:10, display:'flex', alignItems:'center', gap:14, cursor:'pointer', textAlign:'left'}}>
-                <span style={{fontSize:28}}>{sport.icon}</span>
-                <div style={{flex:1}}>
-                  <p style={{margin:0, fontWeight:600, color:'white', fontSize:15}}>{sport.label}</p>
-                  <p style={{margin:0, fontSize:12, color:'#888'}}>{sport.templates.length} template{sport.templates.length>1?'s':''}</p>
-                </div>
-                <ChevronRight size={16} color="#888"/>
-              </button>
-            ))}
-          </>
-        ) : (
-          <>
-            {templates.map(tpl => (
-              <button key={tpl.id} onClick={() => setSelectedTemplate(tpl.id)}
-                style={{width:'100%', background:'#1e1e2e', border:'none', borderRadius:12, padding:'16px', marginBottom:10, display:'flex', alignItems:'center', gap:12, cursor:'pointer', textAlign:'left'}}>
-                <div style={{flex:1}}>
-                  <p style={{margin:'0 0 4px', fontWeight:600, color:'white', fontSize:15}}>{tpl.name}</p>
-                  <p style={{margin:'0 0 6px', fontSize:12, color:'#888'}}>{tpl.description}</p>
-                  <span style={{fontSize:11, background:'#6366f122', color:'#6366f1', padding:'2px 8px', borderRadius:20, fontWeight:600}}>
-                    {currentSport?.positions?.[tpl.position]?.label || tpl.position}
-                  </span>
-                </div>
-                <ChevronRight size={16} color="#888"/>
-              </button>
-            ))}
-          </>
-        )}
-      </div>
-    </div>
+    </PageLayout>
   )
 }
