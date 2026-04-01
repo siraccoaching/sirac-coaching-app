@@ -5,7 +5,7 @@ import { useAuth } from '../../lib/hooks'
 import { ArrowLeft, ChevronLeft, ChevronRight, Users } from 'lucide-react'
 
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-const MONTHS = ['Janvier','FÃ©vrier','Mars','Avril','Mai','Juin','Juillet','AoÃ»t','Septembre','Octobre','Novembre','DÃ©cembre']
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 
 export default function CoachCalendar() {
   const { profile } = useAuth()
@@ -69,7 +69,7 @@ export default function CoachCalendar() {
       <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
         <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><ArrowLeft size={20}/></button>
         <h2 style={{margin:0, flex:1, fontSize:18}}>Calendrier</h2>
-        <span style={{fontSize:13, color:'#888'}}>{completions.length} sÃ©ance{completions.length>1?'s':''} ce mois</span>
+        <span style={{fontSize:13, color:'#888'}}>{completions.length} séance{completions.length>1?'s':''} ce mois</span>
       </div>
 
       <div style={{background:'#1e1e2e', margin:'12px 16px', borderRadius:16, padding:16}}>
@@ -113,7 +113,7 @@ export default function CoachCalendar() {
 
       {selectedDay && (
         <div style={{padding:'0 16px'}}>
-          <p style={{margin:'0 0 10px', color:'#888', fontSize:13}}>{selectedComps.length > 0 ? selectedComps.length + ' sÃ©ance' + (selectedComps.length>1?'s':'') + ' le ' + selectedDay + ' ' + MONTHS[month] : 'Aucune sÃ©ance ce jour'}</p>
+          <p style={{margin:'0 0 10px', color:'#888', fontSize:13}}>{selectedComps.length > 0 ? selectedComps.length + ' séance' + (selectedComps.length>1?'s':'') + ' le ' + selectedDay + ' ' + MONTHS[month] : 'Aucune séance ce jour'}</p>
           {selectedComps.map(comp => {
             const cl = clientMap[comp.client_id]
             return (
@@ -124,7 +124,7 @@ export default function CoachCalendar() {
                 </div>
                 <div style={{flex:1}}>
                   <p style={{margin:0, fontWeight:600, fontSize:14}}>{cl?.name || 'Client'}</p>
-                  <p style={{margin:0, fontSize:12, color:'#888'}}>{comp.program_sessions?.name || 'SÃ©ance libre'} {comp.rpe_session ? 'Â· RPE ' + comp.rpe_session : ''}</p>
+                  <p style={{margin:0, fontSize:12, color:'#888'}}>{comp.program_sessions?.name || 'Séance libre'} {comp.rpe_session ? '· RPE ' + comp.rpe_session : ''}</p>
                 </div>
               </div>
             )
@@ -136,7 +136,7 @@ export default function CoachCalendar() {
         <div style={{padding:'0 16px'}}>
           <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:10}}>
             <Users size={14} color="#888"/>
-            <p style={{margin:0, fontSize:13, color:'#888'}}>ActivitÃ© de tous les clients ce mois</p>
+            <p style={{margin:0, fontSize:13, color:'#888'}}>Activité de tous les clients ce mois</p>
           </div>
           {clients.filter(c => completions.some(cp => cp.client_id === c.id)).map(c => {
             const count = completions.filter(cp => cp.client_id === c.id).length
@@ -147,7 +147,7 @@ export default function CoachCalendar() {
                   <span style={{color:'#6366f1', fontWeight:700, fontSize:13}}>{c.name[0]}</span>
                 </div>
                 <p style={{margin:0, flex:1, fontWeight:500, fontSize:14}}>{c.name}</p>
-                <span style={{fontSize:13, color:'#22c55e', fontWeight:600}}>{count} sÃ©ance{count>1?'s':''}</span>
+                <span style={{fontSize:13, color:'#22c55e', fontWeight:600}}>{count} séance{count>1?'s':''}</span>
               </div>
             )
           })}
