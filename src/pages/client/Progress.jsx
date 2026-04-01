@@ -27,7 +27,7 @@ function LineChart({ data, label }) {
         {pts.map((p,i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill={color} stroke="#1e1e2e" strokeWidth={1.5}/>)}
       </svg>
       <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'#666',marginTop:3}}>
-        <span>{data[0].date}</span><span style={{color:'#888'}}>{values[0]} → {values[values.length-1]} kg</span><span>{data[data.length-1].date}</span>
+        <span>{data[0].date}</span><span style={{color:'#888'}}>{values[0]} â {values[values.length-1]} kg</span><span>{data[data.length-1].date}</span>
       </div>
     </div>
   )
@@ -141,7 +141,7 @@ export default function Progress() {
       </div>
 
       <div style={{display:'flex',margin:'12px 16px 8px',background:'#1e1e2e',borderRadius:10,padding:4}}>
-        {[['load','📈 Charges max'],['tonnage','📊 Tonnage hebdo']].map(([k,l])=>(
+        {[['load','ð Charges max'],['tonnage','ð Tonnage hebdo']].map(([k,l])=>(
           <button key={k} onClick={()=>setActiveTab(k)} style={{flex:1,padding:'8px 0',border:'none',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:600,
             background:activeTab===k?'#6366f1':'transparent',color:activeTab===k?'white':'#888'}}>{l}</button>
         ))}
