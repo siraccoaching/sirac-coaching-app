@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
-import { Calendar, Save, CheckCircle, ExternalLink } from 'lucide-react'
+import { Calendar, Save, CheckCircle, ExternalLink, Link, Copy, RefreshCw } from 'lucide-react'
 
 const inputStyle = {
   WebkitTextFillColor: 'white',
@@ -17,10 +17,14 @@ export default function CoachSettings() {
   const [calendlyUrl, setCalendlyUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [inviteCode, setInviteCode] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [generatingCode, setGeneratingCode] = useState(false)
 
   useEffect(() => {
     if (!profile) return
     setCalendlyUrl(profile.calendly_url || '')
+    setInviteCode(profile.invite_code || '')
   }, [profile])
 
   async function handleSave() {
@@ -34,6 +38,20 @@ export default function CoachSettings() {
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
+
+  async function generateInviteCode() {
+    setGeneratingCode(true)
+    const newCode = Math.random().toString(36).substring(2, 10).toUpperCase()
+    const { error } = await supabase.from('profiles').update({ invite_code: newCode }).eq('id', profile.id)
+    if (!error) setInviteCode(newCode)
+    setGeneratingCode(false)
+  }
+
+  function copyInviteLink() {
+    const link = window.location.origin + '/join?code=' + inviteCode
+    navigator.clipboard.writeText(link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+
 
   return (
     <PageLayout title="Paramètres" back="/coach">
@@ -91,6 +109,38 @@ export default function CoachSettings() {
             <p>4. Tes clients verront un bouton "Réserver une séance" dans leur app</p>
           </div>
         </Card>
+
+        <Card className="p-4 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Link size={16} className="text-purple-400" />
+            <p className="text-sm font-semibold text-white">Lien d'invitation client</p>
+          </div>
+          <p className="text-xs text-gray-400">Partagez ce lien pour que vos clients rejoignent votre espace directement.</p>
+
+          {inviteCode ? (
+            <div style={{background:'#ffffff0d', borderRadius:10, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, border:'1px solid #ffffff15'}}>
+              <span style={{flex:1, fontSize:12, color:'#a78bfa', wordBreak:'break-all', fontFamily:'monospace'}}>
+                {window.location.origin}/join?code={inviteCode}
+              </span>
+              <button onClick={copyInviteLink} style={{flexShrink:0, background: copied ? '#22c55e22' : '#7c3aed33', border:'1px solid ' + (copied ? '#22c55e44' : '#7c3aed44'), borderRadius:8, padding:'6px 10px', color: copied ? '#22c55e' : '#a78bfa', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:4}}>
+                {copied ? <CheckCircle size={13}/> : <Copy size={13}/>}
+                {copied ? 'Copié !' : 'Copier'}
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">Aucun code généré pour l'instant.</p>
+          )}
+
+          <button
+            onClick={generateInviteCode}
+            disabled={generatingCode}
+            className="flex items-center gap-2 bg-dark-700 border border-white/10 hover:bg-dark-600 text-white text-xs font-medium px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={generatingCode ? 'animate-spin' : ''} />
+            {inviteCode ? 'Régénérer le lien' : 'Générer un lien'}
+          </button>
+        </Card>
+
       </div>
     </PageLayout>
   )
