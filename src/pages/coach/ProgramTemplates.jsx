@@ -6,7 +6,7 @@ const TEMPLATES = [
   {
     id: 'rugby-avants',
     label: 'Rugby',
-    icon: '🏉',
+    icon: 'ð',
     name: 'Force & Puissance - Avants',
     position: 'avants',
     type: 'block',
@@ -79,7 +79,7 @@ const TEMPLATES = [
   {
     id: 'fitness-perte-poids',
     label: 'Fitness',
-    icon: '🔥',
+    icon: 'ð¥',
     name: 'Perte de poids & Remise en forme',
     type: 'simple',
     description: 'Programme complet 3 seances par semaine pour la perte de poids et le renforcement musculaire.',
@@ -109,7 +109,7 @@ const TEMPLATES = [
   {
     id: 'football-vitesse',
     label: 'Football',
-    icon: '⚽',
+    icon: 'â½',
     name: 'Vitesse & Endurance - Football',
     type: 'simple',
     description: 'Programme athletique pour footballeurs. Priorite vitesse, explosivite et endurance specifique.',
