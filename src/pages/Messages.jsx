@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
-import { useAuth } from '../../lib/hooks'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../lib/hooks'
 import { ArrowLeft, Send } from 'lucide-react'
 
 // Shared conversation view used by both coach and client
@@ -94,7 +94,7 @@ export function ConversationView({ otherId, otherName }) {
 
       <div style={{padding:'10px 16px 24px', background:'#1e1e2e', borderTop:'1px solid #2a2a3e', display:'flex', gap:10, alignItems:'flex-end'}}>
         <textarea value={text} onChange={e => setText(e.target.value)} onKeyDown={handleKey}
-          placeholder={"Message à " + otherName + "..."}
+          placeholder={"Message Ã  " + otherName + "..."}
           rows={1} style={{flex:1, background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:12, padding:'10px 14px',
             color:'white', fontSize:14, resize:'none', outline:'none',
             WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
@@ -170,7 +170,7 @@ export function CoachMessages() {
               </div>
               <div style={{flex:1}}>
                 <p style={{margin:0, fontWeight:600, color:'white', fontSize:15}}>{c.full_name}</p>
-                {c.sport && <p style={{margin:0, fontSize:12, color:'#888'}}>{c.sport}{c.position ? ' · ' + c.position : ''}</p>}
+                {c.sport && <p style={{margin:0, fontSize:12, color:'#888'}}>{c.sport}{c.position ? ' Â· ' + c.position : ''}</p>}
               </div>
               {unread[c.id] > 0 && (
                 <span style={{background:'#6366f1', color:'white', borderRadius:'50%', width:22, height:22, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0}}>{unread[c.id]}</span>
@@ -205,10 +205,10 @@ export function ClientMessages() {
     <div style={{minHeight:'100vh', background:'#0f0f1a', display:'flex', flexDirection:'column'}}>
       <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
         <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><ArrowLeft size={20}/></button>
-        <h2 style={{margin:0, fontSize:18}}>Mon coach {coachName ? '— ' + coachName : ''}</h2>
+        <h2 style={{margin:0, fontSize:18}}>Mon coach {coachName ? 'â ' + coachName : ''}</h2>
       </div>
       {loading ? <p style={{color:'#888', textAlign:'center', marginTop:40}}>Chargement...</p> :
-       !coachId ? <p style={{color:'#888', textAlign:'center', marginTop:40}}>Aucun coach associé</p> : (
+       !coachId ? <p style={{color:'#888', textAlign:'center', marginTop:40}}>Aucun coach associÃ©</p> : (
         <div style={{flex:1, overflow:'hidden', display:'flex', flexDirection:'column'}}>
           <ConversationView otherId={coachId} otherName={coachName}/>
         </div>
