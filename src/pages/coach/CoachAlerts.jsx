@@ -17,7 +17,7 @@ export default function CoachAlerts() {
 
   async function loadAlerts() {
     setLoading(true)
-    const { data: clients } = await supabase.from('profiles').select('id, full_name, sport').eq('coach_id', profile.id)
+    const { data: clients } = await supabase.from('profiles').select('id, name, sport').eq('coach_id', profile.id)
     if (!clients?.length) { setLoading(false); return }
 
     const clientIds = clients.map(c => c.id)
@@ -47,7 +47,7 @@ export default function CoachAlerts() {
         if (!anyComp) continue // new client, no alert
         const daysSince = Math.floor((now - new Date(anyComp.created_at)) / 86400000)
         if (daysSince >= 7) {
-          newAlerts.push({ id: 'inactive_' + client.id, type: 'inactive', clientId: client.id, clientName: client.full_name, days: daysSince, ts: anyComp.created_at })
+          newAlerts.push({ id: 'inactive_' + client.id, type: 'inactive', clientId: client.id, clientName: client.name, days: daysSince, ts: anyComp.created_at })
         }
       }
 
@@ -82,7 +82,7 @@ export default function CoachAlerts() {
           const m = Math.max(...sets.map(s => parseFloat(s.load) || 0))
           const prev = histMax[log.exercise_id]
           if (prev && m > prev) {
-            newAlerts.push({ id: 'pr_' + client.id + '_' + log.exercise_id, type: 'pr', clientId: client.id, clientName: client.full_name, exercise: name, load: m, prev, ts: comp.created_at })
+            newAlerts.push({ id: 'pr_' + client.id + '_' + log.exercise_id, type: 'pr', clientId: client.id, clientName: client.name, exercise: name, load: m, prev, ts: comp.created_at })
           }
         }
       }
@@ -121,9 +121,9 @@ export default function CoachAlerts() {
           <div style={{flex:1}}>
             <p style={{margin:'0 0 2px', fontSize:13, fontWeight:600, color:'white'}}>{alert.clientName}</p>
             {alert.type === 'pr' ? (
-              <p style={{margin:0, fontSize:12, color:'#22c55e'}}>🏆 PR sur {alert.exercise} : {alert.load} kg (+{(alert.load - alert.prev).toFixed(1)})</p>
+              <p style={{margin:0, fontSize:12, color:'#22c55e'}}>ð PR sur {alert.exercise} : {alert.load} kg (+{(alert.load - alert.prev).toFixed(1)})</p>
             ) : (
-              <p style={{margin:0, fontSize:12, color:'#ef4444'}}>⚠️ Inactif depuis {alert.days} jours</p>
+              <p style={{margin:0, fontSize:12, color:'#ef4444'}}>â ï¸ Inactif depuis {alert.days} jours</p>
             )}
           </div>
           <button onClick={e => { e.stopPropagation(); dismiss(alert.id) }}
