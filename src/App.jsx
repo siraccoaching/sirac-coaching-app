@@ -16,6 +16,7 @@ import SessionLogger from './pages/client/SessionLogger'
 import Measurements from './pages/client/Measurements'
 import WeeklyCheckin from './pages/client/WeeklyCheckin'
 import BookSession from './pages/client/BookSession'
+import Progress from './pages/client/Progress'
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, profile, loading } = useAuth()
@@ -63,6 +64,7 @@ export default function App() {
         <Route path="/client/measurements" element={<ProtectedRoute requiredRole="client"><Measurements /></ProtectedRoute>} />
         <Route path="/client/checkin" element={<ProtectedRoute requiredRole="client"><WeeklyCheckin /></ProtectedRoute>} />
         <Route path="/client/book" element={<ProtectedRoute requiredRole="client"><BookSession /></ProtectedRoute>} />
+        <Route path="/client/progress" element={<ProtectedRoute requiredRole="client"><Progress /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
