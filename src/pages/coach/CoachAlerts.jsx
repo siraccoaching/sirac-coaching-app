@@ -63,7 +63,7 @@ export default function CoachAlerts() {
       if (!pastComps?.length) continue
       const pastIds = pastComps.map(c => c.id)
       const { data: pastLogs } = await supabase.from('exercise_logs')
-        .select('exercise_id, set_data').in('session_completion_id', pastIds)
+        .select('exercise_id, set_data').in('completion_id', pastIds)
       const histMax = {}
       for (const log of pastLogs || []) {
         const sets = (log.set_data || []).filter(s => parseFloat(s.load) > 0)
