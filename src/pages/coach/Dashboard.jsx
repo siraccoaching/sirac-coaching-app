@@ -58,8 +58,8 @@ export default function CoachDashboard() {
 
   function triggerNotification(session) {
     if (Notification.permission === 'granted') {
-      new Notification('🏋️ Séance complétée !', {
-        body: `Un athlète vient de terminer sa séance – ${session.day_title || 'Entraînement'}`,
+      new Notification('ðï¸ Séance complétée !', {
+        body: `Un athlète vient de terminer sa séance â ${session.day_title || 'Entraînement'}`,
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',
       })
@@ -253,8 +253,8 @@ export default function CoachDashboard() {
 
 function StatusBadge({ status }) {
   const map = {
-    'done-today': { color: 'green', label: "✓ Aujourd'hui" },
-    'in-progress': { color: 'orange', label: '● En cours' },
+    'done-today': { color: 'green', label: "â Aujourd'hui" },
+    'in-progress': { color: 'orange', label: 'â En cours' },
     'done': { color: 'blue', label: 'Complété' },
     'no-session': { color: 'gray', label: 'En attente' },
   }
