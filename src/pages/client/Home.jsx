@@ -80,14 +80,14 @@ export default function ClientHome() {
   }
 
   return (
-    <PageLayout title={"Bonjour " + (profile?.name?.split(' ')[0] || '') + " ð"} subtitle="Ton espace entraÃ®nement">
+    <PageLayout title={"Bonjour " + (profile?.name?.split(' ')[0] || '') + " ð"} subtitle="Ton espace entraînement">
       <div className="space-y-4">
 
         {/* Stats bar */}
         <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8}}>
           <div style={{background:'#1e1e2e', borderRadius:12, padding:'10px 8px', textAlign:'center'}}>
             <p style={{margin:0, fontSize:22, fontWeight:800, color:'#6366f1'}}>{totalSessions}</p>
-            <p style={{margin:0, fontSize:10, color:'#888'}}>sÃ©ances</p>
+            <p style={{margin:0, fontSize:10, color:'#888'}}>séances</p>
           </div>
           <div style={{background:'#1e1e2e', borderRadius:12, padding:'10px 8px', textAlign:'center'}}>
             <p style={{margin:0, fontSize:22, fontWeight:800, color:'#f59e0b'}}>{streak} ð¥</p>
@@ -105,9 +105,9 @@ export default function ClientHome() {
             onClick={() => navigate('/client/session-log/' + nextSession.id)}>
             <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
               <div>
-                <p style={{margin:'0 0 3px', fontSize:12, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'0.05em'}}>Prochaine sÃ©ance</p>
+                <p style={{margin:'0 0 3px', fontSize:12, color:'rgba(255,255,255,0.7)', textTransform:'uppercase', letterSpacing:'0.05em'}}>Prochaine séance</p>
                 <p style={{margin:'0 0 2px', fontSize:17, fontWeight:700, color:'white'}}>{nextSession.name}</p>
-                <p style={{margin:0, fontSize:12, color:'rgba(255,255,255,0.6)'}}>{nextSession.programName} Â· {nextSession.program_exercises?.length || 0} exercices</p>
+                <p style={{margin:0, fontSize:12, color:'rgba(255,255,255,0.6)'}}>{nextSession.programName} · {nextSession.program_exercises?.length || 0} exercices</p>
               </div>
               <div style={{width:44, height:44, borderRadius:'50%', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
                 <Play size={20} color="white" fill="white"/>
@@ -117,7 +117,7 @@ export default function ClientHome() {
         ) : (
           <div style={{background:'#1e1e2e', borderRadius:16, padding:'16px 18px', textAlign:'center', cursor:'pointer'}} onClick={() => navigate('/client/program')}>
             <p style={{margin:'0 0 4px', fontSize:15, color:'#888'}}>Aucun programme actif</p>
-            <p style={{margin:0, fontSize:12, color:'#6366f1'}}>Voir mes programmes â</p>
+            <p style={{margin:0, fontSize:12, color:'#6366f1'}}>Voir mes programmes </p>
           </div>
         )}
 
@@ -128,8 +128,8 @@ export default function ClientHome() {
               <CheckCircle size={18} color="#22c55e"/>
             </div>
             <div style={{flex:1}}>
-              <p style={{margin:0, fontSize:13, fontWeight:600, color:'white'}}>{lastCompletion.program_sessions?.name || 'SÃ©ance libre'}</p>
-              <p style={{margin:0, fontSize:11, color:'#888'}}>DerniÃ¨re sÃ©ance Â· {timeAgo(lastCompletion.created_at)}</p>
+              <p style={{margin:0, fontSize:13, fontWeight:600, color:'white'}}>{lastCompletion.program_sessions?.name || 'Séance libre'}</p>
+              <p style={{margin:0, fontSize:11, color:'#888'}}>Dernière séance · {timeAgo(lastCompletion.created_at)}</p>
             </div>
           </div>
         )}
@@ -156,7 +156,7 @@ export default function ClientHome() {
         <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
           <button onClick={() => navigate('/client/program')} style={{background:'linear-gradient(135deg,#312e81aa,#4c1d95aa)', border:'1px solid #6366f133', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
             <div style={{width:32,height:32,background:'#6366f122',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><Dumbbell size={16} color="#818cf8"/></div>
-            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Mon programme</p><p style={{margin:0,fontSize:11,color:'#818cf8'}}>Voir mes sÃ©ances</p></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Mon programme</p><p style={{margin:0,fontSize:11,color:'#818cf8'}}>Voir mes séances</p></div>
           </button>
           <button onClick={() => navigate('/client/messages')} style={{position:'relative', background:'linear-gradient(135deg,#14532daa,#15803daa)', border:'1px solid #22c55e33', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
             {unreadCount > 0 && <span style={{position:'absolute',top:8,right:8,background:'#ef4444',borderRadius:'50%',width:18,height:18,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'white'}}>{unreadCount}</span>}
@@ -173,7 +173,7 @@ export default function ClientHome() {
           </button>
           <button onClick={() => navigate('/client/book')} style={{background:'linear-gradient(135deg,#4c1d95aa,#5b21b6aa)', border:'1px solid #7c3aed33', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
             <div style={{width:32,height:32,background:'#7c3aed22',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><Calendar size={16} color="#a78bfa"/></div>
-            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>RÃ©server</p><p style={{margin:0,fontSize:11,color:'#a78bfa'}}>Prendre RDV</p></div>
+            <div><p style={{margin:0,fontSize:13,fontWeight:600,color:'white'}}>Réserver</p><p style={{margin:0,fontSize:11,color:'#a78bfa'}}>Prendre RDV</p></div>
           </button>
           <button onClick={() => navigate('/client/checkin')} style={{background:'linear-gradient(135deg,#7c2d12aa,#9a3412aa)', border:'1px solid #f9731633', borderRadius:14, padding:'14px 12px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left'}}>
             <div style={{width:32,height:32,background:'#f9731622',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><ClipboardList size={16} color="#fb923c"/></div>
