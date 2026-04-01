@@ -31,6 +31,8 @@ export default function SessionLogger() {
   const [rpeValue, setRpeValue] = useState(7)
   const [wellbeingNote, setWellbeingNote] = useState('')
   const [rpeFeeling, setRpeFeeling] = useState(null)
+  const [historicalPRs, setHistoricalPRs] = useState({})
+  const [sessionPRs, setSessionPRs] = useState([])
 
   useEffect(() => { loadSession() }, [sessionId])
 
@@ -79,6 +81,26 @@ export default function SessionLogger() {
         if (ex.order_index === 0) setOpenExercises({ [ex.id]: true })
       }
       setLogs(initial)
+      // Fetch historical max per exercise for PR detection
+      if (data.program_exercises?.length > 0) {
+        const exIds = data.program_exercises.map(e => e.id)
+        const { data: pastComps } = await supabase
+          .from('session_completions').select('id').eq('client_id', profile.id)
+        const pastIds = (pastComps || []).map(s => s.id)
+        if (pastIds.length > 0) {
+          const { data: pastLogs } = await supabase
+            .from('exercise_logs').select('exercise_id, set_data')
+            .in('session_completion_id', pastIds).in('exercise_id', exIds)
+          const maxMap = {}
+          for (const log of pastLogs || []) {
+            const sets = (log.set_data || []).filter(s => parseFloat(s.load) > 0)
+            if (sets.length === 0) continue
+            const m = Math.max(...sets.map(s => parseFloat(s.load) || 0))
+            if (!maxMap[log.exercise_id] || m > maxMap[log.exercise_id]) maxMap[log.exercise_id] = m
+          }
+          setHistoricalPRs(maxMap)
+        }
+      }
     }
     setLoading(false)
   }
@@ -117,6 +139,19 @@ export default function SessionLogger() {
       const { error: logErr } = await supabase.from('exercise_logs').insert(logsToInsert)
       if (logErr) console.error('Log error:', logErr)
     }
+    // Detect PRs
+    const newPRs = []
+    for (const log of logsToInsert) {
+      const doneSets = (log.set_data || []).filter(s => s._done !== false && parseFloat(s.load) > 0)
+      if (doneSets.length === 0) continue
+      const maxLoad = Math.max(...doneSets.map(s => parseFloat(s.load) || 0))
+      const prevMax = historicalPRs[log.exercise_id] || 0
+      if (maxLoad > prevMax) {
+        const exName = sess?.program_exercises?.find(e => e.id === log.exercise_id)?.name || 'Exercice'
+        newPRs.push({ name: exName, load: maxLoad, prev: prevMax })
+      }
+    }
+    if (newPRs.length > 0) setSessionPRs(newPRs)
     setCompletionId(comp.id)
     setShowRPEModal(true)
   }
@@ -298,7 +333,18 @@ export default function SessionLogger() {
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-end', justifyContent:'center'}}>
           <div style={{background:'#1e1e2e', borderRadius:'24px 24px 0 0', padding:'28px 20px 40px', width:'100%', maxWidth:480}}>
             <h3 style={{margin:'0 0 6px', fontSize:20, fontWeight:700, textAlign:'center', color:'white'}}>Séance terminée ! 🎉</h3>
-            <p style={{margin:'0 0 24px', fontSize:14, color:'#888', textAlign:'center'}}>Comment tu te sens ?</p>
+            <p style={{margin:'0 0 16px', fontSize:14, color:'#888', textAlign:'center'}}>Comment tu te sens ?</p>
+            {sessionPRs.length > 0 && (
+              <div style={{background:'linear-gradient(135deg,#f59e0b22,#ef444422)', border:'1px solid #f59e0b44', borderRadius:12, padding:'12px 14px', marginBottom:16}}>
+                <p style={{margin:'0 0 8px', fontSize:13, fontWeight:700, color:'#f59e0b', textAlign:'center'}}>🏆 Nouveau{sessionPRs.length > 1 ? 'x' : ''} PR !</p>
+                {sessionPRs.map((pr, i) => (
+                  <div key={i} style={{display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:3}}>
+                    <span style={{color:'#e2e8f0'}}>{pr.name}</span>
+                    <span style={{color:'#f59e0b', fontWeight:700}}>{pr.load} kg {pr.prev > 0 ? '(+' + (pr.load - pr.prev).toFixed(1) + ')' : '🆕'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div style={{display:'flex', justifyContent:'space-around', marginBottom:24}}>
               {[['😴','Fatigué'], ['😐','Neutre'], ['💪','En forme'], ['🔥','Au top']].map(([emoji, label]) => (
