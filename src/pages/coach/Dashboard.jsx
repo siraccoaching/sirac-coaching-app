@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth, useClients } from '../../lib/hooks'
 import { supabase, subscribeToPush } from '../../lib/supabase'
 import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
-import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, Settings } from 'lucide-react'
+import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, Settings, Calendar, MessageCircle, BookOpen, LayoutTemplate } from 'lucide-react'
 
 export default function CoachDashboard() {
   const { profile } = useAuth()
@@ -225,6 +225,26 @@ export default function CoachDashboard() {
           )}
         </div>
       </div>
+
+          <div style={{marginTop:16, marginBottom:8}}>
+            <p style={{margin:'0 0 10px 4px', fontSize:12, color:'#888', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>Outils</p>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+              {[
+                { icon: <Calendar size={18}/>, label: 'Calendrier', path: '/coach/calendar', color: '#6366f1' },
+                { icon: <MessageCircle size={18}/>, label: 'Messages', path: '/coach/messages', color: '#22c55e' },
+                { icon: <BookOpen size={18}/>, label: 'Bibliothèque', path: '/coach/exercises', color: '#f59e0b' },
+                { icon: <LayoutTemplate size={18}/>, label: 'Templates', path: '/coach/templates', color: '#ec4899' },
+              ].map(tool => (
+                <button key={tool.path} onClick={() => navigate(tool.path)}
+                  style={{background:'#1e1e2e', border:'1px solid #2a2a3e', borderRadius:12, padding:'12px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', textAlign:'left'}}>
+                  <div style={{width:34, height:34, borderRadius:10, background:tool.color + '22', display:'flex', alignItems:'center', justifyContent:'center', color:tool.color, flexShrink:0}}>
+                    {tool.icon}
+                  </div>
+                  <span style={{fontSize:13, fontWeight:600, color:'white'}}>{tool.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
     </PageLayout>
   )
 }
