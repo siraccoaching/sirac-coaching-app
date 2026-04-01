@@ -13,7 +13,7 @@ const STEPS = [
 
 const SPORTS = ['Rugby','Football','Basketball','Tennis','Natation','Cyclisme','Fitness / Musculation','CrossFit','Athlétisme','Arts martiaux','Autre']
 const GOALS = ['Prise de masse','Perte de poids','Performance sportive','Force maximale','Endurance','Souplesse & mobilité','Rééducation / Santé']
-const LEVELS = ['Débutant (< 1 an)', 'Intermédiaire (1–3 ans)', 'Avancé (3–5 ans)', 'Expert (5+ ans)']
+const LEVELS = ['Débutant (< 1 an)', 'Intermédiaire (1â3 ans)', 'Avancé (3â5 ans)', 'Expert (5+ ans)']
 const FREQS = ['1 fois / semaine','2 fois / semaine','3 fois / semaine','4+ fois / semaine']
 
 export default function Onboarding() {
@@ -125,7 +125,7 @@ export default function Onboarding() {
           ) : (
             <button onClick={finish} disabled={saving}
               style={{width:'100%',padding:'14px 0',background:saving?'#3a3a4e':'linear-gradient(135deg,#6366f1,#8b5cf6)',border:'none',borderRadius:14,color:'white',fontSize:16,fontWeight:700,cursor:saving?'default':'pointer'}}>
-              {saving ? 'Enregistrement...' : 'Terminer et accéder à mon espace 🚀'}
+              {saving ? 'Enregistrement...' : 'Terminer et accéder à mon espace ð'}
             </button>
           )}
           {step > 0 && (
