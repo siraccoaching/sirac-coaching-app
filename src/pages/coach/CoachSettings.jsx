@@ -67,7 +67,7 @@ export default function CoachSettings() {
 
 
   return (
-    <PageLayout title="ParamÃ¨tres" back="/coach">
+    <PageLayout title="Paramètres" back="/coach">
       <div className="p-4 pb-10 space-y-4">
 
         <Card className="p-4 space-y-4">
@@ -77,12 +77,12 @@ export default function CoachSettings() {
             </div>
             <div>
               <h3 className="text-white text-sm font-semibold">Lien Calendly</h3>
-              <p className="text-gray-500 text-xs">Tes clients pourront rÃ©server directement depuis l'app</p>
+              <p className="text-gray-500 text-xs">Tes clients pourront réserver directement depuis l'app</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-gray-400 text-xs font-medium">Ton lien de rÃ©servation</label>
+            <label className="text-gray-400 text-xs font-medium">Ton lien de réservation</label>
             <input
               value={calendlyUrl}
               onChange={e => setCalendlyUrl(e.target.value)}
@@ -91,7 +91,7 @@ export default function CoachSettings() {
               className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm transition-colors"
             />
             <p className="text-gray-600 text-xs">
-              Colle l'URL de ton profil Calendly ou d'un type d'Ã©vÃ©nement spÃ©cifique.
+              Colle l'URL de ton profil Calendly ou d'un type d'événement spécifique.
             </p>
           </div>
 
@@ -109,17 +109,17 @@ export default function CoachSettings() {
                 ? 'bg-green-600 text-white'
                 : 'bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white'
             }`}>
-            {saved ? <><CheckCircle size={16} /> SauvegardÃ©Â !</> : saving ? 'Enregistrement...' : <><Save size={16} /> Sauvegarder</>}
+            {saved ? <><CheckCircle size={16} /> Sauvegardé !</> : saving ? 'Enregistrement...' : <><Save size={16} /> Sauvegarder</>}
           </button>
         </Card>
 
         <Card className="p-4">
-          <h3 className="text-white text-sm font-semibold mb-2">Comment Ã§a marcheÂ ?</h3>
+          <h3 className="text-white text-sm font-semibold mb-2">Comment ça marche ?</h3>
           <div className="space-y-2 text-gray-400 text-sm">
-            <p>1. CrÃ©e un compte Calendly sur <span className="text-brand-400">calendly.com</span></p>
-            <p>2. Configure tes types d'Ã©vÃ©nements et disponibilitÃ©s</p>
+            <p>1. Crée un compte Calendly sur <span className="text-brand-400">calendly.com</span></p>
+            <p>2. Configure tes types d'événements et disponibilités</p>
             <p>3. Colle ton lien Calendly ici</p>
-            <p>4. Tes clients verront un bouton "RÃ©server une sÃ©ance" dans leur app</p>
+            <p>4. Tes clients verront un bouton "Réserver une séance" dans leur app</p>
           </div>
         </Card>
 
@@ -137,11 +137,11 @@ export default function CoachSettings() {
               </span>
               <button onClick={copyInviteLink} style={{flexShrink:0, background: copied ? '#22c55e22' : '#7c3aed33', border:'1px solid ' + (copied ? '#22c55e44' : '#7c3aed44'), borderRadius:8, padding:'6px 10px', color: copied ? '#22c55e' : '#a78bfa', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:4}}>
                 {copied ? <CheckCircle size={13}/> : <Copy size={13}/>}
-                {copied ? 'CopiÃ© !' : 'Copier'}
+                {copied ? 'Copié !' : 'Copier'}
               </button>
             </div>
           ) : (
-            <p className="text-xs text-gray-500">Aucun code gÃ©nÃ©rÃ© pour l'instant.</p>
+            <p className="text-xs text-gray-500">Aucun code généré pour l'instant.</p>
           )}
 
           <button
@@ -150,7 +150,7 @@ export default function CoachSettings() {
             className="flex items-center gap-2 bg-dark-700 border border-white/10 hover:bg-dark-600 text-white text-xs font-medium px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
           >
             <RefreshCw size={13} className={generatingCode ? 'animate-spin' : ''} />
-            {inviteCode ? 'RÃ©gÃ©nÃ©rer le lien' : 'GÃ©nÃ©rer un lien'}
+            {inviteCode ? 'Régénérer le lien' : 'Générer un lien'}
           </button>
         </Card>
 
