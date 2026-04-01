@@ -26,6 +26,11 @@ export default function SessionLogger() {
   const [activeTimer, setActiveTimer] = useState(null)
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [hasHistory, setHasHistory] = useState(false)
+  const [showRPEModal, setShowRPEModal] = useState(false)
+  const [completionId, setCompletionId] = useState(null)
+  const [rpeValue, setRpeValue] = useState(7)
+  const [wellbeingNote, setWellbeingNote] = useState('')
+  const [rpeFeeling, setRpeFeeling] = useState(null)
 
   useEffect(() => { loadSession() }, [sessionId])
 
@@ -111,6 +116,18 @@ export default function SessionLogger() {
     if (logsToInsert.length > 0) {
       const { error: logErr } = await supabase.from('exercise_logs').insert(logsToInsert)
       if (logErr) console.error('Log error:', logErr)
+    }
+    setCompletionId(comp.id)
+    setShowRPEModal(true)
+  }
+
+  async function submitRPE() {
+    if (completionId) {
+      await supabase.from('session_completions').update({
+        rpe_session: rpeValue,
+        wellbeing_note: wellbeingNote,
+        session_rating: { feeling: rpeFeeling }
+      }).eq('id', completionId)
     }
     navigate('/client/program', { replace: true })
   }
@@ -276,7 +293,51 @@ export default function SessionLogger() {
           Abandonner la séance
         </button>
 
-        {showQuitConfirm && (
+        
+      {showRPEModal && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-end', justifyContent:'center'}}>
+          <div style={{background:'#1e1e2e', borderRadius:'24px 24px 0 0', padding:'28px 20px 40px', width:'100%', maxWidth:480}}>
+            <h3 style={{margin:'0 0 6px', fontSize:20, fontWeight:700, textAlign:'center', color:'white'}}>Séance terminée ! 🎉</h3>
+            <p style={{margin:'0 0 24px', fontSize:14, color:'#888', textAlign:'center'}}>Comment tu te sens ?</p>
+
+            <div style={{display:'flex', justifyContent:'space-around', marginBottom:24}}>
+              {[['😴','Fatigué'], ['😐','Neutre'], ['💪','En forme'], ['🔥','Au top']].map(([emoji, label]) => (
+                <button key={emoji} onClick={() => setRpeFeeling(emoji)}
+                  style={{display:'flex', flexDirection:'column', alignItems:'center', gap:4, background: rpeFeeling === emoji ? '#6366f133' : 'transparent',
+                    border: rpeFeeling === emoji ? '2px solid #6366f1' : '2px solid #2a2a3e',
+                    borderRadius:12, padding:'10px 12px', cursor:'pointer'}}>
+                  <span style={{fontSize:24}}>{emoji}</span>
+                  <span style={{fontSize:10, color:'#aaa'}}>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            <p style={{margin:'0 0 8px', fontSize:13, color:'#ccc', fontWeight:600}}>Difficulté perçue (RPE) : <span style={{color:'#6366f1'}}>{rpeValue}/10</span></p>
+            <input type="range" min={1} max={10} value={rpeValue} onChange={e => setRpeValue(Number(e.target.value))}
+              style={{width:'100%', marginBottom:20, accentColor:'#6366f1'}}/>
+
+            <textarea value={wellbeingNote} onChange={e => setWellbeingNote(e.target.value)}
+              placeholder="Un commentaire sur ta séance ? (optionnel)"
+              rows={2}
+              style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:12,
+                padding:'10px 14px', color:'white', fontSize:14, resize:'none', boxSizing:'border-box', marginBottom:16,
+                WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
+
+            <button onClick={submitRPE}
+              style={{width:'100%', padding:'14px 0', background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                border:'none', borderRadius:14, color:'white', fontSize:16, fontWeight:700, cursor:'pointer'}}>
+              Enregistrer et terminer
+            </button>
+            <button onClick={() => navigate('/client/program', { replace: true })}
+              style={{width:'100%', marginTop:10, padding:'10px 0', background:'transparent', border:'none',
+                color:'#666', fontSize:13, cursor:'pointer'}}>
+              Passer
+            </button>
+          </div>
+        </div>
+      )}
+
+{showQuitConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             <div className="bg-dark-800 border border-white/10 rounded-3xl p-6 w-full max-w-sm space-y-4">
               <div className="flex items-center justify-between">
