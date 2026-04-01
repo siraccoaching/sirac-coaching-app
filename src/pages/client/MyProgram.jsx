@@ -28,11 +28,12 @@ export default function MyProgram() {
         program_sessions!program_sessions_program_id_fkey(*, program_exercises(*))
       `)
       .eq('client_id', profile.id)
-      .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
+
     setProg(data || null)
+
     if (data) {
       const allSessionIds = (data.program_sessions || []).map(s => s.id)
       if (allSessionIds.length > 0) {
@@ -49,28 +50,47 @@ export default function MyProgram() {
 
   const doneIds = new Set(completions.map(c => c.program_session_id))
 
-  if (loading) return (<PageLayout title="Mon programme" back="/client"><div className="p-4 space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-dark-800 rounded-2xl animate-pulse" />)}</div></PageLayout>)
-  if (!prog) return (<PageLayout title="Mon programme" back="/client"><div className="p-8 text-center"><Dumbbell size={40} className="text-gray-600 mx-auto mb-3" /><p className="text-gray-400 text-sm font-medium">Aucun programme assign\u00e9</p><p className="text-gray-600 text-xs mt-1">Ton coach va bient\u00f4t te cr\u00e9er un programme.</p></div></PageLayout>)
+  if (loading) return (
+    <PageLayout title="Mon programme" back="/client">
+      <div className="p-4 space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-dark-800 rounded-2xl animate-pulse" />)}</div>
+    </PageLayout>
+  )
+
+  if (!prog) return (
+    <PageLayout title="Mon programme" back="/client">
+      <div className="p-8 text-center">
+        <Dumbbell size={40} className="text-gray-600 mx-auto mb-3" />
+        <p className="text-gray-400 text-sm font-medium">Aucun programme assigné</p>
+        <p className="text-gray-600 text-xs mt-1">Ton coach va bientôt te créer un programme.</p>
+      </div>
+    </PageLayout>
+  )
 
   const isBlock = prog.type === 'block'
   const blocks = prog.program_blocks?.sort((a, b) => a.order_index - b.order_index) || []
-  const simpleSessions = (prog.program_sessions || []).filter(s => !s.block_id).sort((a, b) => a.order_index - b.order_index)
+  const simpleSessions = (prog.program_sessions || [])
+    .filter(s => !s.block_id)
+    .sort((a, b) => a.order_index - b.order_index)
+
   const totalSessions = (prog.program_sessions || []).length
   const doneSessions = (prog.program_sessions || []).filter(s => doneIds.has(s.id)).length
 
   return (
     <PageLayout title={prog.name} back="/client">
       <div className="p-4 pb-10 space-y-4">
+
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
             <p className="text-white text-sm font-semibold">Progression</p>
             <p className="text-brand-400 text-sm font-bold">{doneSessions}/{totalSessions}</p>
           </div>
           <div className="w-full bg-dark-700 rounded-full h-2">
-            <div className="bg-brand-500 h-2 rounded-full transition-all" style={{ width: totalSessions ? ((doneSessions / totalSessions) * 100) + '%' : '0%' }} />
+            <div className="bg-brand-500 h-2 rounded-full transition-all"
+              style={{ width: totalSessions ? `${(doneSessions / totalSessions) * 100}%` : '0%' }} />
           </div>
-          <p className="text-gray-500 text-xs mt-1.5">seances completees</p>
+          <p className="text-gray-500 text-xs mt-1.5">séances complétées</p>
         </Card>
+
         {isBlock && blocks.map((block, bi) => {
           const blockSessions = (block.program_sessions || []).sort((a,b) => a.order_index - b.order_index)
           const blockDone = blockSessions.filter(s => doneIds.has(s.id)).length
@@ -81,7 +101,7 @@ export default function MyProgram() {
                 {openBlocks[bi] ? <ChevronUp size={14} className="text-brand-400" /> : <ChevronDown size={14} className="text-brand-400" />}
                 <div className="flex-1">
                   <p className="text-brand-300 text-sm font-semibold">{block.name}</p>
-                  <p className="text-gray-500 text-xs">{block.duration_weeks} sem - {blockDone}/{blockSessions.length} seances</p>
+                  <p className="text-gray-500 text-xs">{block.duration_weeks} sem · {blockDone}/{blockSessions.length} séances</p>
                 </div>
                 <Layers size={14} className="text-brand-500/50" />
               </button>
@@ -91,7 +111,7 @@ export default function MyProgram() {
                     <SessionCard key={sess.id} sess={sess} done={doneIds.has(sess.id)}
                       open={openSessions[sess.id]}
                       onToggle={() => setOpenSessions(os => ({ ...os, [sess.id]: !os[sess.id] }))}
-                      onStart={() => navigate('/client/session-log/' + sess.id)}
+                      onStart={() => navigate(`/client/session-log/${sess.id}`)}
                     />
                   ))}
                 </div>
@@ -99,6 +119,7 @@ export default function MyProgram() {
             </Card>
           )
         })}
+
         {!isBlock && (
           <div className="space-y-2">
             {simpleSessions.map(sess => (
@@ -106,7 +127,7 @@ export default function MyProgram() {
                 <SessionCard sess={sess} done={doneIds.has(sess.id)}
                   open={openSessions[sess.id]}
                   onToggle={() => setOpenSessions(os => ({ ...os, [sess.id]: !os[sess.id] }))}
-                  onStart={() => navigate('/client/session-log/' + sess.id)}
+                  onStart={() => navigate(`/client/session-log/${sess.id}`)}
                 />
               </Card>
             ))}
@@ -123,12 +144,18 @@ function SessionCard({ sess, done, open, onToggle, onStart }) {
     <div className="border border-white/8 rounded-xl overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 bg-dark-800">
         <button onClick={onToggle} className="flex-1 flex items-center gap-2 text-left min-w-0">
-          {done ? <CheckCircle size={14} className="text-green-400 flex-shrink-0" /> : (open ? <ChevronUp size={13} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={13} className="text-gray-500 flex-shrink-0" />)}
-          <span className={'text-sm truncate ' + (done ? 'text-gray-400 line-through' : 'text-white')}>{sess.name}</span>
+          {done
+            ? <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
+            : (open ? <ChevronUp size={13} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={13} className="text-gray-500 flex-shrink-0" />)
+          }
+          <span className={`text-sm truncate ${done ? 'text-gray-400 line-through' : 'text-white'}`}>{sess.name}</span>
           <span className="text-gray-600 text-xs flex-shrink-0">{exercises.length} exo{exercises.length !== 1 ? 's' : ''}</span>
         </button>
-        <button onClick={onStart} className={'flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex-shrink-0 ' + (done ? 'bg-green-500/15 text-green-400' : 'bg-brand-600 text-white')}>
-          {done ? <><CheckCircle size={11} /> Refaire</> : <><Play size={11} /> Demarrer</>}
+        <button onClick={onStart}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex-shrink-0 ${
+            done ? 'bg-green-500/15 text-green-400' : 'bg-brand-600 text-white'
+          }`}>
+          {done ? <><CheckCircle size={11} /> Refaire</> : <><Play size={11} /> Démarrer</>}
         </button>
       </div>
       {open && (
@@ -140,7 +167,7 @@ function SessionCard({ sess, done, open, onToggle, onStart }) {
               <div className="flex-1 min-w-0">
                 <p className="text-white text-xs font-medium">{ex.name}</p>
                 <div className="flex flex-wrap gap-2 mt-0.5">
-                  <span className="text-gray-500 text-xs">{ex.sets}x{ex.reps}</span>
+                  <span className="text-gray-500 text-xs">{ex.sets}×{ex.reps}</span>
                   {ex.load && <span className="text-gray-500 text-xs">@ {ex.load}</span>}
                   {ex.rpe && <span className="text-gray-500 text-xs">RPE {ex.rpe}</span>}
                   {ex.rest_seconds > 0 && <span className="text-gray-500 text-xs flex items-center gap-0.5"><Clock size={9} />{ex.rest_seconds}s</span>}
