@@ -5,7 +5,7 @@ import { ArrowLeft, Trash2, TrendingUp, Calendar, ChevronDown, ChevronUp } from 
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
-    return <p style={{color:'#888', fontSize:12, margin:'4px 0 8px'}}>Pas encore assez de données</p>
+    return <p style={{color:'#888', fontSize:12, margin:'4px 0 8px'}}>Pas encore assez de donnÃ©es</p>
   }
   const values = data.map(d => d.value)
   const min = Math.min(...values)
@@ -48,7 +48,7 @@ function ProgressChart({ data, label }) {
       </svg>
       <div style={{display:'flex', justifyContent:'space-between', fontSize:10, color:'#666', marginTop:3}}>
         <span>{data[0].date}</span>
-        <span style={{color:'#888'}}>{first} kg → {last} kg</span>
+        <span style={{color:'#888'}}>{first} kg â {last} kg</span>
         <span>{data[data.length-1].date}</span>
       </div>
     </div>
@@ -102,7 +102,7 @@ export default function ClientDetail() {
   }
 
   async function deleteCompletion(compId) {
-    if (!confirm('Supprimer cette séance ?')) return
+    if (!confirm('Supprimer cette sÃ©ance ?')) return
     setDeleting(compId)
     await supabase.from('exercise_logs').delete().eq('session_completion_id', compId)
     await supabase.from('session_completions').delete().eq('id', compId)
@@ -141,18 +141,18 @@ export default function ClientDetail() {
           <ArrowLeft size={20}/>
         </button>
         <div style={{flex:1}}>
-          <h2 style={{margin:0, fontSize:18}}>{client.full_name}</h2>
-          {client.sport && <p style={{margin:0, fontSize:13, color:'#888'}}>{client.sport}{client.position ? ' · ' + client.position : ''}</p>}
+          <h2 style={{margin:0, fontSize:18}}>{client.name}</h2>
+          {client.sport && <p style={{margin:0, fontSize:13, color:'#888'}}>{client.sport}{client.position ? ' Â· ' + client.position : ''}</p>}
         </div>
       </div>
 
       <div style={{display:'flex', gap:10, padding:'12px 16px'}}>
         <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
           <p style={{margin:0, fontSize:22, fontWeight:700, color:'#6366f1'}}>{completions.length}</p>
-          <p style={{margin:0, fontSize:11, color:'#888'}}>séances</p>
+          <p style={{margin:0, fontSize:11, color:'#888'}}>sÃ©ances</p>
         </div>
         <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
-          <p style={{margin:0, fontSize:22, fontWeight:700, color:'#f59e0b'}}>{streak} 🔥</p>
+          <p style={{margin:0, fontSize:22, fontWeight:700, color:'#f59e0b'}}>{streak} ð¥</p>
           <p style={{margin:0, fontSize:11, color:'#888'}}>jours consec.</p>
         </div>
         <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
@@ -162,7 +162,7 @@ export default function ClientDetail() {
       </div>
 
       <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4}}>
-        {[['history','📋 Historique'], ['progress','📈 Progression']].map(([key, label]) => (
+        {[['history','ð Historique'], ['progress','ð Progression']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:600,
               background: tab === key ? '#6366f1' : 'transparent',
@@ -175,16 +175,16 @@ export default function ClientDetail() {
       {tab === 'history' && (
         <div style={{padding:'0 16px'}}>
           {completions.length === 0 && (
-            <p style={{color:'#888', textAlign:'center', marginTop:40}}>Aucune séance enregistrée</p>
+            <p style={{color:'#888', textAlign:'center', marginTop:40}}>Aucune sÃ©ance enregistrÃ©e</p>
           )}
           {completions.map(comp => (
             <div key={comp.id} style={{background:'#1e1e2e', borderRadius:12, marginBottom:12, overflow:'hidden'}}>
               <div style={{padding:'12px 14px', display:'flex', alignItems:'center', gap:8}}>
                 <div style={{flex:1}}>
-                  <p style={{margin:0, fontWeight:600, fontSize:15}}>{comp.program_sessions?.name || 'Séance libre'}</p>
+                  <p style={{margin:0, fontWeight:600, fontSize:15}}>{comp.program_sessions?.name || 'SÃ©ance libre'}</p>
                   <p style={{margin:0, fontSize:12, color:'#888'}}>
                     {new Date(comp.created_at).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short', year:'numeric'})}
-                    {comp.duration_seconds ? ' · ' + Math.round(comp.duration_seconds / 60) + ' min' : ''}
+                    {comp.duration_seconds ? ' Â· ' + Math.round(comp.duration_seconds / 60) + ' min' : ''}
                   </p>
                 </div>
                 <button onClick={() => deleteCompletion(comp.id)} disabled={deleting === comp.id}
@@ -211,7 +211,7 @@ export default function ClientDetail() {
                             borderRadius:6, padding:'3px 8px', fontSize:11,
                             color: s._done === false ? '#555' : '#ccc'
                           }}>
-                            {s.reps ? s.reps + ' reps' : ''}{s.load ? ' · ' + s.load + 'kg' : ''}{s.rpe ? ' · RPE ' + s.rpe : ''}
+                            {s.reps ? s.reps + ' reps' : ''}{s.load ? ' Â· ' + s.load + 'kg' : ''}{s.rpe ? ' Â· RPE ' + s.rpe : ''}
                           </div>
                         ))}
                       </div>
@@ -230,8 +230,8 @@ export default function ClientDetail() {
           {progressEntries.length === 0 ? (
             <div style={{textAlign:'center', marginTop:50, color:'#888'}}>
               <TrendingUp size={44} style={{margin:'0 auto 14px', display:'block', opacity:0.3}}/>
-              <p style={{fontSize:15, margin:'0 0 8px'}}>Pas encore assez de données</p>
-              <p style={{fontSize:12, margin:0}}>Il faut au moins 2 séances avec des charges renseignées.</p>
+              <p style={{fontSize:15, margin:'0 0 8px'}}>Pas encore assez de donnÃ©es</p>
+              <p style={{fontSize:12, margin:0}}>Il faut au moins 2 sÃ©ances avec des charges renseignÃ©es.</p>
             </div>
           ) : (
             progressEntries.map(([name, data]) => (
