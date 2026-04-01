@@ -90,7 +90,7 @@ export default function SessionLogger() {
         if (pastIds.length > 0) {
           const { data: pastLogs } = await supabase
             .from('exercise_logs').select('exercise_id, set_data')
-            .in('session_completion_id', pastIds).in('exercise_id', exIds)
+            .in('completion_id', pastIds).in('exercise_id', exIds)
           const maxMap = {}
           for (const log of pastLogs || []) {
             const sets = (log.set_data || []).filter(s => parseFloat(s.load) > 0)
@@ -278,7 +278,7 @@ export default function SessionLogger() {
                           <input key={field}
                             value={set[field]}
                             onChange={e => updateSet(ex.id, si, field, e.target.value)}
-                            placeholder={field === 'reps' ? ex.reps : field === 'load' ? ex.load || '—' : '—'}
+                            placeholder={field === 'reps' ? ex.reps : field === 'load' ? ex.load || 'â' : 'â'}
                             style={inputStyle}
                             className="bg-dark-700 border border-white/10 rounded-lg px-2 py-2 text-white text-xs text-center focus:outline-none focus:border-brand-500 placeholder-gray-600"
                           />
@@ -332,22 +332,22 @@ export default function SessionLogger() {
       {showRPEModal && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-end', justifyContent:'center'}}>
           <div style={{background:'#1e1e2e', borderRadius:'24px 24px 0 0', padding:'28px 20px 40px', width:'100%', maxWidth:480}}>
-            <h3 style={{margin:'0 0 6px', fontSize:20, fontWeight:700, textAlign:'center', color:'white'}}>Séance terminée ! 🎉</h3>
+            <h3 style={{margin:'0 0 6px', fontSize:20, fontWeight:700, textAlign:'center', color:'white'}}>Séance terminée ! ð</h3>
             <p style={{margin:'0 0 16px', fontSize:14, color:'#888', textAlign:'center'}}>Comment tu te sens ?</p>
             {sessionPRs.length > 0 && (
               <div style={{background:'linear-gradient(135deg,#f59e0b22,#ef444422)', border:'1px solid #f59e0b44', borderRadius:12, padding:'12px 14px', marginBottom:16}}>
-                <p style={{margin:'0 0 8px', fontSize:13, fontWeight:700, color:'#f59e0b', textAlign:'center'}}>🏆 Nouveau{sessionPRs.length > 1 ? 'x' : ''} PR !</p>
+                <p style={{margin:'0 0 8px', fontSize:13, fontWeight:700, color:'#f59e0b', textAlign:'center'}}>ð Nouveau{sessionPRs.length > 1 ? 'x' : ''} PR !</p>
                 {sessionPRs.map((pr, i) => (
                   <div key={i} style={{display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:3}}>
                     <span style={{color:'#e2e8f0'}}>{pr.name}</span>
-                    <span style={{color:'#f59e0b', fontWeight:700}}>{pr.load} kg {pr.prev > 0 ? '(+' + (pr.load - pr.prev).toFixed(1) + ')' : '🆕'}</span>
+                    <span style={{color:'#f59e0b', fontWeight:700}}>{pr.load} kg {pr.prev > 0 ? '(+' + (pr.load - pr.prev).toFixed(1) + ')' : 'ð'}</span>
                   </div>
                 ))}
               </div>
             )}
 
             <div style={{display:'flex', justifyContent:'space-around', marginBottom:24}}>
-              {[['😴','Fatigué'], ['😐','Neutre'], ['💪','En forme'], ['🔥','Au top']].map(([emoji, label]) => (
+              {[['ð´','Fatigué'], ['ð','Neutre'], ['ðª','En forme'], ['ð¥','Au top']].map(([emoji, label]) => (
                 <button key={emoji} onClick={() => setRpeFeeling(emoji)}
                   style={{display:'flex', flexDirection:'column', alignItems:'center', gap:4, background: rpeFeeling === emoji ? '#6366f133' : 'transparent',
                     border: rpeFeeling === emoji ? '2px solid #6366f1' : '2px solid #2a2a3e',
