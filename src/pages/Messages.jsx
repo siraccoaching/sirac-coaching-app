@@ -94,7 +94,7 @@ export function ConversationView({ otherId, otherName }) {
 
       <div style={{padding:'10px 16px 24px', background:'#1e1e2e', borderTop:'1px solid #2a2a3e', display:'flex', gap:10, alignItems:'flex-end'}}>
         <textarea value={text} onChange={e => setText(e.target.value)} onKeyDown={handleKey}
-          placeholder={"Message Ã  " + otherName + "..."}
+          placeholder={"Message ÃÂ  " + otherName + "..."}
           rows={1} style={{flex:1, background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:12, padding:'10px 14px',
             color:'white', fontSize:14, resize:'none', outline:'none',
             WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
@@ -120,7 +120,7 @@ export function CoachMessages() {
   useEffect(() => { loadClients() }, [])
 
   async function loadClients() {
-    const { data: cls } = await supabase.from('profiles').select('id, full_name, sport, position').eq('coach_id', profile.id).order('full_name')
+    const { data: cls } = await supabase.from('profiles').select('id, name, sport, position').eq('coach_id', profile.id).order('name')
     setClients(cls || [])
     if (cls?.length > 0) {
       const { data: unreadMsgs } = await supabase.from('messages').select('sender_id').eq('receiver_id', profile.id).is('read_at', null)
@@ -139,12 +139,12 @@ export function CoachMessages() {
         <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
           <button onClick={() => navigate('/coach/messages')} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><ArrowLeft size={20}/></button>
           <div>
-            <p style={{margin:0, fontWeight:700, fontSize:16, color:'white'}}>{selectedClient.full_name}</p>
+            <p style={{margin:0, fontWeight:700, fontSize:16, color:'white'}}>{selectedClient.name}</p>
             {selectedClient.sport && <p style={{margin:0, fontSize:12, color:'#888'}}>{selectedClient.sport}</p>}
           </div>
         </div>
         <div style={{flex:1, overflow:'hidden', display:'flex', flexDirection:'column'}}>
-          <ConversationView otherId={clientId} otherName={selectedClient.full_name}/>
+          <ConversationView otherId={clientId} otherName={selectedClient.name}/>
         </div>
       </div>
     )
@@ -166,11 +166,11 @@ export function CoachMessages() {
             <button key={c.id} onClick={() => navigate('/coach/messages/' + c.id)}
               style={{width:'100%', background:'#1e1e2e', border:'none', borderRadius:12, padding:'14px 16px', marginBottom:10, display:'flex', alignItems:'center', gap:12, cursor:'pointer', textAlign:'left'}}>
               <div style={{width:40, height:40, borderRadius:'50%', background:'#6366f133', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
-                <span style={{color:'#6366f1', fontWeight:700, fontSize:16}}>{c.full_name[0]}</span>
+                <span style={{color:'#6366f1', fontWeight:700, fontSize:16}}>{c.name[0]}</span>
               </div>
               <div style={{flex:1}}>
-                <p style={{margin:0, fontWeight:600, color:'white', fontSize:15}}>{c.full_name}</p>
-                {c.sport && <p style={{margin:0, fontSize:12, color:'#888'}}>{c.sport}{c.position ? ' Â· ' + c.position : ''}</p>}
+                <p style={{margin:0, fontWeight:600, color:'white', fontSize:15}}>{c.name}</p>
+                {c.sport && <p style={{margin:0, fontSize:12, color:'#888'}}>{c.sport}{c.position ? ' ÃÂ· ' + c.position : ''}</p>}
               </div>
               {unread[c.id] > 0 && (
                 <span style={{background:'#6366f1', color:'white', borderRadius:'50%', width:22, height:22, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0}}>{unread[c.id]}</span>
@@ -193,8 +193,8 @@ export function ClientMessages() {
 
   useEffect(() => {
     async function getCoach() {
-      const { data } = await supabase.from('profiles').select('id, full_name').eq('id', profile.coach_id).single()
-      if (data) { setCoachId(data.id); setCoachName(data.full_name) }
+      const { data } = await supabase.from('profiles').select('id, name').eq('id', profile.coach_id).single()
+      if (data) { setCoachId(data.id); setCoachName(data.name) }
       setLoading(false)
     }
     if (profile?.coach_id) getCoach()
@@ -205,10 +205,10 @@ export function ClientMessages() {
     <div style={{minHeight:'100vh', background:'#0f0f1a', display:'flex', flexDirection:'column'}}>
       <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
         <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><ArrowLeft size={20}/></button>
-        <h2 style={{margin:0, fontSize:18}}>Mon coach {coachName ? 'â ' + coachName : ''}</h2>
+        <h2 style={{margin:0, fontSize:18}}>Mon coach {coachName ? 'Ã¢ÂÂ ' + coachName : ''}</h2>
       </div>
       {loading ? <p style={{color:'#888', textAlign:'center', marginTop:40}}>Chargement...</p> :
-       !coachId ? <p style={{color:'#888', textAlign:'center', marginTop:40}}>Aucun coach associÃ©</p> : (
+       !coachId ? <p style={{color:'#888', textAlign:'center', marginTop:40}}>Aucun coach associÃÂ©</p> : (
         <div style={{flex:1, overflow:'hidden', display:'flex', flexDirection:'column'}}>
           <ConversationView otherId={coachId} otherName={coachName}/>
         </div>
