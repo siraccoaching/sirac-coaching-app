@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { PageLayout, Card, Badge } from '../../components/Layout'
-import { Play, CheckCircle, Calendar, ChevronRight, Dumbbell, Ruler, ClipboardList } from 'lucide-react'
+import { Play, CheckCircle, Calendar, ChevronRight, Dumbbell, Ruler, ClipboardList, TrendingUp } from 'lucide-react'
 
 export default function ClientHome() {
   const { profile } = useAuth()
@@ -64,6 +64,11 @@ export default function ClientHome() {
           <button onClick={() => navigate('/client/checkin')} className="bg-gradient-to-br from-orange-800/60 to-orange-900/60 border border-orange-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left">
             <div className="w-9 h-9 bg-orange-500/20 rounded-xl flex items-center justify-center"><ClipboardList size={18} className="text-orange-300" /></div>
             <div><p className="text-white text-sm font-semibold">Bilan semaine</p><p className="text-orange-300 text-xs">Ton ressenti</p></div>
+          </button>
+        </div>
+          <button onClick={() => navigate('/client/progress')} className="bg-gradient-to-br from-green-800/60 to-green-900/60 border border-green-500/30 rounded-2xl p-4 flex flex-col items-start gap-2 text-left col-span-2">
+            <div className="w-9 h-9 bg-green-500/20 rounded-xl flex items-center justify-center"><TrendingUp size={18} className="text-green-300" /></div>
+            <div><p className="text-white text-sm font-semibold">Ma progression</p><p className="text-green-300 text-xs">Courbes de charges & évolution</p></div>
           </button>
         </div>
 
