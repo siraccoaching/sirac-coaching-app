@@ -278,7 +278,13 @@ export default function ProgramBuilder() {
             ))}
           </div>
 
-          <select value={prog.client_id} onChange={e => setField('client_id', e.target.value)}
+          <select value={prog.client_id} onChange={e => {
+              const clientId = e.target.value
+              const client = clients.find(c => c.id === clientId)
+              const fitnessKw = ['fitness', 'musculation', 'gym', 'crossfit', 'cardio']
+              const isFitness = client?.sport && fitnessKw.some(k => client.sport.toLowerCase().includes(k))
+              setProg(p => ({ ...p, client_id: clientId, ...(clientId ? { type: isFitness ? 'simple' : 'block' } : {}) }))
+            }}
             className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 text-sm">
             <option value="">— Assigner à un client (optionnel) —</option>
             {clients.map(c => <option key={c.id} value={c.id}>{c.name} {c.sport ? `· ${c.sport}` : ''}</option>)}
@@ -317,7 +323,7 @@ export default function ProgramBuilder() {
                     <div className="space-y-2">
                       {block.sessions.map((sess, si) => (
                         <SessionCard key={sess._id}
-                          sess={sess} bi={bi} si={si} isSimple={false}
+                          sess={sess} bi={bi} si={si}
                           open={openSessions[`${bi}-${si}`]}
                           onToggle={() => setOpenSessions(os => ({ ...os, [`${bi}-${si}`]: !os[`${bi}-${si}`] }))}
                           onUpdate={(k, v) => updateSession(bi, si, k, v)}
@@ -350,7 +356,7 @@ export default function ProgramBuilder() {
             {prog.simpleSessions.map((sess, si) => (
               <Card key={sess._id} className="overflow-hidden">
                 <SessionCard
-                  sess={sess} bi={0} si={si} isSimple={true}
+                  sess={sess} bi={0} si={si}
                   open={openSessions[`s-${si}`]}
                   onToggle={() => setOpenSessions(os => ({ ...os, [`s-${si}`]: !os[`s-${si}`] }))}
                   onUpdate={(k, v) => updateSession(0, si, k, v, true)}
@@ -443,28 +449,23 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
       <div className="grid grid-cols-5 gap-1.5">
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">Séries</p>
-          <input type="number" min="1" value={ex.sets} onChange={e => onUpdate('sets', e.target.value)}
-            className={`${inp} w-full py-1.5`} />
+          <input type="number" min="1" value={ex.sets} onChange={e => onUpdate('sets', e.target.value)} className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">Reps</p>
-          <input value={ex.reps} onChange={e => onUpdate('reps', e.target.value)}
-            placeholder="8" className={`${inp} w-full py-1.5`} />
+          <input value={ex.reps} onChange={e => onUpdate('reps', e.target.value)} placeholder="8" className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">Charge</p>
-          <input value={ex.load} onChange={e => onUpdate('load', e.target.value)}
-            placeholder="80%" className={`${inp} w-full py-1.5`} />
+          <input value={ex.load} onChange={e => onUpdate('load', e.target.value)} placeholder="80%" className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">RPE</p>
-          <input type="number" min="1" max="10" step="0.5" value={ex.rpe} onChange={e => onUpdate('rpe', e.target.value)}
-            placeholder="7" className={`${inp} w-full py-1.5`} />
+          <input type="number" min="1" max="10" step="0.5" value={ex.rpe} onChange={e => onUpdate('rpe', e.target.value)} placeholder="7" className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1 flex items-center justify-center gap-0.5"><Clock size={9} />Récup</p>
-          <input type="number" min="0" step="15" value={ex.rest_seconds} onChange={e => onUpdate('rest_seconds', e.target.value)}
-            className={`${inp} w-full py-1.5`} />
+          <input type="number" min="0" step="15" value={ex.rest_seconds} onChange={e => onUpdate('rest_seconds', e.target.value)} className={`${inp} w-full py-1.5`} />
         </div>
       </div>
       <input value={ex.notes} onChange={e => onUpdate('notes', e.target.value)}
