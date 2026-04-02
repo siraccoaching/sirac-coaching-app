@@ -78,7 +78,7 @@ export default function App() {
         <Route path="/coach/messages/:clientId" element={<ProtectedRoute requiredRole="coach"><CoachMessages /></ProtectedRoute>} />
         <Route path="/client/messages" element={<ProtectedRoute requiredRole="client"><ClientMessages /></ProtectedRoute>} />
         <Route path="/join" element={<JoinCoach />} />
-        <Route path="/client/onboarding" element={<ProtectedRoute role="client"><Onboarding /></ProtectedRoute>} />
+        <Route path="/client/onboarding" element={<ProtectedRoute requiredRole="client"><Onboarding /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
