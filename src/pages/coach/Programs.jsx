@@ -46,10 +46,10 @@ export default function Programs() {
           <Card className="p-10 text-center">
             <Dumbbell size={32} className="text-gray-600 mx-auto mb-3" />
             <p className="text-gray-400 text-sm font-medium mb-1">Aucun programme</p>
-            <p className="text-gray-600 text-xs mb-4">Cr\u00e9e ton premier programme pour tes athl\u00e8tes</p>
+            <p className="text-gray-600 text-xs mb-4">Crée ton premier programme pour tes athlètes</p>
             <button onClick={() => navigate('/coach/programs/new')}
               className="text-brand-400 text-sm font-medium">
-              + Cr\u00e9er un programme
+              + Créer un programme
             </button>
           </Card>
         ) : (
@@ -68,7 +68,7 @@ export default function Programs() {
                   {prog.client ? (
                     <p className="text-brand-400 text-xs font-medium">{prog.client.name}</p>
                   ) : (
-                    <p className="text-gray-500 text-xs">Non assign\u00e9</p>
+                    <p className="text-gray-500 text-xs">Non assigné</p>
                   )}
                   <div className="flex items-center gap-3 mt-2">
                     {prog.type === 'block' && (
@@ -79,7 +79,7 @@ export default function Programs() {
                     )}
                     <span className="text-gray-500 text-xs flex items-center gap-1">
                       <Dumbbell size={11} />
-                      {prog.program_sessions?.length || 0} s\u00e9ances
+                      {prog.program_sessions?.length || 0} séances
                     </span>
                   </div>
                 </div>
