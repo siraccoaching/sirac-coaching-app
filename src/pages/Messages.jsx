@@ -13,7 +13,7 @@ export function ConversationView({ otherId, otherName }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    loadMessages()
+    if (profile?.id) loadMessages()
     // Real-time subscription
     const channel = supabase.channel('messages_' + otherId)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
@@ -26,13 +26,14 @@ export function ConversationView({ otherId, otherName }) {
       })
       .subscribe()
     return () => supabase.removeChannel(channel)
-  }, [otherId])
+  }, [otherId, profile?.id])
 
   useEffect(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
   }, [messages])
 
   async function loadMessages() {
+    if (!profile?.id) return
     setLoading(true)
     const { data } = await supabase
       .from('messages')
