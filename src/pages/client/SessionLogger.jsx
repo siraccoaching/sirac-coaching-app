@@ -34,7 +34,7 @@ export default function SessionLogger() {
   const [historicalPRs, setHistoricalPRs] = useState({})
   const [sessionPRs, setSessionPRs] = useState([])
 
-  useEffect(() => { loadSession() }, [sessionId])
+  useEffect(() => { if (profile?.id) loadSession() }, [sessionId, profile?.id])
 
   useEffect(() => {
     if (activeTimer === null) return
