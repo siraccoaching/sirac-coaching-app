@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth, useClients } from '../../lib/hooks'
 import { supabase, subscribeToPush } from '../../lib/supabase'
 import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
-import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, Settings, Calendar, MessageCircle, BookOpen, LayoutTemplate } from 'lucide-react'
+import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, BookOpen, LayoutTemplate, ChevronRight } from 'lucide-react'
 import CoachAlerts from './CoachAlerts'
 
 export default function CoachDashboard() {
@@ -17,33 +17,23 @@ export default function CoachDashboard() {
   useEffect(() => {
     checkPushStatus()
     fetchRecentActivity()
-
     const channel = supabase.channel('coach-notifications')
-      .on('postgres_changes', {
-        event: 'UPDATE', schema: 'public', table: 'sessions',
-        filter: `status=eq.completed`
-      }, payload => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `status=eq.completed` }, payload => {
         triggerNotification(payload.new)
         fetchRecentActivity()
       })
       .subscribe()
-
     return () => supabase.removeChannel(channel)
   }, [])
 
   async function checkPushStatus() {
-    if ('Notification' in window) {
-      setPushEnabled(Notification.permission === 'granted')
-    }
+    if ('Notification' in window) setPushEnabled(Notification.permission === 'granted')
   }
 
   async function enablePush() {
     if (!('Notification' in window)) return
     const result = await Notification.requestPermission()
-    if (result === 'granted') {
-      await subscribeToPush(profile?.id)
-      setPushEnabled(true)
-    }
+    if (result === 'granted') { await subscribeToPush(profile?.id); setPushEnabled(true) }
   }
 
   async function fetchRecentActivity() {
@@ -58,10 +48,9 @@ export default function CoachDashboard() {
 
   function triggerNotification(session) {
     if (Notification.permission === 'granted') {
-      new Notification('Séance complétée !', {
-        body: `Un athlète vient de terminer sa séance - ${session.day_title || 'Entraînement'}`,
-        icon: '/pwa-192x192.png',
-        badge: '/pwa-192x192.png',
+      new Notification('S\u00e9ance compl\u00e9t\u00e9e !', {
+        body: `Un athl\u00e8te vient de terminer sa s\u00e9ance - ${session.day_title || 'Entra\u00eenement'}`,
+        icon: '/pwa-192x192.png', badge: '/pwa-192x192.png',
       })
     }
   }
@@ -84,96 +73,94 @@ export default function CoachDashboard() {
     return 'in-progress'
   }
 
+  const statusAccent = { 'done-today': '#4ade80', 'in-progress': '#fb923c', 'done': '#818cf8', 'no-session': '#2a2a3e' }
+  const dayStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const firstName = profile?.name?.split(' ')[0] || ''
+
   return (
     <PageLayout
       title="Sirac Coaching"
       subtitle={`${clients.length} client${clients.length > 1 ? 's' : ''} actif${clients.length > 1 ? 's' : ''}`}
       action={
-        <div className="flex gap-2">
-          <button onClick={() => navigate('/coach/settings')}
-            className="flex items-center gap-1.5 bg-dark-700 border border-white/10 hover:bg-dark-600 text-white text-sm font-medium px-2 py-2 rounded-xl transition-colors">
-            <Settings size={15} />
-          </button>
-          <button onClick={() => navigate('/coach/programs')}
-            className="flex items-center gap-1.5 bg-dark-700 border border-white/10 hover:bg-dark-600 text-white text-sm font-medium px-3 py-2 rounded-xl transition-colors">
-            <Dumbbell size={15} />
-            Programmes
-          </button>
-          <button onClick={() => navigate('/coach/add-client')}
-            className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-2 rounded-xl transition-colors">
-            <UserPlus size={15} />
-            Ajouter
-          </button>
-        </div>
+        <button onClick={() => navigate('/coach/add-client')}
+          style={{ display:'flex', alignItems:'center', gap:6, background:'#6366f1', color:'white', fontSize:13, fontWeight:600, padding:'8px 14px', borderRadius:12, border:'none', cursor:'pointer' }}>
+          <UserPlus size={14} />
+          Ajouter
+        </button>
       }
     >
-      <div className="p-4 space-y-4 pb-8">
+      <div style={{ padding:'16px 16px 24px', display:'flex', flexDirection:'column', gap:12 }}>
+
+        {/* Greeting */}
+        <div style={{ background:'linear-gradient(135deg,#1a1a35,#1e1a3a)', borderRadius:18, padding:'16px 18px' }}>
+          <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.38)', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.07em' }}>{dayStr}</p>
+          <p style={{ margin:'5px 0 0', fontSize:20, fontWeight:700, color:'white' }}>Bonjour {firstName} \u{1F44B}</p>
+        </div>
+
         <CoachAlerts clients={clients} />
+
         {!pushEnabled && ('Notification' in window) && (
           <button onClick={enablePush}
-            className="w-full flex items-center gap-3 bg-brand-600/20 border border-brand-500/30 rounded-2xl p-4 text-left">
-            <Bell size={20} className="text-brand-400 flex-shrink-0" />
+            style={{ width:'100%', display:'flex', alignItems:'center', gap:12, background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:16, padding:'14px 16px', cursor:'pointer', textAlign:'left' }}>
+            <Bell size={18} color="#818cf8" style={{ flexShrink:0 }} />
             <div>
-              <p className="text-white text-sm font-medium">Activer les notifications push</p>
-              <p className="text-gray-400 text-xs">Sois averti dès qu'un athlète termine sa séance</p>
+              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>Activer les notifications push</p>
+              <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:2 }}>Sois averti d\u00e8s qu'un athl\u00e8te termine sa s\u00e9ance</p>
             </div>
           </button>
         )}
+
         {pushEnabled && (
-          <div className="flex items-center gap-2 text-green-400 text-sm px-1">
-            <BellOff size={15} />
-            <span>Notifications push activées</span>
+          <div style={{ display:'flex', alignItems:'center', gap:8, color:'#4ade80', fontSize:12, paddingLeft:2 }}>
+            <BellOff size={14} />
+            <span>Notifications push activ\u00e9es</span>
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-3">
+        {/* Stats */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
           {[
-            { icon: Users, label: 'Clients', value: clients.length, color: 'text-brand-400' },
-            { icon: CheckCircle, label: "Séances aujourd'hui", value: activeToday, color: 'text-green-400' },
-            { icon: Activity, label: 'En cours', value: clients.filter(c => getClientStatus(c) === 'in-progress').length, color: 'text-orange-400' },
-          ].map(({ icon: Icon, label, value, color }) => (
-            <Card key={label} className="p-3 text-center">
-              <Icon size={18} className={`${color} mx-auto mb-1`} />
-              <p className="text-xl font-bold text-white">{value}</p>
-              <p className="text-gray-500 text-xs leading-tight">{label}</p>
-            </Card>
+            { icon: Users, label: 'Clients', value: clients.length, color: '#818cf8', bg: 'rgba(99,102,241,0.12)' },
+            { icon: CheckCircle, label: 'Auj. \u2713', value: activeToday, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+            { icon: Activity, label: 'En cours', value: clients.filter(c => getClientStatus(c) === 'in-progress').length, color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
+          ].map(({ icon: Icon, label, value, color, bg }) => (
+            <div key={label} style={{ background: bg, border:'1px solid '+color+'25', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
+              <Icon size={16} color={color} style={{ marginBottom:4 }} />
+              <p style={{ margin:0, fontSize:22, fontWeight:800, color }}>{value}</p>
+              <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.38)', lineHeight:1.3, marginTop:2 }}>{label}</p>
+            </div>
           ))}
         </div>
 
         {recentActivity.length > 0 && (
-          <Card className="overflow-hidden">
-            <div className="px-4 pt-4 pb-2 flex items-center gap-2">
-              <Activity size={15} className="text-brand-400" />
-              <h2 className="text-sm font-semibold text-white">Activité récente</h2>
+          <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden' }}>
+            <div style={{ padding:'12px 16px 8px', display:'flex', alignItems:'center', gap:8 }}>
+              <Activity size={14} color="#818cf8" />
+              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>Activit\u00e9 r\u00e9cente</p>
             </div>
-            <div className="divide-y divide-white/5">
-              {recentActivity.slice(0, 4).map(s => (
-                <div key={s.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <CheckCircle size={14} className="text-green-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{s.profiles?.name}</p>
-                    <p className="text-gray-500 text-xs truncate">{s.day_title || 'Séance'}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-gray-400 text-xs">{formatTime(s.completed_at)}</p>
-                    <Badge color="green">Complété</Badge>
-                  </div>
+            {recentActivity.slice(0, 4).map((s, i) => (
+              <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 16px', borderTop: i===0 ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ width:30, height:30, background:'rgba(74,222,128,0.12)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <CheckCircle size={14} color="#4ade80" />
                 </div>
-              ))}
-            </div>
-          </Card>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.profiles?.name}</p>
+                  <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.day_title || 'S\u00e9ance'}</p>
+                </div>
+                <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.28)', flexShrink:0 }}>{formatTime(s.completed_at)}</p>
+              </div>
+            ))}
+          </div>
         )}
 
         {sports.length > 2 && (
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+          <div style={{ display:'flex', gap:8, overflowX:'auto', paddingBottom:2 }}>
             {sports.map(s => (
-              <button key={s}
-                onClick={() => setFilter(s)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  filter === s ? 'bg-brand-600 text-white' : 'bg-dark-800 text-gray-400 border border-white/10'
-                }`}>
+              <button key={s} onClick={() => setFilter(s)}
+                style={{ flexShrink:0, padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', transition:'all 0.15s',
+                  background: filter === s ? '#6366f1' : 'rgba(255,255,255,0.07)',
+                  color: filter === s ? 'white' : 'rgba(255,255,255,0.42)',
+                }}>
                 {s === 'all' ? 'Tous' : s}
               </button>
             ))}
@@ -181,44 +168,43 @@ export default function CoachDashboard() {
         )}
 
         <div>
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
+          <p style={{ margin:'0 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>
             Mes clients ({filtered.length})
-          </h2>
+          </p>
+
           {loading ? (
-            <div className="space-y-3">
-              {[1,2,3].map(i => (
-                <div key={i} className="h-20 bg-dark-800 rounded-2xl animate-pulse" />
-              ))}
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {[1,2,3].map(i => <div key={i} style={{ height:68, background:'rgba(255,255,255,0.04)', borderRadius:16 }} />)}
             </div>
           ) : filtered.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-gray-500 text-sm">Aucun client pour l'instant.</p>
-              <button onClick={() => navigate('/coach/add-client')}
-                className="mt-3 text-brand-400 text-sm font-medium">
+            <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:32, textAlign:'center' }}>
+              <p style={{ margin:'0 0 8px', fontSize:13, color:'rgba(255,255,255,0.38)' }}>Aucun client pour l'instant.</p>
+              <button onClick={() => navigate('/coach/add-client')} style={{ background:'none', border:'none', cursor:'pointer', color:'#818cf8', fontSize:13, fontWeight:600 }}>
                 + Ajouter un premier client
               </button>
-            </Card>
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {filtered.map(client => {
                 const status = getClientStatus(client)
                 return (
-                  <button key={client.id}
-                    onClick={() => navigate(`/coach/client/${client.id}`)}
-                    className="w-full bg-dark-800 hover:bg-dark-800/80 border border-white/10 rounded-2xl p-4 text-left transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 bg-brand-600/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                  <button key={client.id} onClick={() => navigate(`/coach/client/${client.id}`)}
+                    style={{ width:'100%', display:'flex', alignItems:'stretch', background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left' }}>
+                    <div style={{ width:3, background: statusAccent[status], flexShrink:0 }} />
+                    <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', flex:1 }}>
+                      <div style={{ width:42, height:42, background:'rgba(99,102,241,0.1)', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
                         <SportIcon sport={client.sport} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-white font-semibold truncate">{client.name}</p>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
+                          <p style={{ margin:0, fontSize:14, fontWeight:600, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client.name}</p>
                           <StatusBadge status={status} />
                         </div>
-                        <p className="text-gray-500 text-xs mt-0.5 truncate">
-                          {[client.sport, client.position].filter(Boolean).join(' · ')}
+                        <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.32)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {[client.sport, client.position].filter(Boolean).join(' \u00b7 ')}
                         </p>
                       </div>
+                      <ChevronRight size={14} color="rgba(255,255,255,0.18)" style={{ flexShrink:0 }} />
                     </div>
                   </button>
                 )
@@ -226,27 +212,27 @@ export default function CoachDashboard() {
             </div>
           )}
         </div>
-      </div>
 
-          <div style={{marginTop:16, marginBottom:8}}>
-            <p style={{margin:'0 0 10px 4px', fontSize:12, color:'#888', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>Outils</p>
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
-              {[
-                { icon: <Calendar size={18}/>, label: 'Calendrier', path: '/coach/calendar', color: '#6366f1' },
-                { icon: <MessageCircle size={18}/>, label: 'Messages', path: '/coach/messages', color: '#22c55e' },
-                { icon: <BookOpen size={18}/>, label: 'Bibliothèque', path: '/coach/exercises', color: '#f59e0b' },
-                { icon: <LayoutTemplate size={18}/>, label: 'Templates', path: '/coach/templates', color: '#ec4899' },
-              ].map(tool => (
-                <button key={tool.path} onClick={() => navigate(tool.path)}
-                  style={{background:'#1e1e2e', border:'1px solid #2a2a3e', borderRadius:12, padding:'12px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', textAlign:'left'}}>
-                  <div style={{width:34, height:34, borderRadius:10, background:tool.color + '22', display:'flex', alignItems:'center', justifyContent:'center', color:tool.color, flexShrink:0}}>
-                    {tool.icon}
-                  </div>
-                  <span style={{fontSize:13, fontWeight:600, color:'white'}}>{tool.label}</span>
-                </button>
-              ))}
-            </div>
+        {/* Quick tools */}
+        <div>
+          <p style={{ margin:'4px 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>Outils</p>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            {[
+              { icon: <BookOpen size={18}/>, label: 'Biblioth\u00e8que', path: '/coach/exercises', color: '#f59e0b' },
+              { icon: <LayoutTemplate size={18}/>, label: 'Templates', path: '/coach/templates', color: '#ec4899' },
+            ].map(tool => (
+              <button key={tool.path} onClick={() => navigate(tool.path)}
+                style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', textAlign:'left' }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:tool.color+'22', display:'flex', alignItems:'center', justifyContent:'center', color:tool.color, flexShrink:0 }}>
+                  {tool.icon}
+                </div>
+                <span style={{ fontSize:13, fontWeight:600, color:'white' }}>{tool.label}</span>
+              </button>
+            ))}
           </div>
+        </div>
+
+      </div>
     </PageLayout>
   )
 }
@@ -255,7 +241,7 @@ function StatusBadge({ status }) {
   const map = {
     'done-today': { color: 'green', label: "Aujourd'hui" },
     'in-progress': { color: 'orange', label: 'En cours' },
-    'done': { color: 'blue', label: 'Complété' },
+    'done': { color: 'blue', label: 'Compl\u00e9t\u00e9' },
     'no-session': { color: 'gray', label: 'En attente' },
   }
   const { color, label } = map[status] || map['no-session']
