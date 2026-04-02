@@ -87,7 +87,7 @@ export default function ClientHome() {
             <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.38)', marginTop:2 }}>s\u00e9ances</p>
           </div>
           <div style={{ background:'rgba(251,146,60,0.1)', border:'1px solid rgba(251,146,60,0.2)', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
-            <p style={{ margin:0, fontSize:24, fontWeight:800, color:'#fb923c' }}>{streak} \u{1F525}</p>
+            <p style={{ margin:0, fontSize:24, fontWeight:800, color:'#fb923c' }}>{streak} {'\u{1F525}'}</p>
             <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.38)', marginTop:2 }}>jours streak</p>
           </div>
           <div style={{ background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
