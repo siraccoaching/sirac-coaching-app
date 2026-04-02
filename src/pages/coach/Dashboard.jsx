@@ -94,7 +94,7 @@ export default function CoachDashboard() {
         {/* Greeting */}
         <div style={{ background:'linear-gradient(135deg,#1a1a35,#1e1a3a)', borderRadius:18, padding:'16px 18px' }}>
           <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.38)', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.07em' }}>{dayStr}</p>
-          <p style={{ margin:'5px 0 0', fontSize:20, fontWeight:700, color:'white' }}>Bonjour {firstName} \u{1F44B}</p>
+          <p style={{ margin:'5px 0 0', fontSize:20, fontWeight:700, color:'white' }}>Bonjour {firstName} {'\u{1F44B}'}</p>
         </div>
 
         <CoachAlerts clients={clients} />
