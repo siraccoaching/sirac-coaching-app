@@ -36,6 +36,21 @@ export function Badge({ color = 'gray', children }) {
 }
 
 export function SportIcon({ sport }) {
-  const icons = { 'Football US': 'ðÅ¸', 'Rugby': 'ðÅ¸â°', 'Basket': 'ðÅ¸â¬', 'Athlétisme': 'ðÅ¸Æ', 'Fitness': 'ðÅ¸âª', 'Football': 'âÅ¾½' }
-  return <span>{icons[sport] || 'ðÅ¸Å½¯'}</span>
+  const icons = {
+    'Football US': '🏈',
+    'Rugby': '🏉',
+    'Basket': '🏀',
+    'Basketball': '🏀',
+    'Athlétisme': '🏃',
+    'Athletisme': '🏃',
+    'Fitness': '💪',
+    'Fitness / Musculation': '💪',
+    'Football': '⚽',
+    'Tennis': '🎾',
+    'Natation': '🏊',
+    'Cyclisme': '🚴',
+    'CrossFit': '🏋️',
+    'Arts martiaux': '🥋',
+  }
+  return <span>{icons[sport] || '🏅'}</span>
 }
