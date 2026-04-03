@@ -359,7 +359,7 @@ export default function ProgramBuilder() {
                         placeholder="Nom du bloc (ex: Accumulation)"
                         className="flex-1 bg-dark-900 border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm" />
                       <div className="flex items-center gap-1.5 bg-dark-900 border border-white/10 rounded-xl px-3">
-                        <input type="number" min="1" max="16" value={block.duration_weeks}
+                        <input type="number" inputMode="numeric" min="1" max="16" value={block.duration_weeks}
                           onChange={e => updateBlock(bi, 'duration_weeks', e.target.value)}
                           className="w-8 bg-transparent text-white text-sm text-center focus:outline-none" />
                         <span className="text-gray-500 text-xs">sem</span>
@@ -536,7 +536,7 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
       <div className="grid grid-cols-5 gap-1.5">
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">Séries</p>
-          <input type="number" min="1" value={ex.sets} onChange={e => onUpdate('sets', e.target.value)} className={`${inp} w-full py-1.5`} />
+          <input type="number" inputMode="numeric" min="1" value={ex.sets} onChange={e => onUpdate('sets', e.target.value)} className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">Reps</p>
@@ -548,11 +548,11 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
         </div>
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1">RPE</p>
-          <input type="number" min="1" max="10" step="0.5" value={ex.rpe} onChange={e => onUpdate('rpe', e.target.value)} placeholder="7" className={`${inp} w-full py-1.5`} />
+          <input type="number" inputMode="decimal" min="1" max="10" step="0.5" value={ex.rpe} onChange={e => onUpdate('rpe', e.target.value)} placeholder="7" className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-600 text-xs mb-1 flex items-center justify-center gap-0.5"><Clock size={9} />Récup</p>
-          <input type="number" min="0" step="15" value={ex.rest_seconds} onChange={e => onUpdate('rest_seconds', e.target.value)} className={`${inp} w-full py-1.5`} />
+          <input type="number" inputMode="numeric" min="0" step="15" value={ex.rest_seconds} onChange={e => onUpdate('rest_seconds', e.target.value)} className={`${inp} w-full py-1.5`} />
         </div>
       </div>
       <input value={ex.notes} onChange={e => onUpdate('notes', e.target.value)}
