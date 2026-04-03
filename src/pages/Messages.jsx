@@ -38,7 +38,7 @@ export function ConversationView({ otherId, otherName }) {
     const { data } = await supabase
       .from('messages')
       .select('*')
-      .or('and(sender_id.eq.' + profile.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + profile.id + ')')
+      .or(`sender_id.eq.${otherId},receiver_id.eq.${otherId}`)
       .order('created_at', { ascending: true })
     setMessages(data || [])
     // Mark unread as read
