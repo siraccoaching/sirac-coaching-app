@@ -331,7 +331,7 @@ export default function ProgramBuilder() {
               setProg(p => ({ ...p, client_id: clientId, ...(clientId ? { type: isFitness ? 'simple' : 'block' } : {}) }))
             }}
             className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 text-sm">
-            <option value="">â Assigner à un client (optionnel) â</option>
+            <option value="">— Assigner à un client (optionnel) —</option>
             {clients.map(c => <option key={c.id} value={c.id}>{c.name} {c.sport ? `· ${c.sport}` : ''}</option>)}
           </select>
         </Card>
@@ -436,7 +436,7 @@ export default function ProgramBuilder() {
           <div style={{background:'#1e1e2e',borderRadius:'20px 20px 0 0',padding:'20px 16px 36px',width:'100%',maxWidth:480,maxHeight:'75vh',display:'flex',flexDirection:'column'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
               <p style={{margin:0,fontWeight:700,fontSize:16,color:'white'}}>Bibliothèque d'exercices</p>
-              <button onClick={() => setShowLibPicker(false)} style={{background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:20}}>â</button>
+              <button onClick={() => setShowLibPicker(false)} style={{background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:20}}>✕</button>
             </div>
             <input value={libSearch} onChange={e => setLibSearch(e.target.value)} placeholder="Rechercher un exercice..."
               style={{background:'#2a2a3e',border:'1px solid #3a3a4e',borderRadius:10,padding:'9px 14px',color:'white',fontSize:14,marginBottom:12,WebkitTextFillColor:'white',WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
@@ -486,7 +486,7 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
       {open && (
         <div className="p-3 space-y-3 bg-dark-900/50">
           <input value={sess.name} onChange={e => onUpdate('name', e.target.value)}
-            placeholder="Nom de la séance (ex: Jour 1 â Squat)"
+            placeholder="Nom de la séance (ex: Jour 1 — Squat)"
             className="w-full bg-dark-800 border border-white/8 rounded-lg px-3 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
           <input value={sess.notes} onChange={e => onUpdate('notes', e.target.value)}
             placeholder="Notes de séance (optionnel)"
