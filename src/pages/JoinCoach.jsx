@@ -79,7 +79,7 @@ export default function JoinCoach() {
   if (success) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a14', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 340 }}>
-        <p style={{ fontSize: 48, marginBottom: 16 }}>â</p>
+        <p style={{ fontSize: 48, marginBottom: 16 }}>✅</p>
         <p style={{ color: 'white', fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Compte cree !</p>
         <p style={{ color: '#a78bfa', fontSize: 14, marginBottom: 8 }}>Bienvenue dans l'equipe de {coach.name}.</p>
         <p style={{ color: '#888', fontSize: 13 }}>Verifie ta boite mail pour confirmer ton adresse, puis connecte-toi.</p>
