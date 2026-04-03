@@ -121,9 +121,9 @@ export default function CoachAlerts() {
           <div style={{flex:1}}>
             <p style={{margin:'0 0 2px', fontSize:13, fontWeight:600, color:'white'}}>{alert.clientName}</p>
             {alert.type === 'pr' ? (
-              <p style={{margin:0, fontSize:12, color:'#22c55e'}}>ð PR sur {alert.exercise} : {alert.load} kg (+{(alert.load - alert.prev).toFixed(1)})</p>
+              <p style={{margin:0, fontSize:12, color:'#22c55e'}}>🏆 PR sur {alert.exercise} : {alert.load} kg (+{(alert.load - alert.prev).toFixed(1)})</p>
             ) : (
-              <p style={{margin:0, fontSize:12, color:'#ef4444'}}>â ï¸ Inactif depuis {alert.days} jours</p>
+              <p style={{margin:0, fontSize:12, color:'#ef4444'}}>⚠️ Inactif depuis {alert.days} jours</p>
             )}
           </div>
           <button onClick={e => { e.stopPropagation(); dismiss(alert.id) }}
