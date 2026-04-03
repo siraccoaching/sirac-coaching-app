@@ -152,7 +152,7 @@ export default function ClientDetail() {
           <p style={{margin:0, fontSize:11, color:'#888'}}>séances</p>
         </div>
         <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
-          <p style={{margin:0, fontSize:22, fontWeight:700, color:'#f59e0b'}}>{streak} ð¥</p>
+          <p style={{margin:0, fontSize:22, fontWeight:700, color:'#f59e0b'}}>{streak} 🔥</p>
           <p style={{margin:0, fontSize:11, color:'#888'}}>jours consec.</p>
         </div>
         <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
@@ -162,7 +162,7 @@ export default function ClientDetail() {
       </div>
 
       <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4}}>
-        {[['history','ð Historique'], ['progress','ð Progression']].map(([key, label]) => (
+        {[['history','📋 Historique'], ['progress','📈 Progression']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:600,
               background: tab === key ? '#6366f1' : 'transparent',
