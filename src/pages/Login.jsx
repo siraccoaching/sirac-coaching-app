@@ -30,7 +30,7 @@ export default function Login() {
     <div className="flex flex-col h-full items-center justify-center bg-dark-900 px-6">
       <div className="mb-8 text-center">
         <div className="w-20 h-20 bg-brand-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-600/30">
-          <span className="text-4xl">ð</span>
+          <span className="text-4xl">🏈</span>
         </div>
         <h1 className="text-2xl font-bold text-white">Sirac Coaching</h1>
         <p className="text-gray-400 text-sm mt-1">Plateforme de suivi athlètes</p>
