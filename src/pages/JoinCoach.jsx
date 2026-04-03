@@ -69,7 +69,7 @@ export default function JoinCoach() {
   if (!code || !coach) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a14', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 320 }}>
-        <p style={{ fontSize: 40, marginBottom: 16 }}>â</p>
+        <p style={{ fontSize: 40, marginBottom: 16 }}>❌</p>
         <p style={{ color: 'white', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Lien invalide</p>
         <p style={{ color: '#888', fontSize: 14 }}>Ce lien invitation est invalide ou a expire.</p>
       </div>
@@ -95,7 +95,7 @@ export default function JoinCoach() {
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: 28 }}>
-            ðª
+            💪
           </div>
           <p style={{ color: 'white', fontSize: 20, fontWeight: 700, margin: '0 0 6px' }}>Rejoindre {coach.name}</p>
           <p style={{ color: '#888', fontSize: 13, margin: 0 }}>Cree ton compte athlete pour acceder a ton programme</p>
