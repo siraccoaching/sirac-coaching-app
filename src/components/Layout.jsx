@@ -58,13 +58,13 @@ export function PageLayout({ children, title, subtitle, back, action }) {
         </div>
       </header>
 
-      <main className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: navItems ? 68 : 0 }}>
+      <main className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', paddingBottom: navItems ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0 }}>
         {children}
       </main>
 
       {navItems && (
         <nav style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, height: 60,
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 'calc(60px + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'rgba(13,13,26,0.97)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
