@@ -105,7 +105,7 @@ export default function CoachDashboard() {
             <Bell size={18} color="#818cf8" style={{ flexShrink:0 }} />
             <div>
               <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>Activer les notifications push</p>
-              <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:2 }}>Sois averti d\u00e8s qu'un athl\u00e8te termine sa s\u00e9ance</p>
+              <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:2 }}>Sois averti dès qu'un athlète termine sa séance</p>
             </div>
           </button>
         )}
@@ -113,7 +113,7 @@ export default function CoachDashboard() {
         {pushEnabled && (
           <div style={{ display:'flex', alignItems:'center', gap:8, color:'#4ade80', fontSize:12, paddingLeft:2 }}>
             <BellOff size={14} />
-            <span>Notifications push activ\u00e9es</span>
+            <span>Notifications push activées</span>
           </div>
         )}
 
@@ -136,7 +136,7 @@ export default function CoachDashboard() {
           <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden' }}>
             <div style={{ padding:'12px 16px 8px', display:'flex', alignItems:'center', gap:8 }}>
               <Activity size={14} color="#818cf8" />
-              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>Activit\u00e9 r\u00e9cente</p>
+              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>Activité récente</p>
             </div>
             {recentActivity.slice(0, 4).map((s, i) => (
               <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 16px', borderTop: i===0 ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
