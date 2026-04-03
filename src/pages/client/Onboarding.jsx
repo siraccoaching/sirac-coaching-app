@@ -91,11 +91,11 @@ export default function Onboarding() {
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
               <div>
                 <p style={{margin:'0 0 6px',fontSize:13,color:'#ccc'}}>Poids (kg)</p>
-                <input type="number" value={data.weight} onChange={e=>set('weight',e.target.value)} placeholder="75" style={inp}/>
+                <input type="number" inputMode="decimal" value={data.weight} onChange={e=>set('weight',e.target.value)} placeholder="75" style={inp}/>
               </div>
               <div>
                 <p style={{margin:'0 0 6px',fontSize:13,color:'#ccc'}}>Taille (cm)</p>
-                <input type="number" value={data.height} onChange={e=>set('height',e.target.value)} placeholder="180" style={inp}/>
+                <input type="number" inputMode="decimal" value={data.height} onChange={e=>set('height',e.target.value)} placeholder="180" style={inp}/>
               </div>
             </div>
             <p style={{margin:'0 0 8px',fontSize:13,color:'#ccc',fontWeight:600}}>Blessures / antécédents (optionnel)</p>
