@@ -278,7 +278,7 @@ export default function SessionLogger() {
                           <input key={field}
                             value={set[field]}
                             onChange={e => updateSet(ex.id, si, field, e.target.value)}
-                            placeholder={field === 'reps' ? ex.reps : field === 'load' ? ex.load || 'â' : 'â'}
+                            placeholder={field === 'reps' ? ex.reps : field === 'load' ? ex.load || '—' : '—'}
                             style={inputStyle}
                             className="bg-dark-700 border border-white/10 rounded-lg px-2 py-2 text-white text-xs text-center focus:outline-none focus:border-brand-500 placeholder-gray-600"
                           />
