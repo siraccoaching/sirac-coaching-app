@@ -2,10 +2,19 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
-import { ArrowLeft, Plus, Pencil, Trash2, Search, X } from 'lucide-react'
+import { ArrowLeft, Plus, Pencil, Trash2, Search, X, Play, ExternalLink } from 'lucide-react'
 
 const CATEGORIES = ['Force', 'Cardio', 'Mobilité', 'Technique', 'Explosivité', 'Gainage', 'Récupération']
 const MUSCLES = ['Quadriceps', 'Ischio-jambiers', 'Fessiers', 'Pectoraux', 'Dos', 'Épaules', 'Biceps', 'Triceps', 'Abdominaux', 'Mollets', 'Corps entier']
+
+function getEmbedUrl(url) {
+  if (!url) return null
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&modestbranding=1`
+  const vm = url.match(/vimeo\.com\/(\d+)/)
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}`
+  return null
+}
 
 function ExerciseForm({ initial, onSave, onCancel }) {
   const [form, setForm] = useState(initial || { name: '', category: '', muscles: '', description: '', video_url: '' })
@@ -14,9 +23,7 @@ function ExerciseForm({ initial, onSave, onCancel }) {
     <div style={{background:'#1e1e2e', borderRadius:16, padding:20, marginBottom:16}}>
       <p style={{margin:'0 0 14px', fontWeight:700, color:'white', fontSize:16}}>{initial?.id ? 'Modifier' : 'Nouvel exercice'}</p>
       <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Nom de l'exercice *"
-        style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px',
-          color:'white', fontSize:14, boxSizing:'border-box', marginBottom:10,
-          WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
+        style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px', color:'white', fontSize:14, boxSizing:'border-box', marginBottom:10, WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10}}>
         <select value={form.category} onChange={e => set('category', e.target.value)}
           style={{background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 12px', color: form.category ? 'white' : '#666', fontSize:13}}>
@@ -30,13 +37,9 @@ function ExerciseForm({ initial, onSave, onCancel }) {
         </select>
       </div>
       <input value={form.video_url} onChange={e => set('video_url', e.target.value)} placeholder="URL vidéo (YouTube/Vimeo)"
-        style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px',
-          color:'white', fontSize:13, boxSizing:'border-box', marginBottom:10,
-          WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
+        style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px', color:'white', fontSize:13, boxSizing:'border-box', marginBottom:10, WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
       <textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Description / consignes (optionnel)" rows={2}
-        style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px',
-          color:'white', fontSize:13, resize:'none', boxSizing:'border-box', marginBottom:14,
-          WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
+        style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px', color:'white', fontSize:13, resize:'none', boxSizing:'border-box', marginBottom:14, WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
       <div style={{display:'flex', gap:10}}>
         <button onClick={onCancel} style={{flex:1, padding:'10px 0', background:'#2a2a3e', border:'none', borderRadius:10, color:'#aaa', cursor:'pointer', fontSize:14}}>Annuler</button>
         <button onClick={() => onSave(form)} disabled={!form.name.trim()}
@@ -57,6 +60,7 @@ export default function ExerciseLibrary() {
   const [filterCat, setFilterCat] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [videoModal, setVideoModal] = useState(null)
 
   useEffect(() => { loadExercises() }, [])
 
@@ -69,7 +73,10 @@ export default function ExerciseLibrary() {
 
   async function saveExercise(form) {
     if (editing?.id) {
-      await supabase.from('exercises').update({ name: form.name, category: form.category, muscles: form.muscles, description: form.description, video_url: form.video_url }).eq('id', editing.id)
+      await supabase.from('exercises').update({
+        name: form.name, category: form.category, muscles: form.muscles,
+        description: form.description, video_url: form.video_url
+      }).eq('id', editing.id)
     } else {
       await supabase.from('exercises').insert({ ...form, coach_id: profile.id })
     }
@@ -86,11 +93,14 @@ export default function ExerciseLibrary() {
 
   const filtered = exercises.filter(e => {
     const q = search.toLowerCase()
-    return (!q || e.name.toLowerCase().includes(q) || (e.muscles||'').toLowerCase().includes(q)) &&
-           (!filterCat || e.category === filterCat)
+    return (!q || e.name.toLowerCase().includes(q) || (e.muscles||'').toLowerCase().includes(q))
+      && (!filterCat || e.category === filterCat)
   })
 
-  const catColors = { Force:'#6366f1', Cardio:'#ef4444', Mobilité:'#22c55e', Technique:'#f59e0b', Explosivité:'#f97316', Gainage:'#06b6d4', Récupération:'#8b5cf6' }
+  const catColors = {
+    Force:'#6366f1', Cardio:'#ef4444', Mobilité:'#22c55e', Technique:'#f59e0b',
+    Explosivité:'#f97316', Gainage:'#06b6d4', Récupération:'#8b5cf6'
+  }
 
   return (
     <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:80}}>
@@ -121,8 +131,7 @@ export default function ExerciseLibrary() {
 
         <div style={{display:'flex', gap:6, overflowX:'auto', paddingBottom:8, marginBottom:8}}>
           <button onClick={() => setFilterCat('')}
-            style={{flexShrink:0, padding:'4px 12px', borderRadius:20, border:'none', cursor:'pointer',
-              background: !filterCat ? '#6366f1' : '#1e1e2e', color: !filterCat ? 'white' : '#888', fontSize:12, fontWeight:600}}>
+            style={{flexShrink:0, padding:'4px 12px', borderRadius:20, border:'none', cursor:'pointer', background: !filterCat ? '#6366f1' : '#1e1e2e', color: !filterCat ? 'white' : '#888', fontSize:12, fontWeight:600}}>
             Tous ({exercises.length})
           </button>
           {CATEGORIES.map(c => {
@@ -130,16 +139,16 @@ export default function ExerciseLibrary() {
             if (count === 0) return null
             return (
               <button key={c} onClick={() => setFilterCat(filterCat === c ? '' : c)}
-                style={{flexShrink:0, padding:'4px 12px', borderRadius:20, border:'none', cursor:'pointer',
-                  background: filterCat === c ? (catColors[c] || '#6366f1') : '#1e1e2e',
-                  color: filterCat === c ? 'white' : '#888', fontSize:12, fontWeight:600}}>
+                style={{flexShrink:0, padding:'4px 12px', borderRadius:20, border:'none', cursor:'pointer', background: filterCat === c ? (catColors[c] || '#6366f1') : '#1e1e2e', color: filterCat === c ? 'white' : '#888', fontSize:12, fontWeight:600}}>
                 {c} ({count})
               </button>
             )
           })}
         </div>
 
-        {loading ? <p style={{color:'#888', textAlign:'center', marginTop:40}}>Chargement...</p> : filtered.length === 0 ? (
+        {loading ? (
+          <p style={{color:'#888', textAlign:'center', marginTop:40}}>Chargement...</p>
+        ) : filtered.length === 0 ? (
           <div style={{textAlign:'center', marginTop:60, color:'#888'}}>
             <p style={{fontSize:15}}>{exercises.length === 0 ? 'Aucun exercice dans ta bibliothèque' : 'Aucun résultat'}</p>
             {exercises.length === 0 && <p style={{fontSize:12}}>Ajoute tes exercices pour les réutiliser dans tes programmes.</p>}
@@ -150,17 +159,78 @@ export default function ExerciseLibrary() {
               <div style={{flex:1}}>
                 <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:3}}>
                   <p style={{margin:0, fontWeight:600, fontSize:15, color:'white'}}>{ex.name}</p>
-                  {ex.category && <span style={{fontSize:11, padding:'2px 8px', borderRadius:20, background:(catColors[ex.category]||'#6366f1') + '22', color:catColors[ex.category]||'#6366f1', fontWeight:600}}>{ex.category}</span>}
+                  {ex.category && (
+                    <span style={{fontSize:11, padding:'2px 8px', borderRadius:20, background:(catColors[ex.category]||'#6366f1') + '22', color:catColors[ex.category]||'#6366f1', fontWeight:600}}>
+                      {ex.category}
+                    </span>
+                  )}
+                  {ex.video_url && (
+                    <span style={{fontSize:11, padding:'2px 6px', borderRadius:20, background:'#22c55e22', color:'#22c55e', fontWeight:600, display:'flex', alignItems:'center', gap:3}}>
+                      <Play size={9} fill="#22c55e"/> Vidéo
+                    </span>
+                  )}
                 </div>
                 {ex.muscles && <p style={{margin:0, fontSize:12, color:'#888'}}>{ex.muscles}</p>}
                 {ex.description && <p style={{margin:'3px 0 0', fontSize:12, color:'#666', fontStyle:'italic'}}>{ex.description}</p>}
               </div>
-              <button onClick={() => { setEditing(ex); setShowForm(true) }} style={{background:'none', border:'none', color:'#888', cursor:'pointer', padding:4}}><Pencil size={15}/></button>
-              <button onClick={() => deleteExercise(ex.id)} style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}><Trash2 size={15}/></button>
+              {ex.video_url && (
+                <button onClick={() => setVideoModal(ex)}
+                  style={{background:'#22c55e22', border:'1px solid #22c55e44', borderRadius:8, padding:'5px 9px', color:'#22c55e', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontSize:12}}>
+                  <Play size={12} fill="#22c55e"/>
+                </button>
+              )}
+              <button onClick={() => { setEditing(ex); setShowForm(true) }}
+                style={{background:'none', border:'none', color:'#888', cursor:'pointer', padding:4}}><Pencil size={15}/></button>
+              <button onClick={() => deleteExercise(ex.id)}
+                style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}><Trash2 size={15}/></button>
             </div>
           ))
         )}
       </div>
+
+      {videoModal && (
+        <div
+          style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}
+          onClick={(e) => { if (e.target === e.currentTarget) setVideoModal(null) }}>
+          <div style={{background:'#1e1e2e', borderRadius:16, width:'100%', maxWidth:500, overflow:'hidden'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 16px'}}>
+              <div>
+                <p style={{margin:0, fontWeight:700, fontSize:15, color:'white'}}>{videoModal.name}</p>
+                {videoModal.muscles && <p style={{margin:'2px 0 0', fontSize:12, color:'#888'}}>{videoModal.muscles}</p>}
+              </div>
+              <div style={{display:'flex', alignItems:'center', gap:8}}>
+                <a href={videoModal.video_url} target="_blank" rel="noopener noreferrer"
+                  style={{color:'#888', display:'flex', alignItems:'center'}} title="Ouvrir dans l'onglet">
+                  <ExternalLink size={16}/>
+                </a>
+                <button onClick={() => setVideoModal(null)}
+                  style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:20, lineHeight:1}}>✕</button>
+              </div>
+            </div>
+            {getEmbedUrl(videoModal.video_url) ? (
+              <div style={{aspectRatio:'16/9', background:'#000'}}>
+                <iframe
+                  src={getEmbedUrl(videoModal.video_url)}
+                  style={{width:'100%', height:'100%', border:'none'}}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div style={{padding:'20px 16px', textAlign:'center'}}>
+                <p style={{color:'#888', fontSize:14, marginBottom:12}}>Ce lien ne peut pas être intégré directement.</p>
+                <a href={videoModal.video_url} target="_blank" rel="noopener noreferrer"
+                  style={{display:'inline-flex', alignItems:'center', gap:6, background:'#6366f1', color:'white', padding:'9px 16px', borderRadius:10, fontSize:14, fontWeight:600, textDecoration:'none'}}>
+                  <ExternalLink size={14}/> Voir la vidéo
+                </a>
+              </div>
+            )}
+            {videoModal.description && (
+              <p style={{margin:0, padding:'12px 16px', fontSize:13, color:'#888', borderTop:'1px solid #2a2a3e'}}>{videoModal.description}</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
