@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { PageLayout } from '../../components/Layout'
-import { Play, CheckCircle, Dumbbell, Ruler, ClipboardList, TrendingUp, MessageCircle, Trophy, Calendar } from 'lucide-react'
+import { Play, CheckCircle, Dumbbell, Ruler, ClipboardList, TrendingUp, MessageCircle, Trophy, Calendar, Zap } from 'lucide-react'
 
 export default function ClientHome() {
   const { profile } = useAuth()
@@ -154,6 +154,7 @@ export default function ClientHome() {
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
           {[
             { icon: <Dumbbell size={16}/>, label: 'Mon programme', sub: 'Voir mes séances', path: '/client/program', color: '#818cf8', bg: 'linear-gradient(135deg,#312e81aa,#4c1d95aa)', border: '#6366f133' },
+            { icon: <Zap size={16}/>, label: 'Séance libre', sub: 'Entraîn. libre', path: '/client/free-session', color: '#34d399', bg: 'linear-gradient(135deg,#064e3baa,#065f46aa)', border: '#10b98133' },
             { icon: <MessageCircle size={16}/>, label: 'Mon coach', sub: 'Messages', path: '/client/messages', color: '#4ade80', bg: 'linear-gradient(135deg,#14532daa,#15803daa)', border: '#22c55e33', badge: unreadCount },
             { icon: <TrendingUp size={16}/>, label: 'Progression', sub: 'Courbes & records', path: '/client/progress', color: '#fbbf24', bg: 'linear-gradient(135deg,#78350faa,#92400eaa)', border: '#f59e0b33' },
             { icon: <Ruler size={16}/>, label: 'Mensurations', sub: 'Suivi du corps', path: '/client/measurements', color: '#2dd4bf', bg: 'linear-gradient(135deg,#134e4aaa,#115e59aa)', border: '#14b8a633' },
