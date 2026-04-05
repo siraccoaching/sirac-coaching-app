@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
-import { ArrowLeft, Trash2, TrendingUp, Calendar, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Trash2, TrendingUp, ChevronDown, ChevronUp, Check } from 'lucide-react'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
@@ -48,7 +49,7 @@ function ProgressChart({ data, label }) {
       </svg>
       <div style={{display:'flex', justifyContent:'space-between', fontSize:10, color:'#666', marginTop:3}}>
         <span>{data[0].date}</span>
-        <span style={{color:'#888'}}>{first} kg  {last} kg</span>
+        <span style={{color:'#888'}}>{first} kg   {last} kg</span>
         <span>{data[data.length-1].date}</span>
       </div>
     </div>
@@ -58,6 +59,7 @@ function ProgressChart({ data, label }) {
 export default function ClientDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { profile: coachProfile } = useAuth()
   const [client, setClient] = useState(null)
   const [completions, setCompletions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -65,6 +67,10 @@ export default function ClientDetail() {
   const [expanded, setExpanded] = useState({})
   const [tab, setTab] = useState('history')
   const [progressData, setProgressData] = useState({})
+  const [programs, setPrograms] = useState([])
+  const [currentProgram, setCurrentProgram] = useState(null)
+  const [assignModal, setAssignModal] = useState(false)
+  const [assigning, setAssigning] = useState(false)
 
   useEffect(() => { loadData() }, [id])
 
@@ -72,9 +78,21 @@ export default function ClientDetail() {
     setLoading(true)
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', id).single()
     setClient(profile)
+
+    const coachId = coachProfile?.id || profile?.coach_id
+    if (coachId) {
+      const { data: progs } = await supabase
+        .from('programs')
+        .select('id, name, type, client_id')
+        .eq('coach_id', coachId)
+      setPrograms(progs || [])
+      const cp = (progs || []).find(p => p.client_id === id)
+      setCurrentProgram(cp || null)
+    }
+
     const { data: comps } = await supabase
       .from('session_completions')
-      .select('id, created_at, program_sessions(name), exercise_logs(id, exercise_id, set_data, notes, exercise:program_exercises(name))')
+      .select('id, created_at, program_sessions(name), exercise_logs(id, exercise_id, exercise_name, set_data, notes, exercise:program_exercises(name))')
       .eq('client_id', id)
       .order('created_at', { ascending: false })
     setCompletions(comps || [])
@@ -88,7 +106,7 @@ export default function ClientDetail() {
     for (const comp of sorted) {
       const dateStr = new Date(comp.created_at).toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'})
       for (const log of comp.exercise_logs || []) {
-        const name = log.exercise?.name || 'Exercice'
+        const name = log.exercise?.name || log.exercise_name || 'Exercice'
         if (!exMap[name]) exMap[name] = []
         const sets = (log.set_data || []).filter(s => s._done !== false && parseFloat(s.load) > 0)
         if (sets.length === 0) continue
@@ -99,6 +117,19 @@ export default function ClientDetail() {
       }
     }
     setProgressData(exMap)
+  }
+
+  async function assignProgram(progId) {
+    setAssigning(true)
+    if (currentProgram && currentProgram.id !== progId) {
+      await supabase.from('programs').update({ client_id: null }).eq('id', currentProgram.id)
+    }
+    await supabase.from('programs').update({ client_id: id }).eq('id', progId)
+    const prog = programs.find(p => p.id === progId)
+    setCurrentProgram({ ...prog, client_id: id })
+    setPrograms(prev => prev.map(p => p.id === progId ? { ...p, client_id: id } : (p.client_id === id ? { ...p, client_id: null } : p)))
+    setAssignModal(false)
+    setAssigning(false)
   }
 
   async function deleteCompletion(compId) {
@@ -161,12 +192,29 @@ export default function ClientDetail() {
         </div>
       </div>
 
+      <div style={{margin:'0 16px 12px', background:'#1e1e2e', borderRadius:12, padding:'14px 16px'}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+          <div>
+            <p style={{margin:'0 0 3px', fontSize:11, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px'}}>Programme actif</p>
+            <p style={{margin:0, fontSize:15, fontWeight:600, color: currentProgram ? '#a78bfa' : '#555'}}>
+              {currentProgram ? currentProgram.name : 'Aucun programme assigné'}
+            </p>
+          </div>
+          <button
+            onClick={() => setAssignModal(true)}
+            style={{background:'#6366f1', border:'none', color:'white', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:600, cursor:'pointer'}}
+          >
+            {currentProgram ? 'Changer' : 'Assigner'}
+          </button>
+        </div>
+      </div>
+
       <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4}}>
         {[['history','📋 Historique'], ['progress','📈 Progression']].map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)}
-            style={{flex:1, padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:600,
-              background: tab === key ? '#6366f1' : 'transparent',
-              color: tab === key ? 'white' : '#888'}}>
+          <button key={key} onClick={() => setTab(key)} style={{
+            flex:1, padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:600,
+            background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? 'white' : '#888'
+          }}>
             {label}
           </button>
         ))}
@@ -184,7 +232,6 @@ export default function ClientDetail() {
                   <p style={{margin:0, fontWeight:600, fontSize:15}}>{comp.program_sessions?.name || 'Séance libre'}</p>
                   <p style={{margin:0, fontSize:12, color:'#888'}}>
                     {new Date(comp.created_at).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short', year:'numeric'})}
-                    
                   </p>
                 </div>
                 <button onClick={() => deleteCompletion(comp.id)} disabled={deleting === comp.id}
@@ -201,7 +248,7 @@ export default function ClientDetail() {
                   {(comp.exercise_logs || []).map((log, li) => (
                     <div key={li} style={{marginBottom:10}}>
                       <p style={{margin:'0 0 5px', fontSize:13, fontWeight:600, color:'#a78bfa'}}>
-                        {log.exercise?.name || 'Exercice'}
+                        {log.exercise?.name || log.exercise_name || 'Exercice'}
                       </p>
                       <div style={{display:'flex', flexWrap:'wrap', gap:4}}>
                         {(log.set_data || []).map((s, si) => (
@@ -240,6 +287,38 @@ export default function ClientDetail() {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {assignModal && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:1000, display:'flex', alignItems:'flex-end'}}
+          onClick={(e) => { if (e.target === e.currentTarget) setAssignModal(false) }}>
+          <div style={{background:'#1e1e2e', width:'100%', borderRadius:'16px 16px 0 0', padding:'20px 16px', maxHeight:'70vh', overflowY:'auto'}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
+              <h3 style={{margin:0, fontSize:16}}>Choisir un programme</h3>
+              <button onClick={() => setAssignModal(false)} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:20, lineHeight:1}}>✕</button>
+            </div>
+            {programs.length === 0 ? (
+              <p style={{color:'#888', textAlign:'center', padding:'20px 0'}}>Aucun programme créé</p>
+            ) : (
+              programs.map(prog => (
+                <button key={prog.id} onClick={() => assignProgram(prog.id)} disabled={assigning}
+                  style={{
+                    display:'flex', alignItems:'center', justifyContent:'space-between',
+                    width:'100%', background: currentProgram?.id === prog.id ? '#2d2b55' : '#252537',
+                    border: '1px solid ' + (currentProgram?.id === prog.id ? '#6366f1' : '#3a3a4e'),
+                    borderRadius:10, padding:'12px 14px', marginBottom:8, cursor:'pointer', color:'white', textAlign:'left',
+                    opacity: assigning ? 0.6 : 1
+                  }}>
+                  <div>
+                    <p style={{margin:0, fontWeight:600, fontSize:14}}>{prog.name}</p>
+                    {prog.type && <p style={{margin:0, fontSize:12, color:'#888'}}>{prog.type}</p>}
+                  </div>
+                  {currentProgram?.id === prog.id && <Check size={16} color="#6366f1"/>}
+                </button>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>
