@@ -378,7 +378,8 @@ export default function ClientDetail() {
             const done = s.status === 'completed' || s.completed_at
             const d = s.session_date ? new Date(s.session_date) : null
             return (
-              <div key={s.id} style={{background:'#1e1e2e', borderRadius:12, padding:'12px 16px', marginBottom:8, display:'flex', alignItems:'center', gap:12}}>
+              <div key={s.id} style={{background:'#1e1e2e', borderRadius:12, padding:'12px 16px', marginBottom:8}}>
+              <div style={{display:'flex', alignItems:'center', gap:12}}>
                 <div style={{width:44, textAlign:'center', flexShrink:0}}>
                   {d ? (
                     <>
@@ -389,12 +390,32 @@ export default function ClientDetail() {
                 </div>
                 <div style={{flex:1, minWidth:0}}>
                   <p style={{margin:0, fontWeight:600, fontSize:14}}>{s.day_title || 'Séance jour ' + s.day_number}</p>
-                  {s.notes && <p style={{margin:'2px 0 0', fontSize:12, color:'#888', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.notes}</p>}
+                  {s.notes && !expanded[s.id] && <p style={{margin:'2px 0 0', fontSize:12, color:'#888', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.notes}</p>}
                 </div>
-                <div style={{flexShrink:0, background: done ? '#14532d' : '#1e3a5f', borderRadius:20, padding:'3px 10px'}}>
+                <div style={{flexShrink:0, background: done ? '#14532d' : '#1e3a5f', borderRadius:20, padding:'3px 10px', marginRight:4}}>
                   <span style={{fontSize:11, color: done ? '#22c55e' : '#60a5fa', fontWeight:600}}>{done ? 'Fait ✓' : 'Planifié'}</span>
                 </div>
+                <button onClick={() => toggleExpand(s.id)} style={{background:'none', border:'none', color:'#888', cursor:'pointer', padding:4}}>
+                  {expanded[s.id] ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+                </button>
               </div>
+              {expanded[s.id] && (
+                <div style={{marginTop:12, paddingTop:12, borderTop:'1px solid #2a2a3e'}}>
+                  {s.notes ? (
+                    <div style={{marginBottom:10}}>
+                      <p style={{margin:'0 0 4px', fontSize:11, color:'#888', textTransform:'uppercase', letterSpacing:1}}>Notes</p>
+                      <p style={{margin:0, fontSize:13, color:'#ccc', lineHeight:1.5}}>{s.notes}</p>
+                    </div>
+                  ) : (
+                    <p style={{margin:'0 0 10px', fontSize:12, color:'#555', fontStyle:'italic'}}>Aucune note pour cette séance</p>
+                  )}
+                  <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+                    {s.day_number && <span style={{fontSize:11, background:'#2a2a3e', borderRadius:8, padding:'3px 8px', color:'#888'}}>Jour {s.day_number}</span>}
+                    {done && s.completed_at && <span style={{fontSize:11, background:'#14532d', borderRadius:8, padding:'3px 8px', color:'#22c55e'}}>Complétée le {new Date(s.completed_at).toLocaleDateString('fr-FR')}</span>}
+                    {!done && s.session_date && <span style={{fontSize:11, background:'#1e3a5f', borderRadius:8, padding:'3px 8px', color:'#60a5fa'}}>Planifiée le {new Date(s.session_date).toLocaleDateString('fr-FR')}</span>}
+                  </div>
+                </div>
+              )}
             )
           })}
         </div>
