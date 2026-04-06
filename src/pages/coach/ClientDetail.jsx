@@ -228,10 +228,10 @@ export default function ClientDetail() {
         </div>
       </div>
 
-      <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4}}>
+      <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4, overflowX:'auto', gap:2}}>
         {[['history','📋 Historique'], ['progress','📈 Progression'], ['measurements','📏 Mensurations'], ['calendar','📅 Calendrier'], ['checkins','📊 Bilans']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{
-            flex:1, padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:600,
+            flexShrink:0, padding:'8px 10px', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:600, whiteSpace:'nowrap',
             background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? 'white' : '#888'
           }}>
             {label}
@@ -284,6 +284,34 @@ export default function ClientDetail() {
                       {log.notes && <p style={{margin:'4px 0 0', fontSize:11, color:'#888', fontStyle:'italic'}}>{log.notes}</p>}
                     </div>
                   ))}
+                  {(comp.rpe_session || comp.notes || comp.wellbeing_note) && (
+                    <div style={{marginTop:10, paddingTop:10, borderTop:'1px solid #2a2a3e', display:'flex', flexDirection:'column', gap:6}}>
+                      {comp.rpe_session && (
+                        <div style={{display:'flex', alignItems:'center', gap:8}}>
+                          <span style={{fontSize:11, color:'#888'}}>RPE séance :</span>
+                          <div style={{display:'flex', gap:3}}>
+                            {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                              <div key={n} style={{width:14, height:14, borderRadius:3,
+                                background: n <= comp.rpe_session ? (comp.rpe_session >= 9 ? '#ef4444' : comp.rpe_session >= 7 ? '#f59e0b' : '#22c55e') : '#2a2a3e'}}/>
+                            ))}
+                            <span style={{fontSize:11, color:'#aaa', marginLeft:4}}>{comp.rpe_session}/10</span>
+                          </div>
+                        </div>
+                      )}
+                      {comp.notes && (
+                        <div style={{background:'#0f0f1a', borderRadius:8, padding:'7px 10px'}}>
+                          <p style={{margin:'0 0 2px', fontSize:10, color:'#666', textTransform:'uppercase', letterSpacing:'0.5px'}}>Notes de séance</p>
+                          <p style={{margin:0, fontSize:12, color:'#ccc'}}>{comp.notes}</p>
+                        </div>
+                      )}
+                      {comp.wellbeing_note && (
+                        <div style={{background:'#0f0f1a', borderRadius:8, padding:'7px 10px'}}>
+                          <p style={{margin:'0 0 2px', fontSize:10, color:'#666', textTransform:'uppercase', letterSpacing:'0.5px'}}>Bien-être</p>
+                          <p style={{margin:0, fontSize:12, color:'#ccc'}}>{comp.wellbeing_note}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
