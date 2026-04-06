@@ -24,6 +24,8 @@ import { CoachMessages, ClientMessages } from './pages/Messages'
 import JoinCoach from './pages/JoinCoach'
 import Onboarding from './pages/client/Onboarding'
 import FreeSession from './pages/client/FreeSession'
+import NutritionPlans from './pages/coach/NutritionPlans'
+import Nutrition from './pages/client/Nutrition'
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, profile, loading } = useAuth()
@@ -81,6 +83,8 @@ export default function App() {
         <Route path="/join" element={<JoinCoach />} />
         <Route path="/client/onboarding" element={<ProtectedRoute requiredRole="client"><Onboarding /></ProtectedRoute>} />
         <Route path="/client/free-session" element={<ProtectedRoute requiredRole="client"><FreeSession /></ProtectedRoute>} />
+        <Route path="/coach/nutrition" element={<ProtectedRoute requiredRole="coach"><NutritionPlans /></ProtectedRoute>} />
+        <Route path="/client/nutrition" element={<ProtectedRoute requiredRole="client"><Nutrition /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
