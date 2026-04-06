@@ -183,7 +183,10 @@ export function CoachMessages() {
   // ── Client list ──
   return (
     <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:80}}>
-      <div style={{background:'#1e1e2e', padding:'16px 20px', position:'sticky', top:0, zIndex:10}}>
+      <div style={{background:'#1e1e2e', padding:'16px 20px', position:'sticky', top:0, zIndex:10, display:'flex', alignItems:'center', gap:12}}>
+        <button onClick={() => navigate('/coach')} style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:4}}>
+          <ArrowLeft size={20}/>
+        </button>
         <h2 style={{margin:0, fontSize:18}}>Messages</h2>
       </div>
       <div style={{padding:'12px 16px'}}>
