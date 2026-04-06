@@ -21,6 +21,10 @@ export default function AddClient() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [relinkMsg, setRelinkMsg] = useState('')
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const positions = POSITIONS_BY_SPORT[form.sport] || []
 
@@ -51,6 +55,28 @@ export default function AddClient() {
     const data = await res.json()
     if (!res.ok) { setError(data.error || 'Erreur lors de la creation du compte.'); setLoading(false); return }
     navigate('/coach')
+  }
+
+  async function searchClients(q) {
+    setSearchQuery(q)
+    if (q.length < 2) { setSearchResults([]); return }
+    setSearching(true)
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, name, email, sport')
+      .eq('role', 'client')
+      .is('coach_id', null)
+      .or(`name.ilike.%${q}%,email.ilike.%${q}%`)
+      .limit(8)
+    setSearchResults(data || [])
+    setSearching(false)
+  }
+
+  async function relinkClient(clientId, clientName) {
+    await supabase.from('profiles').update({ coach_id: profile.id }).eq('id', clientId)
+    setSearchResults(prev => prev.filter(r => r.id !== clientId))
+    setRelinkMsg(clientName + ' rattaché avec succès ✓')
+    setTimeout(() => setRelinkMsg(''), 3000)
   }
 
   return (
@@ -121,6 +147,43 @@ export default function AddClient() {
           </button>
         </form>
       </div>
-    </PageLayout>
+
+        {/* ── Rattacher un client existant ── */}
+        <div style={{marginTop:24, borderTop:'1px solid #2a2a3e', paddingTop:20}}>
+          <h3 style={{margin:'0 0 12px', fontSize:14, fontWeight:700, color:'#a78bfa', textTransform:'uppercase', letterSpacing:'0.5px'}}>
+            Rattacher un client existant
+          </h3>
+          <p style={{margin:'0 0 12px', fontSize:12, color:'#888'}}>
+            Recherche un compte client déjà créé pour le rattacher à ton coaching.
+          </p>
+          <input
+            value={searchQuery}
+            onChange={e => searchClients(e.target.value)}
+            placeholder="Nom ou email du client..."
+            style={{width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px', color:'white', fontSize:14, boxSizing:'border-box', outline:'none', marginBottom:10}}
+          />
+          {relinkMsg && (
+            <p style={{color:'#22c55e', fontSize:13, margin:'0 0 10px', textAlign:'center'}}>{relinkMsg}</p>
+          )}
+          {searching && <p style={{color:'#888', fontSize:13, textAlign:'center'}}>Recherche...</p>}
+          {searchResults.map(r => (
+            <div key={r.id} style={{display:'flex', alignItems:'center', justifyContent:'space-between', background:'#1e1e2e', borderRadius:10, padding:'10px 14px', marginBottom:8}}>
+              <div>
+                <p style={{margin:0, fontWeight:600, fontSize:14, color:'white'}}>{r.name}</p>
+                <p style={{margin:0, fontSize:12, color:'#888'}}>{r.email}{r.sport ? ' · ' + r.sport : ''}</p>
+              </div>
+              <button
+                onClick={() => relinkClient(r.id, r.name)}
+                style={{background:'#6366f1', border:'none', borderRadius:8, padding:'7px 14px', color:'white', cursor:'pointer', fontSize:13, fontWeight:600, flexShrink:0}}>
+                Rattacher
+              </button>
+            </div>
+          ))}
+          {!searching && searchQuery.length >= 2 && searchResults.length === 0 && (
+            <p style={{color:'#666', fontSize:13, textAlign:'center'}}>Aucun client trouvé</p>
+          )}
+        </div>
+
+        </PageLayout>
   )
 }
