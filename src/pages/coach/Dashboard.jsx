@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth, useClients } from '../../lib/hooks'
 import { supabase, subscribeToPush } from '../../lib/supabase'
 import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
-import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, BookOpen, LayoutTemplate, ChevronRight } from 'lucide-react'
+import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, BookOpen, LayoutTemplate, ChevronRight, Apple } from 'lucide-react'
 import CoachAlerts from './CoachAlerts'
 
 export default function CoachDashboard() {
@@ -220,6 +220,7 @@ export default function CoachDashboard() {
             {[
               { icon: <BookOpen size={18}/>, label: 'Biblioth\u00e8que', path: '/coach/exercises', color: '#f59e0b' },
               { icon: <LayoutTemplate size={18}/>, label: 'Templates', path: '/coach/templates', color: '#ec4899' },
+              { icon: <Apple size={18}/>, label: 'Nutrition', path: '/coach/nutrition', color: '#22c55e' },
             ].map(tool => (
               <button key={tool.path} onClick={() => navigate(tool.path)}
                 style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', textAlign:'left' }}>
