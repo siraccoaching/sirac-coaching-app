@@ -165,6 +165,12 @@ export default function ClientDetail() {
   const streak = calcStreak()
   const progressEntries = Object.entries(progressData).filter(([, d]) => d.length >= 2)
 
+  async function deleteClient() {
+    if (!confirm('Supprimer ce client ? Cette action est irréversible.')) return
+    await supabase.from('profiles').update({ coach_id: null }).eq('id', id)
+    navigate('/coach')
+  }
+
   return (
     <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:40}}>
       <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
@@ -174,6 +180,10 @@ export default function ClientDetail() {
         <div style={{flex:1}}>
           <h2 style={{margin:0, fontSize:18}}>{client.name}</h2>
           {client.sport && <p style={{margin:0, fontSize:13, color:'#888'}}>{client.sport}{client.position ? ' · ' + client.position : ''}</p>}
+
+        <button onClick={deleteClient} style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}>
+          <Trash2 size={18}/>
+        </button>
         </div>
       </div>
 
