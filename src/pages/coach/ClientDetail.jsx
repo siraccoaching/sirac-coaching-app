@@ -71,6 +71,9 @@ export default function ClientDetail() {
   const [currentProgram, setCurrentProgram] = useState(null)
   const [assignModal, setAssignModal] = useState(false)
   const [assigning, setAssigning] = useState(false)
+  const [measurements, setMeasurements] = useState([])
+  const [sessions, setSessions] = useState([])
+  const [checkins, setCheckins] = useState([])
 
   useEffect(() => { loadData() }, [id])
 
@@ -97,6 +100,12 @@ export default function ClientDetail() {
       .order('created_at', { ascending: false })
     setCompletions(comps || [])
     buildProgressData(comps || [])
+    const { data: meas } = await supabase.from('client_measurements').select('*').eq('client_id', id).order('measured_at', { ascending: false })
+    setMeasurements(meas || [])
+    const { data: sess } = await supabase.from('sessions').select('*').eq('client_id', id).order('session_date', { ascending: false }).limit(30)
+    setSessions(sess || [])
+    const { data: checks } = await supabase.from('weekly_checkins').select('*').eq('client_id', id).order('week_start', { ascending: false })
+    setCheckins(checks || [])
     setLoading(false)
   }
 
@@ -220,7 +229,7 @@ export default function ClientDetail() {
       </div>
 
       <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4}}>
-        {[['history','📋 Historique'], ['progress','📈 Progression']].map(([key, label]) => (
+        {[['history','📋 Historique'], ['progress','📈 Progression'], ['measurements','📏 Mensurations'], ['calendar','📅 Calendrier'], ['checkins','📊 Bilans']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{
             flex:1, padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:600,
             background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? 'white' : '#888'
@@ -297,6 +306,107 @@ export default function ClientDetail() {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* ── MENSURATIONS ── */}
+      {tab === 'measurements' && (
+        <div style={{padding:'0 16px'}}>
+          {measurements.length === 0 ? (
+            <div style={{textAlign:'center', paddingTop:40, color:'#666'}}>
+              <p style={{fontSize:15}}>Aucune mensuration</p>
+              <p style={{fontSize:12}}>Le client n'a pas encore renseigné de mensurations.</p>
+            </div>
+          ) : measurements.map(m => (
+            <div key={m.id} style={{background:'#1e1e2e', borderRadius:12, padding:'14px 16px', marginBottom:10}}>
+              <p style={{margin:'0 0 10px', fontSize:12, color:'#6366f1', fontWeight:700}}>
+                {new Date(m.measured_at).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})}
+              </p>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8}}>
+                {[['Poids', m.weight, 'kg'],['% Graisse', m.body_fat, '%'],['Masse musc.', m.muscle_mass, 'kg'],
+                  ['Tour taille', m.waist, 'cm'],['Tour hanches', m.hips, 'cm'],['Poitrine', m.chest, 'cm'],
+                  ['Bras', m.arms, 'cm'],['Cuisses', m.thighs, 'cm']].filter(([,v]) => v != null).map(([lbl, val, unit]) => (
+                  <div key={lbl} style={{background:'#0f0f1a', borderRadius:8, padding:'8px 6px', textAlign:'center'}}>
+                    <p style={{margin:0, fontSize:15, fontWeight:700, color:'white'}}>{val}<span style={{fontSize:10, color:'#888'}}> {unit}</span></p>
+                    <p style={{margin:0, fontSize:10, color:'#888'}}>{lbl}</p>
+                  </div>
+                ))}
+              </div>
+              {m.notes && <p style={{margin:'10px 0 0', fontSize:12, color:'#aaa', fontStyle:'italic'}}>{m.notes}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── CALENDRIER ── */}
+      {tab === 'calendar' && (
+        <div style={{padding:'0 16px'}}>
+          {sessions.length === 0 ? (
+            <div style={{textAlign:'center', paddingTop:40, color:'#666'}}>
+              <p style={{fontSize:15}}>Aucune séance planifiée</p>
+              <p style={{fontSize:12}}>Aucune session dans le calendrier.</p>
+            </div>
+          ) : sessions.map(s => {
+            const done = s.status === 'completed' || s.completed_at
+            const d = s.session_date ? new Date(s.session_date) : null
+            return (
+              <div key={s.id} style={{background:'#1e1e2e', borderRadius:12, padding:'12px 16px', marginBottom:8, display:'flex', alignItems:'center', gap:12}}>
+                <div style={{width:44, textAlign:'center', flexShrink:0}}>
+                  {d ? (
+                    <>
+                      <p style={{margin:0, fontSize:18, fontWeight:700, color: done ? '#22c55e' : '#6366f1', lineHeight:1}}>{d.getDate()}</p>
+                      <p style={{margin:0, fontSize:10, color:'#888'}}>{d.toLocaleDateString('fr-FR',{month:'short'}).toUpperCase()}</p>
+                    </>
+                  ) : <p style={{margin:0, fontSize:11, color:'#666'}}>–</p>}
+                </div>
+                <div style={{flex:1, minWidth:0}}>
+                  <p style={{margin:0, fontWeight:600, fontSize:14}}>{s.day_title || 'Séance jour ' + s.day_number}</p>
+                  {s.notes && <p style={{margin:'2px 0 0', fontSize:12, color:'#888', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.notes}</p>}
+                </div>
+                <div style={{flexShrink:0, background: done ? '#14532d' : '#1e3a5f', borderRadius:20, padding:'3px 10px'}}>
+                  <span style={{fontSize:11, color: done ? '#22c55e' : '#60a5fa', fontWeight:600}}>{done ? 'Fait ✓' : 'Planifié'}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── BILANS HEBDO ── */}
+      {tab === 'checkins' && (
+        <div style={{padding:'0 16px'}}>
+          {checkins.length === 0 ? (
+            <div style={{textAlign:'center', paddingTop:40, color:'#666'}}>
+              <p style={{fontSize:15}}>Aucun bilan</p>
+              <p style={{fontSize:12}}>Le client n'a pas encore soumis de bilan hebdomadaire.</p>
+            </div>
+          ) : checkins.map(ch => {
+            const stars = (n, color) => n ? '★'.repeat(n) + '☆'.repeat(5-n) : '–'
+            const week = new Date(ch.week_start)
+            return (
+              <div key={ch.id} style={{background:'#1e1e2e', borderRadius:12, padding:'14px 16px', marginBottom:10}}>
+                <p style={{margin:'0 0 12px', fontSize:13, fontWeight:700, color:'#a78bfa'}}>
+                  Semaine du {week.toLocaleDateString('fr-FR', {day:'numeric', month:'long'})}
+                </p>
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
+                  {[['🏋️ Entraînement', ch.training_rating, '#6366f1'],
+                    ['⚡ Énergie', ch.energy_level, '#f59e0b'],
+                    ['😴 Sommeil', ch.sleep_quality, '#22c55e'],
+                    ['😤 Stress', ch.stress_level, '#ef4444']].map(([lbl, val, color]) => (
+                    <div key={lbl} style={{background:'#0f0f1a', borderRadius:8, padding:'8px 10px'}}>
+                      <p style={{margin:'0 0 3px', fontSize:11, color:'#888'}}>{lbl}</p>
+                      <p style={{margin:0, fontSize:16, letterSpacing:1, color}}>{val ? stars(val) : '–'}</p>
+                    </div>
+                  ))}
+                </div>
+                {ch.notes && (
+                  <div style={{marginTop:10, padding:'8px 10px', background:'#0f0f1a', borderRadius:8}}>
+                    <p style={{margin:0, fontSize:12, color:'#ccc', fontStyle:'italic'}}>" {ch.notes} "</p>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
