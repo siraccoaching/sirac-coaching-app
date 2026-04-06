@@ -416,6 +416,7 @@ export default function ClientDetail() {
                   </div>
                 </div>
               )}
+            </div>
             )
           })}
         </div>
