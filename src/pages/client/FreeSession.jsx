@@ -17,7 +17,6 @@ export default function FreeSession() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    if (!profile?.coach_id) return
     loadExercises()
   }, [profile])
 
@@ -25,7 +24,6 @@ export default function FreeSession() {
     const { data } = await supabase
       .from('exercises')
       .select('id, name, category, muscles')
-      .eq('coach_id', profile.coach_id)
       .order('name')
     setExercises(data || [])
   }
@@ -179,7 +177,15 @@ export default function FreeSession() {
             </div>
             <div style={{ overflowY: 'auto', padding: '8px 12px 24px' }}>
               {filtered.length === 0 ? (
-                <p style={{ color: '#555', textAlign: 'center', padding: '24px 0', fontSize: 14 }}>Aucun exercice trouvé</p>
+                search.trim() ? (
+                  <button onClick={() => addExercise({ id: null, name: search.trim() })}
+                    style={{ width: '100%', background: 'none', border: '1px dashed #6366f1', borderRadius: 10, padding: '12px 16px', color: '#6366f1', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 8 }}>
+                    <Plus size={16} />
+                    Ajouter "{search.trim()}"
+                  </button>
+                ) : (
+                  <p style={{ color: '#555', textAlign: 'center', padding: '24px 0', fontSize: 14 }}>Tapez le nom d'un exercice</p>
+                )
               ) : (
                 filtered.map(ex => (
                   <button key={ex.id} onClick={() => addExercise(ex)}
