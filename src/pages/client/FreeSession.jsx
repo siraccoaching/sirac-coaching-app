@@ -99,6 +99,7 @@ export default function FreeSession() {
   )
 
   return (
+    <>
     <PageLayout title="Séance libre" back="/client">
       <div style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {selectedExercises.length === 0 ? (
@@ -160,8 +161,9 @@ export default function FreeSession() {
           </button>
         )}
       </div>
+    </PageLayout>
 
-      {showPicker && (
+    {showPicker && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }}
           onClick={() => setShowPicker(false)}>
           <div style={{ width: '100%', background: '#1e1e2e', borderRadius: '20px 20px 0 0', maxHeight: '70vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
@@ -202,6 +204,6 @@ export default function FreeSession() {
           </div>
         </div>
       )}
-    </PageLayout>
+    </>
   )
 }
