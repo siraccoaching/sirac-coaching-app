@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
-import { ChevronLeft, ChevronRight, Plus, Trash2, ChevronDown, ChevronUp, Apple } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Trash2, ChevronDown, ChevronUp, Apple } from 'lucide-react'
 
 const MACROS = [
   { key: 'calories', label: 'Calories', unit: 'kcal', color: '#f59e0b', targetKey: 'calories_target' },
@@ -47,6 +48,7 @@ function MacroCircle({ label, unit, color, consumed, target }) {
 
 export default function Nutrition() {
   const { profile } = useAuth()
+  const navigate = useNavigate()
   const [date, setDate] = useState(new Date())
   const [plan, setPlan] = useState(null)
   const [planMeals, setPlanMeals] = useState([])
@@ -148,7 +150,12 @@ export default function Nutrition() {
       {/* Header */}
       <div style={{background:'#1e1e2e', padding:'16px 20px', position:'sticky', top:0, zIndex:10}}>
         <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10}}>
-          <h2 style={{margin:0, fontSize:18}}>Nutrition</h2>
+          <div style={{display:'flex', alignItems:'center', gap:10}}>
+            <button onClick={() => navigate('/client')} style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:4, display:'flex', alignItems:'center'}}>
+              <ArrowLeft size={22}/>
+            </button>
+            <h2 style={{margin:0, fontSize:18}}>Nutrition</h2>
+          </div>
           {plan && <span style={{fontSize:12, color:'#a78bfa', background:'#2d2b55', padding:'3px 10px', borderRadius:20}}>{plan.name}</span>}
         </div>
         {/* Date nav */}
