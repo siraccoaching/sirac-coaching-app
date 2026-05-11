@@ -2,50 +2,123 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [mode, setMode] = useState('login')
-  const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [success, setSuccess] = useState('')
+    const [mode, setMode] = useState('login') // 'login' | 'reset'
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    if (mode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError('Email ou mot de passe incorrect.')
-    } else {
-      const { data, error } = await supabase.auth.signUp({ email, password })
-      if (error) { setError(error.message); setLoading(false); return }
-      if (data.user) {
-        await supabase.from('profiles').insert({ id: data.user.id, email, name, role: 'client' })
+        e.preventDefault()
+        setLoading(true)
+        setError('')
+        setSuccess('')
+
+      if (mode === 'reset') {
+              const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + '/reset-password',
+              })
+              if (error) {
+                        setError('Erreur : ' + error.message)
+              } else {
+                        setSuccess('Un email de réinitialisation a été envoyé à ' + email + '. Vérifie ta boîte mail.')
+              }
+              setLoading(false)
+              return
       }
-    }
-    setLoading(false)
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) setError('Email ou mot de passe incorrect.')
+        setLoading(false)
   }
 
   return (
-    <div className="flex flex-col h-full items-center justify-center bg-dark-900 px-6">
-      <div className="mb-8 text-center">
-        <div className="w-20 h-20 bg-brand-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-600/30">
-          <span className="text-4xl">🏈</span>
-        </div>
-        <h1 className="text-2xl font-bold text-white">Sirac Coaching</h1>
-        <p className="text-gray-400 text-sm mt-1">Plateforme de suivi athlètes</p>
-      </div>
-      <div className="w-full max-w-sm bg-dark-800 rounded-3xl border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-5">{mode === 'login' ? 'Connexion' : 'Créer un compte'}</h2>
-        {error && <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'signup' && <div><label className="block text-sm text-gray-400 mb-1.5">Nom complet</label><input type="text" value={name} onChange={e => setName(e.target.value)} required autoComplete="name" placeholder="Ton prénom et nom" className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors" /></div>}
-          <div><label className="block text-sm text-gray-400 mb-1.5">Email</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" placeholder="ton@email.com" className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors" /></div>
-          <div><label className="block text-sm text-gray-400 mb-1.5">Mot de passe</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="••••••••" className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors mt-2">{loading ? 'Connexion…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}</button>
-        </form>
-        <p className="text-center text-gray-500 text-sm mt-5">{mode === 'login' ? "Pas encore de compte ?" : "Déjà un compte ?"}{' '}<button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="text-brand-400 hover:text-brand-300 font-medium">{mode === 'login' ? "S'inscrire" : 'Se connecter'}</button></p>
-      </div>
-    </div>
-  )
-}
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '24px' }}>
+                <div style={{ marginBottom: 32, textAlign: 'center' }}>
+                          <div style={{ width: 72, height: 72, background: 'var(--accent)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 32 }}>🏈</div>div>
+                          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Sirac Coaching</h1>h1>
+                          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>Plateforme de suivi athlètes</p>p>
+                </div>div>
+
+                <div style={{ width: '100%', maxWidth: 360, background: 'var(--bg-card)', borderRadius: 24, border: '1px solid rgba(255,255,255,0.08)', padding: 24 }}>
+                          <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', marginBottom: 20 }}>
+                            {mode === 'login' ? 'Connexion à ton espace' : 'Réinitialiser le mot de passe'}
+                          </h2>h2>
+
+                  {error && (
+                    <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, color: '#f87171', fontSize: 13 }}>
+                      {error}
+                    </div>div>
+                  )}
+                  {success && (
+                    <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, color: '#4ade80', fontSize: 13 }}>
+                      {success}
+                    </div>div>
+                  )}
+
+                          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                      <div>
+                                                  <label style={{ display: 'block', fontSize: 13, color: 'var(--text-2)', marginBottom: 6 }}>Email</label>label>
+                                                  <input
+                                                                  type="email"
+                                                                  value={email}
+                                                                  onChange={e => setEmail(e.target.value)}
+                                                                  required
+                                                                  autoComplete="email"
+                                                                  placeholder="ton@email.com"
+                                                                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', color: 'var(--text)', fontSize: 15, outline: 'none', boxSizing: 'border-box' }}
+                                                                />
+                                      </div>div>
+                          
+                            {mode === 'login' && (
+                      <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                                    <label style={{ fontSize: 13, color: 'var(--text-2)' }}>Mot de passe</label>label>
+                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => { setMode('reset'); setError(''); setSuccess('') }}
+                                                                        style={{ fontSize: 12, color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                                                                      >
+                                                                      Mot de passe oublié ?
+                                                    </button>button>
+                                    </div>div>
+                                    <input
+                                                      type="password"
+                                                      value={password}
+                                                      onChange={e => setPassword(e.target.value)}
+                                                      required
+                                                      autoComplete="current-password"
+                                                      placeholder="••••••••"
+                                                      style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px', color: 'var(--text)', fontSize: 15, outline: 'none', boxSizing: 'border-box' }}
+                                                    />
+                      </div>div>
+                                    )}
+                          
+                                    <button
+                                                  type="submit"
+                                                  disabled={loading}
+                                                  style={{ width: '100%', background: loading ? 'rgba(201,168,76,0.5)' : 'var(--accent)', border: 'none', borderRadius: 14, padding: '14px', color: '#000', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
+                                                >
+                                      {loading ? (mode === 'reset' ? 'Envoi...' : 'Connexion...') : (mode === 'reset' ? 'Envoyer le lien' : 'Se connecter')}
+                                    </button>button>
+                          </form>form>
+                
+                  {mode === 'reset' && (
+                    <button
+                                  onClick={() => { setMode('login'); setError(''); setSuccess('') }}
+                                  style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: 16, fontSize: 13, color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}
+                                >
+                                ← Retour à la connexion
+                    </button>button>
+                        )}
+                
+                  {mode === 'login' && (
+                    <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-3)', marginTop: 20 }}>
+                                Contacte ton coach pour obtenir ton accès.
+                    </p>p>
+                        )}
+                </div>div>
+        </div>div>
+      )
+}</div>
