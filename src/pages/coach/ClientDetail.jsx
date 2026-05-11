@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
-import { ArrowLeft, Trash2, TrendingUp, ChevronDown, ChevronUp, Check } from 'lucide-react'
+import { ArrowLeft, Trash2, TrendingUp, ChevronDown, ChevronUp, Check, Pencil, X } from 'lucide-react'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
@@ -180,6 +180,33 @@ export default function ClientDetail() {
     navigate('/coach')
   }
 
+  const [editModal, setEditModal] = useState(false)
+  const [editForm, setEditForm] = useState({})
+  const [editSaving, setEditSaving] = useState(false)
+
+  function openEdit() {
+    setEditForm({
+      name: client?.name || '',
+      sport: client?.sport || '',
+      position: client?.position || '',
+      current_phase: client?.current_phase || '',
+    })
+    setEditModal(true)
+  }
+
+  async function saveEdit() {
+    setEditSaving(true)
+    await supabase.from('profiles').update({
+      name: editForm.name,
+      sport: editForm.sport,
+      position: editForm.position,
+      current_phase: editForm.current_phase,
+    }).eq('id', id)
+    await loadData()
+    setEditModal(false)
+    setEditSaving(false)
+  }
+
   return (
     <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:40}}>
       <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
@@ -190,6 +217,9 @@ export default function ClientDetail() {
           <h2 style={{margin:0, fontSize:18}}>{client.name}</h2>
           {client.sport && <p style={{margin:0, fontSize:13, color:'#888'}}>{client.sport}{client.position ? ' · ' + client.position : ''}</p>}
 
+        <button onClick={openEdit} style={{background:'none', border:'none', color:'#a0aec0', cursor:'pointer', padding:4, marginRight:4}}>
+          <Pencil size={16}/>
+        </button>
         <button onClick={deleteClient} style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}>
           <Trash2 size={18}/>
         </button>
@@ -488,6 +518,27 @@ export default function ClientDetail() {
                 </button>
               ))
             )}
+          </div>
+        </div>
+      )}
+      {editModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:50,display:'flex',alignItems:'flex-end',justifyContent:'center',padding:16}}>
+          <div style={{background:'#1e1e2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:24,padding:20,width:'100%',maxWidth:400}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <h3 style={{margin:0,fontSize:16,fontWeight:600,color:'white'}}>Modifier le client</h3>
+              <button onClick={()=>setEditModal(false)} style={{background:'none',border:'none',color:'#888',cursor:'pointer'}}><X size={18}/></button>
+            </div>
+            {[{key:'name',label:'Nom complet'},{key:'sport',label:'Sport'},{key:'position',label:'Poste'},{key:'current_phase',label:'Phase actuelle'}].map(f=>(
+              <div key={f.key} style={{marginBottom:12}}>
+                <label style={{display:'block',fontSize:12,color:'#888',marginBottom:4}}>{f.label}</label>
+                <input value={editForm[f.key]||''} onChange={e=>setEditForm(p=>({...p,[f.key]:e.target.value}))}
+                  style={{width:'100%',background:'#0f0f1a',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'10px 14px',color:'white',fontSize:14,outline:'none',boxSizing:'border-box'}}/>
+              </div>
+            ))}
+            <button onClick={saveEdit} disabled={editSaving}
+              style={{width:'100%',background:'#c9a84c',border:'none',borderRadius:12,padding:13,color:'#000',fontWeight:700,fontSize:14,cursor:editSaving?'not-allowed':'pointer',marginTop:4,opacity:editSaving?0.6:1}}>
+              {editSaving?'Enregistrement...':'Sauvegarder'}
+            </button>
           </div>
         </div>
       )}
