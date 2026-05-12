@@ -227,4 +227,4 @@ export default function AddClient() {
                         </div>
                   </PageLayout>
                 )
-              }</PageLayout>
+              }
