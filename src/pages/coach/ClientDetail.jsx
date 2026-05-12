@@ -168,6 +168,10 @@ export default function ClientDetail() {
     return streak
   }
 
+  const [editModal, setEditModal] = useState(false)
+  const [editForm, setEditForm] = useState({})
+  const [editSaving, setEditSaving] = useState(false)
+
   if (loading) return <div style={{color:'white',padding:20}}>Chargement...</div>
   if (!client) return <div style={{color:'white',padding:20}}>Client introuvable</div>
 
@@ -179,10 +183,6 @@ export default function ClientDetail() {
     await supabase.from('profiles').update({ coach_id: null }).eq('id', id)
     navigate('/coach')
   }
-
-  const [editModal, setEditModal] = useState(false)
-  const [editForm, setEditForm] = useState({})
-  const [editSaving, setEditSaving] = useState(false)
 
   function openEdit() {
     setEditForm({
