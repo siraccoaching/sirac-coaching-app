@@ -62,10 +62,11 @@ export default function ExerciseLibrary() {
   const [editing, setEditing] = useState(null)
   const [videoModal, setVideoModal] = useState(null)
 
-  useEffect(() => { loadExercises() }, [])
+    useEffect(() => { if (profile) loadExercises() }, [profile])
 
   async function loadExercises() {
     setLoading(true)
+        if (!profile) { setLoading(false); return }
     const { data } = await supabase.from('exercises').select('*').eq('coach_id', profile.id).order('name')
     setExercises(data || [])
     setLoading(false)
