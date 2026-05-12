@@ -152,7 +152,7 @@ export default function AddClient() {
                                                                                       onChange={e => update('sport', e.target.value)}
                                                                                       className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"
                                                                                     >
-                                                                      {SPORTS.map(s => <option key={s}>{s}</option>option>)}
+                                                                      {SPORTS.map(s => <option key={s}>{s}</option>)}
                                                                     </select>
                                                       </div>
                                           
