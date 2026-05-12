@@ -91,25 +91,25 @@ export default function AddClient() {
                         <div className="p-4 flex flex-col items-center justify-center min-h-[60vh] text-center">
                                   <div className="w-16 h-16 bg-green-500/15 rounded-full flex items-center justify-center mb-4">
                                               <CheckCircle size={32} className="text-green-400" />
-                                  </div>div>
-                                  <h2 className="text-white font-bold text-lg mb-2">Invitation envoyée !</h2>h2>
-                                  <p className="text-gray-400 text-sm mb-6 max-w-xs">{success}</p>p>
+                                  </div>
+                                  <h2 className="text-white font-bold text-lg mb-2">Invitation envoyée !</h2>
+                                  <p className="text-gray-400 text-sm mb-6 max-w-xs">{success}</p>
                                   <div className="flex gap-3">
                                               <button
                                                               onClick={() => setSuccess('')}
                                                               className="px-4 py-2.5 bg-dark-800 border border-white/10 text-white text-sm font-medium rounded-xl"
                                                             >
                                                             Ajouter un autre client
-                                              </button>button>
+                                              </button>
                                               <button
                                                               onClick={() => navigate('/coach/clients')}
                                                               className="px-4 py-2.5 bg-brand-600 text-white text-sm font-medium rounded-xl"
                                                             >
                                                             Voir mes clients
-                                              </button>button>
-                                  </div>div>
-                        </div>div>
-                </PageLayout>PageLayout>
+                                              </button>
+                                  </div>
+                        </div>
+                </PageLayout>
               )
           }
           
@@ -117,20 +117,20 @@ export default function AddClient() {
                   <PageLayout title="Nouveau client" back="/coach">
                         <div className="p-4 pb-8 space-y-5">
                           {error && (
-                              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{error}</div>div>
+                              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">{error}</div>
                                 )}
                         
                                 <form onSubmit={handleSubmit} className="space-y-5">
                                           <Card className="p-4 space-y-4">
-                                                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Informations personnelles</h3>h3>
-                                                      <p className="text-xs text-gray-500">Le client recevra un email d'invitation pour créer son mot de passe.</p>p>
+                                                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Informations personnelles</h3>
+                                                      <p className="text-xs text-gray-500">Le client recevra un email d'invitation pour créer son mot de passe.</p>
                                           
                                             {[
                     { label: 'Nom complet', key: 'name', type: 'text', placeholder: 'Prénom Nom' },
                     { label: 'Email', key: 'email', type: 'email', placeholder: 'client@email.com' },
                                 ].map(({ label, key, type, placeholder }) => (
                                                 <div key={key}>
-                                                                <label className="block text-sm text-gray-400 mb-1.5">{label} *</label>label>
+                                                                <label className="block text-sm text-gray-400 mb-1.5">{label} *</label>
                                                                 <input
                                                                                     type={type}
                                                                                     value={form[key]}
@@ -139,26 +139,26 @@ export default function AddClient() {
                                                                                     placeholder={placeholder}
                                                                                     className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors"
                                                                                   />
-                                                </div>div>
+                                                </div>
                                               ))}
-                                          </Card>Card>
+                                          </Card>
                                 
                                           <Card className="p-4 space-y-4">
-                                                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Sport & Profil</h3>h3>
+                                                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Sport & Profil</h3>
                                                       <div>
-                                                                    <label className="block text-sm text-gray-400 mb-1.5">Sport</label>label>
+                                                                    <label className="block text-sm text-gray-400 mb-1.5">Sport</label>
                                                                     <select
                                                                                       value={form.sport}
                                                                                       onChange={e => update('sport', e.target.value)}
                                                                                       className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"
                                                                                     >
                                                                       {SPORTS.map(s => <option key={s}>{s}</option>option>)}
-                                                                    </select>select>
-                                                      </div>div>
+                                                                    </select>
+                                                      </div>
                                           
                                             {positions.length > 0 && (
                                   <div>
-                                                  <label className="block text-sm text-gray-400 mb-1.5">Poste</label>label>
+                                                  <label className="block text-sm text-gray-400 mb-1.5">Poste</label>
                                                   <div className="flex flex-wrap gap-2">
                                                     {positions.map(p => (
                                                         <button
@@ -168,14 +168,14 @@ export default function AddClient() {
                                                                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${form.position === p ? 'bg-brand-600 border-brand-600 text-white' : 'bg-dark-900 border-white/10 text-gray-400'}`}
                                                                               >
                                                           {p}
-                                                        </button>button>
+                                                        </button>
                                                       ))}
-                                                  </div>div>
-                                  </div>div>
+                                                  </div>
+                                  </div>
                                                       )}
                                           
                                                       <div>
-                                                                    <label className="block text-sm text-gray-400 mb-1.5">Phase actuelle</label>label>
+                                                                    <label className="block text-sm text-gray-400 mb-1.5">Phase actuelle</label>
                                                                     <input
                                                                                       type="text"
                                                                                       value={form.phase}
@@ -183,8 +183,8 @@ export default function AddClient() {
                                                                                       placeholder="Ex: Pré-saison, Compétition..."
                                                                                       className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors"
                                                                                     />
-                                                      </div>div>
-                                          </Card>Card>
+                                                      </div>
+                                          </Card>
                                 
                                           <button
                                                         type="submit"
@@ -193,13 +193,13 @@ export default function AddClient() {
                                                       >
                                                       <UserPlus size={17} />
                                             {loading ? 'Envoi de l\'invitation...' : 'Envoyer l\'invitation'}
-                                          </button>button>
-                                </form>form>
+                                          </button>
+                                </form>
                         
                           {/* Rattacher un client existant */}
                                 <Card className="p-4 space-y-3">
-                                          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Rattacher un client existant</h3>h3>
-                                          <p className="text-xs text-gray-500">Si le client a déjà un compte sans coach assigné.</p>p>
+                                          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Rattacher un client existant</h3>
+                                          <p className="text-xs text-gray-500">Si le client a déjà un compte sans coach assigné.</p>
                                           <input
                                                         type="text"
                                                         value={searchQuery}
@@ -207,24 +207,24 @@ export default function AddClient() {
                                                         placeholder="Rechercher par nom ou email..."
                                                         className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm"
                                                       />
-                                  {relinkMsg && <p className="text-green-400 text-xs">{relinkMsg}</p>p>}
-                                  {searching && <p className="text-gray-500 text-xs">Recherche...</p>p>}
+                                  {relinkMsg && <p className="text-green-400 text-xs">{relinkMsg}</p>}
+                                  {searching && <p className="text-gray-500 text-xs">Recherche...</p>}
                                   {searchResults.map(r => (
                                 <div key={r.id} className="flex items-center justify-between bg-dark-900 rounded-xl px-3 py-2.5">
                                               <div>
-                                                              <p className="text-white text-sm font-medium">{r.name}</p>p>
-                                                              <p className="text-gray-500 text-xs">{r.email}</p>p>
-                                              </div>div>
+                                                              <p className="text-white text-sm font-medium">{r.name}</p>
+                                                              <p className="text-gray-500 text-xs">{r.email}</p>
+                                              </div>
                                               <button
                                                                 onClick={() => relinkClient(r.id, r.name)}
                                                                 className="text-brand-400 text-xs font-medium hover:text-brand-300 px-2 py-1 bg-brand-600/10 rounded-lg"
                                                               >
                                                               Rattacher
-                                              </button>button>
-                                </div>div>
+                                              </button>
+                                </div>
                               ))}
-                                </Card>Card>
-                        </div>div>
-                  </PageLayout>PageLayout>
+                                </Card>
+                        </div>
+                  </PageLayout>
                 )
               }</PageLayout>
