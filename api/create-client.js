@@ -35,8 +35,11 @@ export default async function handler(req, res) {
   }
 
   // Invite the user by email — they'll receive a link to set their own password
+  // Le lien de l'email amène le client sur la page où il choisit son mot de passe.
+  const origin = req.headers.origin || `https://${req.headers.host}`
   const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
         data: { name, role: 'client' },
+        redirectTo: origin + '/reset-password',
   })
 
   if (inviteError) {
