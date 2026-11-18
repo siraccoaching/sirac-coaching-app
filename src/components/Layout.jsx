@@ -91,8 +91,8 @@ export function PageLayout({ children, title, subtitle, back, action }) {
   )
 }
 
-// Style des icônes de la barre du bas : 'apple' (contour + pastille), 'color' (carrés colorés), 'emoji'
-function tabStyle() { try { return localStorage.getItem('sirac-tabstyle') || 'apple' } catch { return 'apple' } }
+// Style des icônes de la barre du bas : emoji (choisi). 'apple' et 'color' restent disponibles si besoin.
+function tabStyle() { return 'emoji' }
 
 function TabItem({ item, active, onClick }) {
   const { icon: Icon, emoji, color, label } = item
