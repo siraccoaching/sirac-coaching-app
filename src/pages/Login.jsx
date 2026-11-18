@@ -98,7 +98,7 @@ export default function Login() {
                                     <button
                                                   type="submit"
                                                   disabled={loading}
-                                                  style={{ width: '100%', background: loading ? 'rgba(201,168,76,0.5)' : 'var(--accent)', border: 'none', borderRadius: 14, padding: '14px', color: '#000', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
+                                                  style={{ width: '100%', background: loading ? 'rgba(99,102,241,0.5)' : 'var(--accent)', border: 'none', borderRadius: 14, padding: '14px', color: '#fff', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
                                                 >
                                       {loading ? (mode === 'reset' ? 'Envoi...' : 'Connexion...') : (mode === 'reset' ? 'Envoyer le lien' : 'Se connecter')}
                                     </button>
