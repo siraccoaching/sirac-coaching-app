@@ -85,9 +85,10 @@
 }
 
 @layer base {
-  html { @apply h-full; background: var(--bg); transition: background-color .3s ease; }
+  html { @apply h-full; background: var(--bg); transition: background-color .3s ease; overscroll-behavior-y: none; -webkit-text-size-adjust: 100%; }
   body {
     @apply h-full antialiased;
+    overscroll-behavior-y: none;
     background: var(--bg);
     color: var(--label);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Inter, system-ui, sans-serif;
@@ -125,12 +126,27 @@ button:active:not(:disabled) { transform: scale(0.97); opacity: .85; }
 @keyframes ios-sheet { from { transform: translateY(40px); opacity: .4 } to { transform: none; opacity: 1 } }
 @keyframes ios-page { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
 
+/* Feuilles qui montent du bas : marge pour la barre d'accueil de l'iPhone */
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="20px 20px 0"],
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="18px 18px 0"],
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="16px 16px 0"],
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="24px 24px 0"] { padding-bottom: calc(24px + var(--sab)) !important; }
+
 /* Fenêtres modales (fond + feuille qui monte) */
 div[style*="position: fixed"][style*="inset: 0"],
 .fixed.inset-0 { animation: ios-fade .2s ease-out; }
 div[style*="position: fixed"][style*="inset: 0"] > div:first-child,
 .fixed.inset-0 > div:first-child { animation: ios-sheet .32s cubic-bezier(.2,.9,.3,1); }
+/* Transitions de page façon iOS : glisse depuis la droite en avançant, depuis la gauche en revenant, fondu entre onglets */
+@keyframes nav-push { from { transform: translateX(28%); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes nav-back { from { transform: translateX(-22%); opacity: 0 } to { transform: none; opacity: 1 } }
 .ios-page { animation: ios-page .28s ease-out; }
+.nav-push { animation: nav-push .34s cubic-bezier(.2,.9,.25,1); }
+.nav-back { animation: nav-back .32s cubic-bezier(.2,.9,.25,1); }
+
+/* Apparition « pop » (records, badges) */
+@keyframes ios-pop { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.08); opacity: 1 } 100% { transform: scale(1) } }
+.ios-pop { animation: ios-pop .5s cubic-bezier(.2,1.4,.4,1) both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

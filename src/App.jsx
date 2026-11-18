@@ -1,33 +1,36 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './lib/hooks'
+import { useRealtimeNotifications } from './lib/notify'
 import Login from './pages/Login'
-import CoachDashboard from './pages/coach/Dashboard'
-import ClientDetail from './pages/coach/ClientDetail'
-import AddClient from './pages/coach/AddClient'
-import Programs from './pages/coach/Programs'
-import ProgramBuilder from './pages/coach/ProgramBuilder'
-import ProgramDetail from './pages/coach/ProgramDetail'
-import CoachSettings from './pages/coach/CoachSettings'
-import ClientHome from './pages/client/Home'
-import SessionLog from './pages/client/SessionLog'
-import SessionHistory from './pages/client/History'
-import MyProgram from './pages/client/MyProgram'
-import SessionLogger from './pages/client/SessionLogger'
-import Measurements from './pages/client/Measurements'
-import WeeklyCheckin from './pages/client/WeeklyCheckin'
-import BookSession from './pages/client/BookSession'
-import Progress from './pages/client/Progress'
-import ExerciseLibrary from './pages/coach/ExerciseLibrary'
-import CoachCalendar from './pages/coach/CoachCalendar'
-import ProgramTemplates from './pages/coach/ProgramTemplates'
-import { CoachMessages, ClientMessages } from './pages/Messages'
-import JoinCoach from './pages/JoinCoach'
-import ResetPassword from './pages/ResetPassword'
-import Onboarding from './pages/client/Onboarding'
-import FreeSession from './pages/client/FreeSession'
-import NutritionPlans from './pages/coach/NutritionPlans'
-import Nutrition from './pages/client/Nutrition'
-import Profile from './pages/client/Profile'
+const CoachDashboard = lazy(() => import('./pages/coach/Dashboard'))
+const ClientDetail = lazy(() => import('./pages/coach/ClientDetail'))
+const AddClient = lazy(() => import('./pages/coach/AddClient'))
+const Programs = lazy(() => import('./pages/coach/Programs'))
+const ProgramBuilder = lazy(() => import('./pages/coach/ProgramBuilder'))
+const ProgramDetail = lazy(() => import('./pages/coach/ProgramDetail'))
+const CoachSettings = lazy(() => import('./pages/coach/CoachSettings'))
+const ClientHome = lazy(() => import('./pages/client/Home'))
+const SessionLog = lazy(() => import('./pages/client/SessionLog'))
+const SessionHistory = lazy(() => import('./pages/client/History'))
+const MyProgram = lazy(() => import('./pages/client/MyProgram'))
+const SessionLogger = lazy(() => import('./pages/client/SessionLogger'))
+const Measurements = lazy(() => import('./pages/client/Measurements'))
+const WeeklyCheckin = lazy(() => import('./pages/client/WeeklyCheckin'))
+const BookSession = lazy(() => import('./pages/client/BookSession'))
+const Progress = lazy(() => import('./pages/client/Progress'))
+const ExerciseLibrary = lazy(() => import('./pages/coach/ExerciseLibrary'))
+const CoachCalendar = lazy(() => import('./pages/coach/CoachCalendar'))
+const ProgramTemplates = lazy(() => import('./pages/coach/ProgramTemplates'))
+const CoachMessages = lazy(() => import('./pages/Messages').then(m => ({ default: m.CoachMessages })))
+const ClientMessages = lazy(() => import('./pages/Messages').then(m => ({ default: m.ClientMessages })))
+const JoinCoach = lazy(() => import('./pages/JoinCoach'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const Onboarding = lazy(() => import('./pages/client/Onboarding'))
+const FreeSession = lazy(() => import('./pages/client/FreeSession'))
+const NutritionPlans = lazy(() => import('./pages/coach/NutritionPlans'))
+const Nutrition = lazy(() => import('./pages/client/Nutrition'))
+const Profile = lazy(() => import('./pages/client/Profile'))
 
 function ProtectedRoute({ children, requiredRole }) {
   const { user, profile, loading } = useAuth()
@@ -52,10 +55,12 @@ function Loader() {
 
 export default function App() {
   const { user, profile, loading } = useAuth()
+  useRealtimeNotifications(user ? profile : null)
   if (loading) return <Loader />
   return (
     <BrowserRouter>
       <div className="ios-statusbar" aria-hidden />
+      <Suspense fallback={<Loader />}>
       <Routes>
         <Route path="/login" element={
           user ? <Navigate to={profile?.role === 'coach' ? '/coach' : '/client'} replace /> : <Login />
@@ -92,6 +97,7 @@ export default function App() {
         <Route path="/client/profile" element={<ProtectedRoute requiredRole="client"><Profile /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

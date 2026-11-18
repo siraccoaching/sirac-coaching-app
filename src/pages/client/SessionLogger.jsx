@@ -5,6 +5,9 @@ import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
 import { Dumbbell, Clock, Plus, Trash2, CheckCircle, ChevronDown, ChevronUp, X, History, Info } from 'lucide-react'
 import { ExerciseMedia, ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
+import FocusMode from '../../components/FocusMode'
+import { celebrate, haptic } from '../../lib/fx'
+import { Maximize2 } from 'lucide-react'
 
 const inputStyle = {
   WebkitTextFillColor: 'var(--label)',
@@ -28,6 +31,7 @@ export default function SessionLogger() {
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [hasHistory, setHasHistory] = useState(false)
   const [showRPEModal, setShowRPEModal] = useState(false)
+  const [focus, setFocus] = useState(false)
   const [completionId, setCompletionId] = useState(null)
   const [rpeValue, setRpeValue] = useState(7)
   const [wellbeingNote, setWellbeingNote] = useState('')
@@ -157,6 +161,8 @@ export default function SessionLogger() {
       }
     }
     if (newPRs.length > 0) setSessionPRs(newPRs)
+    setFocus(false)
+    celebrate({ big: newPRs.length > 0 })
     setCompletionId(comp.id)
     setShowRPEModal(true)
   }
@@ -193,6 +199,11 @@ export default function SessionLogger() {
   return (
     <PageLayout title={sess.name} back="/client/program">
       <div className="p-4 pb-10 space-y-4">
+
+        <button onClick={() => setFocus(true)} data-testid="focus-btn"
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', borderRadius: 16, padding: '14px 0', fontSize: 16, fontWeight: 700, color: 'white', cursor: 'pointer', background: 'linear-gradient(135deg,#5e5ce6,#8b5cf6)', boxShadow: '0 8px 22px rgba(94,92,230,.3)' }}>
+          <Maximize2 size={18} /> Mode focus · une série à la fois
+        </button>
 
         {hasHistory && (
           <div className="flex items-center gap-2 bg-brand-600/10 border border-brand-500/20 rounded-2xl px-3 py-2.5">
@@ -286,7 +297,7 @@ export default function SessionLogger() {
                           />
                         ))}
                       </div>
-                      <button onClick={() => { updateSet(ex.id, si, '_done', true); if (ex.rest_seconds > 0) startTimer(ex.rest_seconds) }}
+                      <button onClick={() => { haptic(12); updateSet(ex.id, si, '_done', true); if (ex.rest_seconds > 0) startTimer(ex.rest_seconds) }}
                         className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-colors ${set._done ? 'bg-green-500/20 text-green-400' : 'bg-dark-700 text-gray-600 hover:text-green-400'}`}>
                         <CheckCircle size={13} />
                       </button>
@@ -337,10 +348,10 @@ export default function SessionLogger() {
             <h3 style={{margin:'0 0 6px', fontSize:20, fontWeight:700, textAlign:'center', color:'var(--label)'}}>Séance terminée ! 🎉</h3>
             <p style={{margin:'0 0 16px', fontSize:14, color:'var(--label2)', textAlign:'center'}}>Comment tu te sens ?</p>
             {sessionPRs.length > 0 && (
-              <div style={{background:'linear-gradient(135deg,#f59e0b22,#ef444422)', border:'1px solid #f59e0b44', borderRadius:12, padding:'12px 14px', marginBottom:16}}>
-                <p style={{margin:'0 0 8px', fontSize:13, fontWeight:700, color:'#f59e0b', textAlign:'center'}}>🏆 Nouveau{sessionPRs.length > 1 ? 'x' : ''} PR !</p>
+              <div className="ios-pop" style={{background:'linear-gradient(135deg,#f59e0b22,#ef444422)', border:'1px solid #f59e0b44', borderRadius:12, padding:'12px 14px', marginBottom:16}}>
+                <p style={{margin:'0 0 8px', fontSize:13, fontWeight:700, color:'var(--orange-text)', textAlign:'center'}}><span style={{fontSize:28, display:'block'}}>🏆</span>Nouveau{sessionPRs.length > 1 ? 'x' : ''} PR !</p>
                 {sessionPRs.map((pr, i) => (
-                  <div key={i} style={{display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:3}}>
+                  <div key={i} className="ios-pop" style={{animationDelay: (0.25 + i * 0.15) + 's', display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:3}}>
                     <span style={{color:'var(--label1b)'}}>{pr.name}</span>
                     <span style={{color:'#f59e0b', fontWeight:700}}>{pr.load} kg {pr.prev > 0 ? '(+' + (pr.load - pr.prev).toFixed(1) + ')' : '🆕'}</span>
                   </div>
@@ -385,6 +396,7 @@ export default function SessionLogger() {
         </div>
       )}
 
+{focus && <FocusMode exercises={exercises} logs={logs} onUpdateSet={updateSet} onClose={() => setFocus(false)} onFinish={handleComplete} />}
 {demo && <ExerciseDetailModal exercise={demo} onClose={() => setDemo(null)} />}
 
 {showQuitConfirm && (

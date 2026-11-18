@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout } from '../../components/Layout'
 import ThemePicker from '../../components/ThemePicker'
+import NotificationSettings from '../../components/NotificationSettings'
+import MyData from '../../components/MyData'
 import { Save, Zap } from 'lucide-react'
 
 const ACTIVITY_LEVELS = [
@@ -80,6 +82,7 @@ export default function Profile() {
     <PageLayout title="Profil">
       <div style={{padding:'16px 16px 100px', display:'flex', flexDirection:'column', gap:16, maxWidth:640, margin:'0 auto'}}>
         <ThemePicker />
+        <NotificationSettings />
 
         <div style={{background:'var(--card)', borderRadius:16, padding:16}}>
           <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'var(--accent-text)'}}>Identité</p>
@@ -139,7 +142,7 @@ export default function Profile() {
         </div>
 
         {tdee ? (
-          <div style={{background:'linear-gradient(135deg,#1a1a3e,#0f1f3d)', border:'1px solid #6366f1', borderRadius:16, padding:20}}>
+          <div style={{background:'var(--accent-soft)', border:'1px solid var(--accent)', borderRadius:16, padding:20}}>
             <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:14}}>
               <Zap size={18} color="#f59e0b"/>
               <p style={{margin:0, fontWeight:700, fontSize:15}}>Tes besoins caloriques</p>
@@ -169,6 +172,7 @@ export default function Profile() {
           {saving ? 'Enregistrement...' : saved ? 'Enregistre !' : 'Sauvegarder'}
         </button>
 
+        {profile?.id && <MyData userId={profile.id} />}
       </div>
     </PageLayout>
   )

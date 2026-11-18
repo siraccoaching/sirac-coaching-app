@@ -55,6 +55,9 @@ export function useClients(coachId) {
       .eq('coach_id', coachId)
       .eq('role', 'client')
       .order('name')
+      // seule la dernière séance de chaque client est utile au tableau de bord
+      .order('created_at', { referencedTable: 'session_completions', ascending: false })
+      .limit(1, { referencedTable: 'session_completions' })
     setClients(data || [])
     setLoading(false)
   }

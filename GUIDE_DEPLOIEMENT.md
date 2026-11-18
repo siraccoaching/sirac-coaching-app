@@ -20,7 +20,7 @@ Une application installable sur téléphone (comme une vraie app) pour toi et te
 3. Attends ~2 minutes.
 
 ### Créer la base de données
-Dans Supabase → **SQL Editor** → **New query**, exécute **dans cet ordre** le contenu de ces 6 fichiers
+Dans Supabase → **SQL Editor** → **New query**, exécute **dans cet ordre** le contenu de ces 8 fichiers
 (ouvrir le fichier → tout copier → coller → **Run**, puis nouvelle requête pour le suivant) :
 
 1. `supabase/migrations/20261118000000_schema.sql` – tables, sécurité, stockage photos
@@ -29,6 +29,8 @@ Dans Supabase → **SQL Editor** → **New query**, exécute **dans cet ordre** 
 4. `supabase/migrations/20261118000300_seed_exercises_3.sql` – exercices (partie 3/3)
 5. `supabase/migrations/20261118000400_seed_foods.sql` – 120 aliments de base
 6. `supabase/migrations/20261118000500_hardening.sql` – durcissement de la sécurité
+7. `supabase/migrations/20261118000600_realtime_notifications.sql` – notifications en temps réel
+8. `supabase/migrations/20261118000700_private_photos_indexes.sql` – photos privées et index
 
 > Alternative en ligne de commande (plus simple pour le gros fichier) :
 > ```bash
