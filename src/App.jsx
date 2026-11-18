@@ -22,6 +22,7 @@ import CoachCalendar from './pages/coach/CoachCalendar'
 import ProgramTemplates from './pages/coach/ProgramTemplates'
 import { CoachMessages, ClientMessages } from './pages/Messages'
 import JoinCoach from './pages/JoinCoach'
+import ResetPassword from './pages/ResetPassword'
 import Onboarding from './pages/client/Onboarding'
 import FreeSession from './pages/client/FreeSession'
 import NutritionPlans from './pages/coach/NutritionPlans'
@@ -82,6 +83,7 @@ export default function App() {
         <Route path="/coach/messages/:clientId" element={<ProtectedRoute requiredRole="coach"><CoachMessages /></ProtectedRoute>} />
         <Route path="/client/messages" element={<ProtectedRoute requiredRole="client"><ClientMessages /></ProtectedRoute>} />
         <Route path="/join" element={<JoinCoach />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/client/onboarding" element={<ProtectedRoute requiredRole="client"><Onboarding /></ProtectedRoute>} />
         <Route path="/client/free-session" element={<ProtectedRoute requiredRole="client"><FreeSession /></ProtectedRoute>} />
         <Route path="/coach/nutrition" element={<ProtectedRoute requiredRole="coach"><NutritionPlans /></ProtectedRoute>} />
