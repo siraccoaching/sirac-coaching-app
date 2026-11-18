@@ -54,13 +54,13 @@ export default function JoinCoach() {
   const labelStyle = { display: 'block', fontSize: 12, color: 'var(--label2)', marginBottom: 6, fontWeight: 600 }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+    <div style={{ minHeight: 'calc(100dvh - var(--sat))', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
       <div style={{ color: 'var(--label2)', fontSize: 14 }}>Chargement...</div>
     </div>
   )
 
   if (!code || !coach) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 24 }}>
+    <div style={{ minHeight: 'calc(100dvh - var(--sat))', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 320 }}>
         <p style={{ fontSize: 40, marginBottom: 16 }}>❌</p>
         <p style={{ color: 'var(--label)', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Lien invalide</p>
@@ -70,7 +70,7 @@ export default function JoinCoach() {
   )
 
   if (success) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 24 }}>
+    <div style={{ minHeight: 'calc(100dvh - var(--sat))', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 340 }}>
         <p style={{ fontSize: 48, marginBottom: 16 }}>✅</p>
         <p style={{ color: 'var(--label)', fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Compte créé !</p>
@@ -84,7 +84,7 @@ export default function JoinCoach() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+    <div style={{ minHeight: 'calc(100dvh - var(--sat))', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', fontSize: 28 }}>

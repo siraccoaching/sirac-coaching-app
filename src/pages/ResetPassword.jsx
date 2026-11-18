@@ -45,7 +45,7 @@ export default function ResetPassword() {
   const input = { width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(var(--contrast),0.12)', background: 'rgba(var(--contrast),0.05)', color: 'var(--label)', fontSize: 15, boxSizing: 'border-box', WebkitTextFillColor: 'var(--label)' }
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 24 }}>
+    <div style={{ minHeight: 'calc(100dvh - var(--sat))', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 24 }}>
       <div style={{ width: '100%', maxWidth: 360, background: 'var(--card)', borderRadius: 24, border: '1px solid rgba(var(--contrast),0.08)', padding: 24 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--label)', margin: '0 0 6px' }}>Nouveau mot de passe</h2>
         {done ? (

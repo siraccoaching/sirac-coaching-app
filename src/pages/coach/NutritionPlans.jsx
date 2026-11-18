@@ -158,8 +158,8 @@ export default function NutritionPlans() {
   if (view === 'detail' && activePlan) {
     const t = planTotals(activePlan)
     return (
-      <div style={{minHeight:'100vh', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
-        <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:0, zIndex:10}}>
+      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
+        <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:'var(--sat)', zIndex:10}}>
           <button onClick={() => { setView('list'); setActivePlan(null) }} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
             <ArrowLeft size={20}/>
           </button>
@@ -265,8 +265,8 @@ export default function NutritionPlans() {
   }
 
   return (
-    <div style={{minHeight:'100vh', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
-      <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:0, zIndex:10}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
+      <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:'var(--sat)', zIndex:10}}>
         <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
           <ArrowLeft size={20}/>
         </button>

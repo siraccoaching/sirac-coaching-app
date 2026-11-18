@@ -65,7 +65,7 @@ export default function CoachCalendar() {
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]))
 
   return (
-    <div style={{minHeight:'100vh', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
       <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
         <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer'}}><ArrowLeft size={20}/></button>
         <h2 style={{margin:0, flex:1, fontSize:18}}>Calendrier</h2>

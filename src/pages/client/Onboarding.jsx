@@ -51,7 +51,7 @@ export default function Onboarding() {
   const current = STEPS[step]
 
   return (
-    <div style={{minHeight:'100vh',background:'var(--bg)',color:'var(--label)',display:'flex',flexDirection:'column'}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))',background:'var(--bg)',color:'var(--label)',display:'flex',flexDirection:'column'}}>
       {/* Progress bar */}
       <div style={{height:3,background:'var(--card)'}}>
         <div style={{height:'100%',background:'#6366f1',transition:'width 0.3s',width:((step+1)/STEPS.length*100)+'%'}}/>

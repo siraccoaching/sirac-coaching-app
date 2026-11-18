@@ -55,6 +55,7 @@ export default function App() {
   if (loading) return <Loader />
   return (
     <BrowserRouter>
+      <div className="ios-statusbar" aria-hidden />
       <Routes>
         <Route path="/login" element={
           user ? <Navigate to={profile?.role === 'coach' ? '/coach' : '/client'} replace /> : <Login />

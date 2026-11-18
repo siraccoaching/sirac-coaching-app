@@ -6,6 +6,8 @@
 /* ── Palette inspirée des couleurs système d'iOS ─────────────────────────────
    Les composants utilisent ces variables : le thème clair / sombre change tout d'un coup.
    Thème appliqué via <html data-theme="light|dark"> (voir src/lib/theme.js). */
+:root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); }
+
 :root, :root[data-theme="light"] {
   --bg-rgb: 242 242 247;          /* systemGroupedBackground */
   --card-rgb: 255 255 255;        /* secondarySystemGroupedBackground */
@@ -91,7 +93,8 @@
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Inter, system-ui, sans-serif;
     letter-spacing: -0.01em;
   }
-  #root { @apply h-full; }
+  /* En mode « écran d'accueil », iOS affiche l'app sous l'heure : on réserve cet espace partout. */
+  #root { @apply h-full; box-sizing: border-box; padding-top: var(--sat); }
   input, textarea, select { color: var(--label); }
   ::placeholder { color: var(--label3); opacity: 1; }
 }
@@ -102,6 +105,10 @@
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
   .scrollbar-hide::-webkit-scrollbar { display: none; }
 }
+
+/* Fond flouté derrière l'heure / la batterie (comme les apps Apple) */
+.ios-statusbar { position: fixed; top: 0; left: 0; right: 0; height: var(--sat); z-index: 950; background: var(--bar-bg);
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); pointer-events: none; }
 
 /* Carte « groupée » façon Réglages iOS */
 .ios-group { background: var(--card); border-radius: 14px; box-shadow: var(--card-shadow); }

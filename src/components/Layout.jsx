@@ -41,7 +41,7 @@ export function PageLayout({ children, title, subtitle, back, action }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg)', overflow: 'hidden' }}>
       {/* Barre de navigation translucide façon iOS */}
-      <header style={{ flexShrink: 0, position: 'relative', zIndex: 20, background: 'var(--bar-bg)', backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)', borderBottom: '0.5px solid var(--bar-border)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <header style={{ flexShrink: 0, position: 'relative', zIndex: 20, background: 'var(--bar-bg)', backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)', borderBottom: '0.5px solid var(--bar-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: back ? '10px 12px 10px 6px' : '14px 16px 10px', minHeight: 44 }}>
           {back && (
             <button onClick={() => navigate(back)} aria-label="Retour"

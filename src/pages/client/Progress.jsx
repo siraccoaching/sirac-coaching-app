@@ -131,7 +131,7 @@ export default function Progress() {
 
   if (loading) return <div style={{color:'var(--label)',padding:20}}>Chargement...</div>
   return (
-    <div style={{minHeight:'100vh',background:'var(--bg)',color:'var(--label)',paddingBottom:80}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))',background:'var(--bg)',color:'var(--label)',paddingBottom:80}}>
       <div style={{background:'var(--card)',padding:'16px 20px',display:'flex',alignItems:'center',gap:12}}>
         <button onClick={()=>navigate(-1)} style={{background:'none',border:'none',color:'var(--label)',cursor:'pointer'}}><ArrowLeft size={20}/></button>
         <div>

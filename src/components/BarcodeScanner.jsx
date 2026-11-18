@@ -47,7 +47,7 @@ export default function BarcodeScanner({ onDetected, onClose }) {
 
   return (
     <div data-testid="barcode-scanner" style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 1200, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', color: 'white' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', paddingTop: 'calc(var(--sat) + 14px)', color: 'white' }}>
         <p style={{ margin: 0, fontWeight: 700 }}>Scanner un code-barre</p>
         <button onClick={onClose} aria-label="Fermer" style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={22} /></button>
       </div>
@@ -57,7 +57,7 @@ export default function BarcodeScanner({ onDetected, onClose }) {
         {error && <p style={{ position: 'absolute', top: 16, left: 16, right: 16, margin: 0, background: 'rgba(239,68,68,0.9)', color: 'white', padding: '10px 12px', borderRadius: 12, fontSize: 13 }}>{error}</p>}
       </div>
       <form onSubmit={e => { e.preventDefault(); if (manual.trim()) onDetected(manual.trim()) }}
-        style={{ display: 'flex', gap: 8, padding: '14px 16px 28px', background: '#111' }}>
+        style={{ display: 'flex', gap: 8, padding: '14px 16px calc(var(--sab) + 18px)', background: '#111' }}>
         <input value={manual} onChange={e => setManual(e.target.value.replace(/\D/g, ''))} inputMode="numeric" placeholder="Ou tape le code (ex : 3017620422003)"
           style={{ flex: 1, minWidth: 0, background: '#222', border: '1px solid #333', borderRadius: 10, padding: '10px 12px', color: 'white', WebkitTextFillColor: 'white' }} />
         <button type="submit" style={{ background: '#22c55e', border: 'none', borderRadius: 10, padding: '0 16px', color: 'white', fontWeight: 700, cursor: 'pointer' }}>OK</button>

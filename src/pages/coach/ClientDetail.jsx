@@ -209,7 +209,7 @@ export default function ClientDetail() {
   }
 
   return (
-    <div style={{minHeight:'100vh', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
       <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
         <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
           <ArrowLeft size={20}/>

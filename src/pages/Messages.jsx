@@ -154,7 +154,7 @@ export function CoachMessages() {
   // ── Conversation view ──
   if (clientId) {
     return (
-      <div style={{height:'100vh', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
+      <div style={{height:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
         <div style={{background:'var(--card)', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
           <button onClick={() => navigate('/coach/messages')}
             style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
@@ -182,8 +182,8 @@ export function CoachMessages() {
 
   // ── Client list ──
   return (
-    <div style={{minHeight:'100vh', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
-      <div style={{background:'var(--card)', padding:'16px 20px', position:'sticky', top:0, zIndex:10, display:'flex', alignItems:'center', gap:12}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
+      <div style={{background:'var(--card)', padding:'16px 20px', position:'sticky', top:'var(--sat)', zIndex:10, display:'flex', alignItems:'center', gap:12}}>
         <button onClick={() => navigate('/coach')} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
           <ArrowLeft size={20}/>
         </button>
@@ -249,7 +249,7 @@ export function ClientMessages() {
 
   if (loading) {
     return (
-      <div style={{minHeight:'100vh', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--label3)'}}>
+      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--label3)'}}>
         Chargement...
       </div>
     )
@@ -257,7 +257,7 @@ export function ClientMessages() {
 
   if (!coach) {
     return (
-      <div style={{minHeight:'100vh', background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'var(--label2)', padding:32}}>
+      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'var(--label2)', padding:32}}>
         <p style={{fontSize:15, marginBottom:8}}>Aucun coach assigné</p>
         <p style={{fontSize:12, textAlign:'center'}}>Tu n'as pas encore de coach. Contacte ton coach pour qu'il t'ajoute.</p>
       </div>
@@ -265,7 +265,7 @@ export function ClientMessages() {
   }
 
   return (
-    <div style={{height:'100vh', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
+    <div style={{height:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
       <div style={{background:'var(--card)', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
         <button onClick={() => navigate(-1)}
           style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>

@@ -34,7 +34,7 @@ export default function Login() {
   }
 
   return (
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - var(--sat))', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '24px' }}>
                 <div style={{ marginBottom: 32, textAlign: 'center' }}>
                           <div style={{ width: 72, height: 72, background: 'var(--accent)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 32 }}>🏈</div>
                           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Sirac Coaching</h1>
