@@ -85,9 +85,10 @@
 }
 
 @layer base {
-  html { @apply h-full; background: var(--bg); transition: background-color .3s ease; }
+  html { @apply h-full; background: var(--bg); transition: background-color .3s ease; overscroll-behavior-y: none; -webkit-text-size-adjust: 100%; }
   body {
     @apply h-full antialiased;
+    overscroll-behavior-y: none;
     background: var(--bg);
     color: var(--label);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Inter, system-ui, sans-serif;
@@ -124,6 +125,12 @@ button:active:not(:disabled) { transform: scale(0.97); opacity: .85; }
 @keyframes ios-fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes ios-sheet { from { transform: translateY(40px); opacity: .4 } to { transform: none; opacity: 1 } }
 @keyframes ios-page { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+/* Feuilles qui montent du bas : marge pour la barre d'accueil de l'iPhone */
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="20px 20px 0"],
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="18px 18px 0"],
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="16px 16px 0"],
+div[style*="position: fixed"][style*="inset: 0"] > div[style*="24px 24px 0"] { padding-bottom: calc(24px + var(--sab)) !important; }
 
 /* Fenêtres modales (fond + feuille qui monte) */
 div[style*="position: fixed"][style*="inset: 0"],

@@ -39,6 +39,8 @@ export default function JoinCoach() {
       })
       if (signUpError) throw signUpError
       if (!authData.user?.id) throw new Error('Erreur lors de la création du compte')
+      // Si Supabase ne demande pas de confirmer l'email, le client est déjà connecté : direction son espace.
+      if (authData.session) { navigate('/client/onboarding', { replace: true }); return }
       setSuccess(true)
     } catch (err) {
       setError(err.message || 'Une erreur est survenue')

@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
 import ThemePicker from '../../components/ThemePicker'
+import NotificationSettings from '../../components/NotificationSettings'
 import { Calendar, Save, CheckCircle, ExternalLink, Link, Copy, RefreshCw } from 'lucide-react'
 
 const inputStyle = {
@@ -71,6 +72,7 @@ export default function CoachSettings() {
     <PageLayout title="Réglages">
       <div className="p-4 pb-10 space-y-4">
         <ThemePicker />
+        <NotificationSettings />
 
         <Card className="p-4 space-y-4">
           <div className="flex items-center gap-3">

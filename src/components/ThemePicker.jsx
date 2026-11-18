@@ -15,7 +15,7 @@ export default function ThemePicker() {
     <div className="ios-group" style={{ padding: 16 }} data-testid="theme-picker">
       <p style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 600, color: 'var(--label)' }}>Apparence</p>
       <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--label2)' }}>
-        « Auto » suit le réglage clair / sombre de ton téléphone.
+        « Auto » suit le réglage clair / sombre de ton téléphone. Sur l’app de l’écran d’accueil, l’heure et la batterie s’adaptent au prochain lancement.
       </p>
       <div role="radiogroup" aria-label="Apparence" style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', background: 'var(--fill)', borderRadius: 10, padding: 2 }}>
         <div aria-hidden style={{

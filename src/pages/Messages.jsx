@@ -89,7 +89,7 @@ export function ConversationView({ otherId, otherName }) {
         <div ref={bottomRef}/>
       </div>
       {/* Input */}
-      <div style={{padding:'10px 16px', background:'var(--card)', display:'flex', gap:8, alignItems:'flex-end'}}>
+      <div style={{padding:'10px 16px', paddingBottom:'calc(10px + var(--sab))', background:'var(--card)', display:'flex', gap:8, alignItems:'flex-end', borderTop:'0.5px solid var(--separator)'}}>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}

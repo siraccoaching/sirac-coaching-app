@@ -63,14 +63,14 @@ export function PageLayout({ children, title, subtitle, back, action }) {
         </div>
       </header>
 
-      <main key={location.pathname} className="scrollbar-hide ios-page" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', paddingBottom: navItems ? 'calc(72px + env(safe-area-inset-bottom, 0px))' : 0 }}>
+      <main key={location.pathname} className="scrollbar-hide ios-page" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', paddingBottom: navItems ? 'calc(72px + var(--sab))' : 'var(--sab)' }}>
         {children}
       </main>
 
       {/* Barre d'onglets translucide façon iOS */}
       {navItems && (
         <nav style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, height: 'calc(56px + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 'calc(56px + var(--sab))', paddingBottom: 'var(--sab)',
           background: 'var(--bar-bg)', backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)',
           borderTop: '0.5px solid var(--bar-border)', display: 'flex', zIndex: 100,
         }}>

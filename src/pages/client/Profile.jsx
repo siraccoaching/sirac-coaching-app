@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout } from '../../components/Layout'
 import ThemePicker from '../../components/ThemePicker'
+import NotificationSettings from '../../components/NotificationSettings'
 import { Save, Zap } from 'lucide-react'
 
 const ACTIVITY_LEVELS = [
@@ -80,6 +81,7 @@ export default function Profile() {
     <PageLayout title="Profil">
       <div style={{padding:'16px 16px 100px', display:'flex', flexDirection:'column', gap:16, maxWidth:640, margin:'0 auto'}}>
         <ThemePicker />
+        <NotificationSettings />
 
         <div style={{background:'var(--card)', borderRadius:16, padding:16}}>
           <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'var(--accent-text)'}}>Identité</p>

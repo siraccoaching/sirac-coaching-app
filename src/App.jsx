@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './lib/hooks'
+import { useRealtimeNotifications } from './lib/notify'
 import Login from './pages/Login'
 import CoachDashboard from './pages/coach/Dashboard'
 import ClientDetail from './pages/coach/ClientDetail'
@@ -52,6 +53,7 @@ function Loader() {
 
 export default function App() {
   const { user, profile, loading } = useAuth()
+  useRealtimeNotifications(user ? profile : null)
   if (loading) return <Loader />
   return (
     <BrowserRouter>

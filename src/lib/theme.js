@@ -23,6 +23,8 @@ export function applyTheme(pref = getThemePref()) {
   root.style.colorScheme = resolved
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) meta.setAttribute('content', resolved === 'dark' ? '#000000' : '#f2f2f7')
+  // pris en compte par l'iPhone au prochain lancement de l'app depuis l'écran d'accueil
+  document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute('content', resolved === 'dark' ? 'black-translucent' : 'default')
   listeners.forEach(fn => fn(pref, resolved))
 }
 

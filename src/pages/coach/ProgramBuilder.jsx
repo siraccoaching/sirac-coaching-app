@@ -198,6 +198,15 @@ export default function ProgramBuilder() {
   })
 
   async function handleSave() {
+    try {
+      await doSave()
+    } catch (e) {
+      setError('Erreur pendant l\u2019enregistrement : ' + (e.message || e))
+      setSaving(false)
+    }
+  }
+
+  async function doSave() {
     if (!prog.name.trim()) { setError('Donne un nom au programme.'); return }
     setSaving(true); setError('')
 
@@ -211,6 +220,7 @@ export default function ProgramBuilder() {
         .update({ name: prog.name.trim(), description: prog.description, type: prog.type, client_id: prog.client_id || null })
         .eq('id', id)
       if (upErr) { setError(upErr.message); setSaving(false); return }
+      if (prog.client_id) await supabase.from('programs').update({ client_id: null }).eq('client_id', prog.client_id).neq('id', id)
 
       const { data: existSess } = await supabase.from('program_sessions').select('id').eq('program_id', id)
       if (existSess?.length > 0) {
@@ -244,6 +254,7 @@ export default function ProgramBuilder() {
     if (progErr) { setError(progErr.message); setSaving(false); return }
 
     const programId = progData.id
+    if (prog.client_id) await supabase.from('programs').update({ client_id: null }).eq('client_id', prog.client_id).neq('id', programId)
 
     if (prog.type === 'block') {
       for (let bi = 0; bi < prog.blocks.length; bi++) {
@@ -273,7 +284,7 @@ export default function ProgramBuilder() {
       if (sessErr) throw sessErr
       const validExercises = sess.exercises.filter(e => e.name.trim())
       if (validExercises.length > 0) {
-        await supabase.from('program_exercises').insert(
+        const { error: exErr } = await supabase.from('program_exercises').insert(
           validExercises.map((ex, ei) => ({
             session_id: sessData.id,
             exercise_id: ex.exercise_id || null,
@@ -288,6 +299,7 @@ export default function ProgramBuilder() {
             order_index: ei,
           }))
         )
+        if (exErr) throw exErr
       }
     }
   }

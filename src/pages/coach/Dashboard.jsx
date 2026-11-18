@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, useClients } from '../../lib/hooks'
-import { supabase, subscribeToPush } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase'
+import { useNotifState, enableNotifications } from '../../lib/notify'
 import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
 import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, BookOpen, LayoutTemplate, ChevronRight, Apple } from 'lucide-react'
 import CoachAlerts from './CoachAlerts'
@@ -10,30 +11,21 @@ export default function CoachDashboard() {
   const { profile } = useAuth()
   const { clients, loading } = useClients(profile?.id)
   const navigate = useNavigate()
-  const [pushEnabled, setPushEnabled] = useState(false)
   const [recentActivity, setRecentActivity] = useState([])
   const [filter, setFilter] = useState('all')
 
+  const notifs = useNotifState()
+
   useEffect(() => {
-    checkPushStatus()
     fetchRecentActivity()
-    const channel = supabase.channel('coach-notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'session_completions' }, () => {
-        triggerNotification()
-        fetchRecentActivity()
-      })
+    const channel = supabase.channel('coach-activity')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'session_completions' }, () => fetchRecentActivity())
       .subscribe()
     return () => supabase.removeChannel(channel)
   }, [])
 
-  async function checkPushStatus() {
-    if ('Notification' in window) setPushEnabled(Notification.permission === 'granted')
-  }
-
   async function enablePush() {
-    if (!('Notification' in window)) return
-    const result = await Notification.requestPermission()
-    if (result === 'granted') { await subscribeToPush(profile?.id); setPushEnabled(true) }
+    await enableNotifications(profile?.id)
   }
 
   async function fetchRecentActivity() {
@@ -43,15 +35,6 @@ export default function CoachDashboard() {
       .order('created_at', { ascending: false })
       .limit(10)
     setRecentActivity(data || [])
-  }
-
-  function triggerNotification() {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('S\u00e9ance compl\u00e9t\u00e9e !', {
-        body: 'Un de tes clients vient de terminer sa s\u00e9ance',
-        icon: '/pwa-192x192.png', badge: '/pwa-192x192.png',
-      })
-    }
   }
 
   const sports = ['all', ...new Set(clients.map(c => c.sport).filter(Boolean))]
@@ -94,7 +77,7 @@ export default function CoachDashboard() {
 
         <CoachAlerts clients={clients} />
 
-        {!pushEnabled && ('Notification' in window) && (
+        {notifs === 'off' && (
           <button onClick={enablePush}
             style={{ width:'100%', display:'flex', alignItems:'center', gap:12, background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:16, padding:'14px 16px', cursor:'pointer', textAlign:'left' }}>
             <Bell size={18} color="#818cf8" style={{ flexShrink:0 }} />
@@ -105,12 +88,6 @@ export default function CoachDashboard() {
           </button>
         )}
 
-        {pushEnabled && (
-          <div style={{ display:'flex', alignItems:'center', gap:8, color:'var(--green-text)', fontSize:12, paddingLeft:2 }}>
-            <BellOff size={14} />
-            <span>Notifications push activées</span>
-          </div>
-        )}
 
         {/* Stats */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>

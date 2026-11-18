@@ -180,7 +180,7 @@ export default function ClientDetail() {
   const progressEntries = Object.entries(progressData).filter(([, d]) => d.length >= 2)
 
   async function deleteClient() {
-    if (!confirm('Supprimer ce client ? Cette action est irréversible.')) return
+    if (!confirm('Retirer ce client de ta liste ? Son compte et son historique sont conservés, tu pourras le rattacher à nouveau.')) return
     await supabase.from('profiles').update({ coach_id: null }).eq('id', id)
     navigate('/coach')
   }
@@ -218,10 +218,10 @@ export default function ClientDetail() {
           <h2 style={{margin:0, fontSize:18}}>{client.name}</h2>
           {client.sport && <p style={{margin:0, fontSize:13, color:'var(--label2)'}}>{client.sport}{client.position ? ' · ' + client.position : ''}</p>}
 
-        <button onClick={openEdit} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4, marginRight:4}}>
+        <button onClick={openEdit} aria-label="Modifier le client" style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4, marginRight:4}}>
           <Pencil size={16}/>
         </button>
-        <button onClick={deleteClient} style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}>
+        <button onClick={deleteClient} aria-label="Retirer ce client" style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}>
           <Trash2 size={18}/>
         </button>
         </div>
@@ -284,7 +284,7 @@ export default function ClientDetail() {
                     {new Date(comp.created_at).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short', year:'numeric'})}
                   </p>
                 </div>
-                <button onClick={() => deleteCompletion(comp.id)} disabled={deleting === comp.id}
+                <button onClick={() => deleteCompletion(comp.id)} disabled={deleting === comp.id} aria-label="Supprimer cette séance"
                   style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', opacity: deleting === comp.id ? 0.5 : 1, padding:4}}>
                   <Trash2 size={16}/>
                 </button>
