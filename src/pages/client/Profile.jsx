@@ -142,7 +142,7 @@ export default function Profile() {
         </div>
 
         {tdee ? (
-          <div style={{background:'linear-gradient(135deg,#1a1a3e,#0f1f3d)', border:'1px solid #6366f1', borderRadius:16, padding:20}}>
+          <div style={{background:'var(--accent-soft)', border:'1px solid var(--accent)', borderRadius:16, padding:20}}>
             <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:14}}>
               <Zap size={18} color="#f59e0b"/>
               <p style={{margin:0, fontWeight:700, fontSize:15}}>Tes besoins caloriques</p>
