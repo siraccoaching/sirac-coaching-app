@@ -4,6 +4,9 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card, Badge } from '../../components/Layout'
 import { Dumbbell, ChevronDown, ChevronUp, Clock, Play, CheckCircle, Layers } from 'lucide-react'
+import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
+
+const EX_SELECT = 'program_exercises(*, exercise:exercises(*))'
 
 export default function MyProgram() {
   const { profile } = useAuth()
@@ -13,6 +16,7 @@ export default function MyProgram() {
   const [loading, setLoading] = useState(true)
   const [openBlocks, setOpenBlocks] = useState({ 0: true })
   const [openSessions, setOpenSessions] = useState({})
+  const [demo, setDemo] = useState(null)
 
   useEffect(() => {
     if (!profile?.id) return
@@ -24,13 +28,13 @@ export default function MyProgram() {
       .from('programs')
       .select(`
         *,
-        program_blocks(*, program_sessions(*, program_exercises(*))),
-        program_sessions!program_sessions_program_id_fkey(*, program_exercises(*))
+        program_blocks(*, program_sessions(*, ${EX_SELECT})),
+        program_sessions!program_sessions_program_id_fkey(*, ${EX_SELECT})
       `)
       .eq('client_id', profile.id)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     setProg(data || null)
 
@@ -112,6 +116,7 @@ export default function MyProgram() {
                       open={openSessions[sess.id]}
                       onToggle={() => setOpenSessions(os => ({ ...os, [sess.id]: !os[sess.id] }))}
                       onStart={() => navigate(`/client/session-log/${sess.id}`)}
+                      onDemo={setDemo}
                     />
                   ))}
                 </div>
@@ -128,17 +133,19 @@ export default function MyProgram() {
                   open={openSessions[sess.id]}
                   onToggle={() => setOpenSessions(os => ({ ...os, [sess.id]: !os[sess.id] }))}
                   onStart={() => navigate(`/client/session-log/${sess.id}`)}
+                      onDemo={setDemo}
                 />
               </Card>
             ))}
           </div>
         )}
       </div>
+      {demo && <ExerciseDetailModal exercise={demo} onClose={() => setDemo(null)} />}
     </PageLayout>
   )
 }
 
-function SessionCard({ sess, done, open, onToggle, onStart }) {
+function SessionCard({ sess, done, open, onToggle, onStart, onDemo }) {
   const exercises = (sess.program_exercises || []).sort((a,b) => a.order_index - b.order_index)
   return (
     <div className="border border-white/8 rounded-xl overflow-hidden">
@@ -163,7 +170,11 @@ function SessionCard({ sess, done, open, onToggle, onStart }) {
           {sess.notes && <p className="text-gray-500 text-xs mb-2">{sess.notes}</p>}
           {exercises.map(ex => (
             <div key={ex.id} className="flex items-start gap-2 py-1.5 border-b border-white/5 last:border-0">
-              <Dumbbell size={11} className="text-brand-400 flex-shrink-0 mt-0.5" />
+              {ex.exercise ? (
+                <button onClick={() => onDemo?.({ ...ex.exercise, video_url: ex.video_url || ex.exercise.video_url })} aria-label={'Démo ' + ex.name} className="flex-shrink-0">
+                  <ExerciseThumb exercise={ex.exercise} size={40} />
+                </button>
+              ) : <Dumbbell size={11} className="text-brand-400 flex-shrink-0 mt-0.5" />}
               <div className="flex-1 min-w-0">
                 <p className="text-white text-xs font-medium">{ex.name}</p>
                 <div className="flex flex-wrap gap-2 mt-0.5">

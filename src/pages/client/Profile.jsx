@@ -6,10 +6,10 @@ import { PageLayout } from '../../components/Layout'
 import { Save, Zap } from 'lucide-react'
 
 const ACTIVITY_LEVELS = [
-  { value: 'sedentaire',  label: 'Sedentaire',          desc: 'Peu ou pas d\'exercice',         mult: 1.2   },
-  { value: 'leger',       label: 'Legerement actif',     desc: '1-3 seances / semaine',           mult: 1.375 },
-  { value: 'modere',      label: 'Moderement actif',     desc: '3-5 seances / semaine',           mult: 1.55  },
-  { value: 'tres_actif',  label: 'Tres actif',           desc: '6-7 seances / semaine',           mult: 1.725 },
+  { value: 'sedentaire',  label: 'Sédentaire',          desc: 'Peu ou pas d\'exercice',         mult: 1.2   },
+  { value: 'leger',       label: 'Légèrement actif',     desc: '1-3 séances / semaine',           mult: 1.375 },
+  { value: 'modere',      label: 'Modérément actif',     desc: '3-5 séances / semaine',           mult: 1.55  },
+  { value: 'tres_actif',  label: 'Très actif',           desc: '6-7 séances / semaine',           mult: 1.725 },
 ]
 
 function calcAge(birthDate) {

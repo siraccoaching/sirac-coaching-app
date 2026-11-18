@@ -16,7 +16,7 @@ export default function CoachCalendar() {
   const [viewDate, setViewDate] = useState(new Date())
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadData() }, [viewDate])
+  useEffect(() => { if (profile?.id) loadData() }, [viewDate, profile?.id])
 
   async function loadData() {
     setLoading(true)

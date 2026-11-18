@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { ArrowLeft, Trash2, TrendingUp, ChevronDown, ChevronUp, Check, Pencil, X } from 'lucide-react'
+import ClientNutritionTab from '../../components/ClientNutritionTab'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
@@ -259,7 +260,7 @@ export default function ClientDetail() {
       </div>
 
       <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4, overflowX:'auto', gap:2}}>
-        {[['history','📋 Historique'], ['progress','📈 Progression'], ['measurements','📏 Mensurations'], ['calendar','📅 Calendrier'], ['checkins','📊 Bilans']].map(([key, label]) => (
+        {[['history','📋 Historique'], ['progress','📈 Progression'], ['measurements','📏 Mensurations'], ['calendar','📅 Calendrier'], ['checkins','📊 Bilans'], ['nutrition','🍎 Nutrition']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{
             flexShrink:0, padding:'8px 10px', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:600, whiteSpace:'nowrap',
             background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? 'white' : '#888'
@@ -451,6 +452,8 @@ export default function ClientDetail() {
           })}
         </div>
       )}
+
+      {tab === 'nutrition' && client && <ClientNutritionTab client={client} />}
 
       {/* ── BILANS HEBDO ── */}
       {tab === 'checkins' && (

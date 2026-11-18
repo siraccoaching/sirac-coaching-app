@@ -38,8 +38,8 @@ export function useClients(coachId) {
     if (!coachId) return
     fetchClients()
 
-    const channel = supabase.channel('sessions-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, fetchClients)
+    const channel = supabase.channel('completions-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'session_completions' }, fetchClients)
       .subscribe()
 
     return () => supabase.removeChannel(channel)
@@ -50,7 +50,7 @@ export function useClients(coachId) {
       .from('profiles')
       .select(`
         *,
-        sessions(id, status, session_date, day_title, completed_at, created_at)
+        session_completions(id, created_at)
       `)
       .eq('coach_id', coachId)
       .eq('role', 'client')

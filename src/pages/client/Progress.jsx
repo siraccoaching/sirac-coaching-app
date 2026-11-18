@@ -71,7 +71,7 @@ export default function Progress() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { data: comps } = await supabase.from('session_completions')
-      .select('id, created_at, exercise_logs(exercise_id, set_data, exercise:program_exercises(name))')
+      .select('id, created_at, exercise_logs(exercise_id, exercise_name, set_data, exercise:program_exercises(name))')
       .eq('client_id', user.id).order('created_at', { ascending: true })
     setTotalSessions((comps||[]).length)
     buildLoadData(comps||[])
@@ -84,7 +84,7 @@ export default function Progress() {
     for (const comp of comps) {
       const dateStr = new Date(comp.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})
       for (const log of comp.exercise_logs||[]) {
-        const name = log.exercise?.name||'Exercice'
+        const name = log.exercise?.name || log.exercise_name || 'Exercice'
         if (!exMap[name]) exMap[name] = []
         const sets = (log.set_data||[]).filter(s=>s._done!==false&&parseFloat(s.load)>0)
         if (!sets.length) continue

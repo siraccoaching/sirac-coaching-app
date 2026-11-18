@@ -4,12 +4,14 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
 import { Plus, Trash2, ChevronDown, ChevronUp, Save, Dumbbell, Clock, Link, BookOpen } from 'lucide-react'
+import { ExercisePicker, ExerciseThumb } from '../../components/ExerciseDemo'
+import { loadExerciseList, linkExercisesByName } from '../../lib/exercises'
 
 let _tmpId = 0
 const tmpId = () => `tmp_${++_tmpId}`
 
 function emptyExercise() {
-  return { _id: tmpId(), name: '', sets: 3, reps: '8', load: '', rpe: '', rest_seconds: 120, notes: '', video_url: '' }
+  return { _id: tmpId(), exercise_id: null, images: null, name: '', sets: 3, reps: '8', load: '', rpe: '', rest_seconds: 120, notes: '', video_url: '' }
 }
 function emptySession(blockId = null) {
   return { _id: tmpId(), block_id: blockId, name: '', notes: '', exercises: [emptyExercise()] }
@@ -31,9 +33,6 @@ export default function ProgramBuilder() {
   const [openSessions, setOpenSessions] = useState({})
   const [showLibPicker, setShowLibPicker] = useState(false)
   const [libTarget, setLibTarget] = useState(null)
-  const [libExercises, setLibExercises] = useState([])
-  const [libSearch, setLibSearch] = useState('')
-  const [libLoading, setLibLoading] = useState(false)
   const location = useLocation()
 
   const [prog, setProg] = useState({
@@ -51,7 +50,7 @@ export default function ProgramBuilder() {
     if (isEdit) loadProgram()
     const tpl = location.state?.template
     if (tpl && !isEdit) {
-      const toEx = ex => ({ _id: tmpId(), name: ex.name, sets: ex.sets||3, reps: String(ex.reps||'8'), load: '', rpe: '', rest_seconds: ex.rest_seconds||120, notes: ex.notes||'', video_url: ex.video_url||'' })
+      const toEx = ex => ({ _id: tmpId(), exercise_id: ex.exercise_id || null, images: ex.images || null, name: ex.name, sets: ex.sets||3, reps: String(ex.reps||'8'), load: '', rpe: '', rest_seconds: ex.rest_seconds||120, notes: ex.notes||'', video_url: ex.video_url||'' })
       const toSess = s => ({ _id: tmpId(), name: s.name, notes: '', exercises: (s.exercises||[]).map(toEx) })
       if (tpl.type === 'block') {
         const blocks = (tpl.blocks||[]).map(b => ({ _id: tmpId(), name: b.name, duration_weeks: b.duration_weeks||4, description: '', sessions: (b.sessions||[]).map(toSess) }))
@@ -60,6 +59,7 @@ export default function ProgramBuilder() {
         const simpleSessions = (tpl.sessions||[]).map(toSess)
         setProg(p => ({ ...p, name: tpl.name, description: tpl.description||'', type: 'simple', simpleSessions }))
       }
+      loadExerciseList().then(list => setProg(p => linkExercisesByName(p, list))).catch(() => {})
     }
   }, [profile?.id])
 
@@ -73,8 +73,8 @@ export default function ProgramBuilder() {
       .from('programs')
       .select(`
         *,
-        program_blocks(*, program_sessions(*, program_exercises(*))),
-        program_sessions!program_sessions_program_id_fkey(*, program_exercises(*))
+        program_blocks(*, program_sessions(*, program_exercises(*, exercise:exercises(images)))),
+        program_sessions!program_sessions_program_id_fkey(*, program_exercises(*, exercise:exercises(images)))
       `)
       .eq('id', id)
       .single()
@@ -83,7 +83,7 @@ export default function ProgramBuilder() {
     let _c = 1000
     const nid = () => `tmp_${++_c}`
     const toEx = ex => ({
-      _id: nid(), name: ex.name, sets: ex.sets, reps: ex.reps,
+      _id: nid(), exercise_id: ex.exercise_id || null, images: ex.exercise?.images || null, name: ex.name, sets: ex.sets, reps: ex.reps,
       load: ex.load || '', rpe: ex.rpe || '', rest_seconds: ex.rest_seconds || 120,
       notes: ex.notes || '', video_url: ex.video_url || '',
     })
@@ -159,25 +159,19 @@ export default function ProgramBuilder() {
     blocks[bi] = { ...blocks[bi], sessions }
     return { ...p, blocks }
   })
-  async function openLibPicker(target) {
+  function openLibPicker(target) {
     setLibTarget(target)
-    setLibSearch('')
     setShowLibPicker(true)
-    if (libExercises.length === 0) {
-      setLibLoading(true)
-      const { data } = await supabase.from('exercises').select('*').eq('coach_id', profile.id).order('name')
-      setLibExercises(data || [])
-      setLibLoading(false)
-    }
   }
 
   function addExerciseFromLib(libEx) {
     if (!libTarget) return
     const { bi, si, isSimple } = libTarget
-    const newEx = { _id: tmpId(), name: libEx.name, sets: 3, reps: '8', load: '', rpe: '', rest_seconds: 120, notes: libEx.description||'', video_url: libEx.video_url||'' }
+    const newEx = { _id: tmpId(), exercise_id: libEx.id, images: libEx.images || null, name: libEx.name, sets: 3, reps: '8', load: '', rpe: '', rest_seconds: 120, notes: '', video_url: libEx.video_url||'' }
     setProg(p => {
       const sessions = isSimple ? [...p.simpleSessions] : [...p.blocks[bi].sessions]
-      sessions[si] = { ...sessions[si], exercises: [...sessions[si].exercises, newEx] }
+      const current = sessions[si].exercises.filter(e => e.name.trim())
+      sessions[si] = { ...sessions[si], exercises: [...current, newEx] }
       if (isSimple) return { ...p, simpleSessions: sessions }
       const blocks = [...p.blocks]
       blocks[bi] = { ...blocks[bi], sessions }
@@ -282,6 +276,7 @@ export default function ProgramBuilder() {
         await supabase.from('program_exercises').insert(
           validExercises.map((ex, ei) => ({
             session_id: sessData.id,
+            exercise_id: ex.exercise_id || null,
             name: ex.name.trim(),
             sets: Number(ex.sets) || 3,
             reps: ex.reps || '8',
@@ -432,35 +427,7 @@ export default function ProgramBuilder() {
       </div>
 
       {showLibPicker && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:1000,display:'flex',alignItems:'flex-end',justifyContent:'center'}}>
-          <div style={{background:'#1e1e2e',borderRadius:'20px 20px 0 0',padding:'20px 16px 36px',width:'100%',maxWidth:480,maxHeight:'75vh',display:'flex',flexDirection:'column'}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-              <p style={{margin:0,fontWeight:700,fontSize:16,color:'white'}}>Bibliothèque d'exercices</p>
-              <button onClick={() => setShowLibPicker(false)} style={{background:'none',border:'none',color:'#888',cursor:'pointer',fontSize:20}}>✕</button>
-            </div>
-            <input value={libSearch} onChange={e => setLibSearch(e.target.value)} placeholder="Rechercher un exercice..."
-              style={{background:'#2a2a3e',border:'1px solid #3a3a4e',borderRadius:10,padding:'9px 14px',color:'white',fontSize:14,marginBottom:12,WebkitTextFillColor:'white',WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
-            <div style={{overflowY:'auto',flex:1}}>
-              {libLoading ? <p style={{color:'#888',textAlign:'center',marginTop:20}}>Chargement...</p> :
-               libExercises.length === 0 ? (
-                <div style={{textAlign:'center',marginTop:20,color:'#888'}}>
-                  <p>Bibliothèque vide</p>
-                  <p style={{fontSize:12}}>Ajoute des exercices dans Bibliothèque d'exercices.</p>
-                </div>
-               ) : libExercises.filter(e => !libSearch || e.name.toLowerCase().includes(libSearch.toLowerCase()) || (e.muscles||'').toLowerCase().includes(libSearch.toLowerCase())).map(ex => (
-                <button key={ex.id} onClick={() => addExerciseFromLib(ex)}
-                  style={{width:'100%',background:'#2a2a3e',border:'none',borderRadius:10,padding:'10px 14px',marginBottom:6,textAlign:'left',cursor:'pointer',display:'flex',alignItems:'center',gap:10}}>
-                  <div style={{flex:1}}>
-                    <p style={{margin:0,fontWeight:600,color:'white',fontSize:14}}>{ex.name}</p>
-                    {ex.muscles && <p style={{margin:0,fontSize:11,color:'#888'}}>{ex.muscles}{ex.category ? ' · ' + ex.category : ''}</p>}
-                  </div>
-                  <span style={{color:'#6366f1',fontSize:18}}>+</span>
-                </button>
-               ))
-              }
-            </div>
-          </div>
-        </div>
+        <ExercisePicker onPick={addExerciseFromLib} onClose={() => setShowLibPicker(false)} title="Bibliothèque d'exercices" />
       )}
     </PageLayout>
   )
@@ -523,7 +490,7 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
   return (
     <div className="bg-dark-800 border border-white/5 rounded-lg p-2.5 space-y-2">
       <div className="flex items-center gap-2">
-        <Dumbbell size={12} className="text-gray-600 flex-shrink-0" />
+        {ex.images?.length ? <ExerciseThumb exercise={ex} size={28} /> : <Dumbbell size={12} className="text-gray-600 flex-shrink-0" />}
         <input value={ex.name} onChange={e => onUpdate('name', e.target.value)}
           placeholder={`Exercice ${ei + 1} (ex: Back Squat)`}
           className="flex-1 bg-transparent text-white text-sm placeholder-gray-600 focus:outline-none" />
