@@ -159,17 +159,17 @@ export default function ProgramTemplates() {
             <div key={cat}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-purple-400">{categoryIcons[cat]}</span>
-                <p className="text-sm font-semibold text-white">{cat}</p>
+                <p className="text-sm font-semibold text-label">{cat}</p>
               </div>
               <div className="space-y-3">
                 {tpls.map(tpl => (
-                  <div key={tpl.id} style={{background:'#ffffff08', border:'1px solid #ffffff12', borderRadius:14, padding:16}}>
+                  <div key={tpl.id} style={{background:'rgba(var(--contrast),0.03)', border:'1px solid rgba(var(--contrast),0.07)', borderRadius:14, padding:16}}>
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2">
                         <span style={{fontSize:22}}>{tpl.icon}</span>
                         <div>
-                          <p className="text-sm font-semibold text-white">{tpl.name}</p>
-                          <p style={{fontSize:11, color:'#888', marginTop:2}}>
+                          <p className="text-sm font-semibold text-label">{tpl.name}</p>
+                          <p style={{fontSize:11, color:'var(--label2)', marginTop:2}}>
                             {tpl.type === 'block'
                               ? tpl.blocks?.length + ' blocs - ' + tpl.blocks?.reduce((a, b) => a + (b.sessions?.length || 0), 0) + ' séances'
                               : tpl.sessions?.length + ' séances'}
@@ -183,7 +183,7 @@ export default function ProgramTemplates() {
                         Utiliser
                       </button>
                     </div>
-                    <p style={{fontSize:12, color:'#888', margin:0, lineHeight:1.5}}>{tpl.description}</p>
+                    <p style={{fontSize:12, color:'var(--label2)', margin:0, lineHeight:1.5}}>{tpl.description}</p>
                   </div>
                 ))}
               </div>

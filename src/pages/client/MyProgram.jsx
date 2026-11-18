@@ -85,7 +85,7 @@ export default function MyProgram() {
 
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-white text-sm font-semibold">Progression</p>
+            <p className="text-label text-sm font-semibold">Progression</p>
             <p className="text-brand-400 text-sm font-bold">{doneSessions}/{totalSessions}</p>
           </div>
           <div className="w-full bg-dark-700 rounded-full h-2">
@@ -101,7 +101,7 @@ export default function MyProgram() {
           return (
             <Card key={block.id} className="overflow-hidden">
               <button onClick={() => setOpenBlocks(ob => ({ ...ob, [bi]: !ob[bi] }))}
-                className="w-full flex items-center gap-2 p-3 bg-brand-600/10 border-b border-white/5 text-left">
+                className="w-full flex items-center gap-2 p-3 bg-brand-600/10 border-b border-contrast/5 text-left">
                 {openBlocks[bi] ? <ChevronUp size={14} className="text-brand-400" /> : <ChevronDown size={14} className="text-brand-400" />}
                 <div className="flex-1">
                   <p className="text-brand-300 text-sm font-semibold">{block.name}</p>
@@ -148,14 +148,14 @@ export default function MyProgram() {
 function SessionCard({ sess, done, open, onToggle, onStart, onDemo }) {
   const exercises = (sess.program_exercises || []).sort((a,b) => a.order_index - b.order_index)
   return (
-    <div className="border border-white/8 rounded-xl overflow-hidden">
+    <div className="border border-contrast/8 rounded-xl overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 bg-dark-800">
         <button onClick={onToggle} className="flex-1 flex items-center gap-2 text-left min-w-0">
           {done
             ? <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
             : (open ? <ChevronUp size={13} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={13} className="text-gray-500 flex-shrink-0" />)
           }
-          <span className={`text-sm truncate ${done ? 'text-gray-400 line-through' : 'text-white'}`}>{sess.name}</span>
+          <span className={`text-sm truncate ${done ? 'text-gray-400 line-through' : 'text-label'}`}>{sess.name}</span>
           <span className="text-gray-600 text-xs flex-shrink-0">{exercises.length} exo{exercises.length !== 1 ? 's' : ''}</span>
         </button>
         <button onClick={onStart}
@@ -169,14 +169,14 @@ function SessionCard({ sess, done, open, onToggle, onStart, onDemo }) {
         <div className="p-3 space-y-1.5 bg-dark-900/50">
           {sess.notes && <p className="text-gray-500 text-xs mb-2">{sess.notes}</p>}
           {exercises.map(ex => (
-            <div key={ex.id} className="flex items-start gap-2 py-1.5 border-b border-white/5 last:border-0">
+            <div key={ex.id} className="flex items-start gap-2 py-1.5 border-b border-contrast/5 last:border-0">
               {ex.exercise ? (
                 <button onClick={() => onDemo?.({ ...ex.exercise, video_url: ex.video_url || ex.exercise.video_url })} aria-label={'Démo ' + ex.name} className="flex-shrink-0">
                   <ExerciseThumb exercise={ex.exercise} size={40} />
                 </button>
               ) : <Dumbbell size={11} className="text-brand-400 flex-shrink-0 mt-0.5" />}
               <div className="flex-1 min-w-0">
-                <p className="text-white text-xs font-medium">{ex.name}</p>
+                <p className="text-label text-xs font-medium">{ex.name}</p>
                 <div className="flex flex-wrap gap-2 mt-0.5">
                   <span className="text-gray-500 text-xs">{ex.sets}×{ex.reps}</span>
                   {ex.load && <span className="text-gray-500 text-xs">@ {ex.load}</span>}

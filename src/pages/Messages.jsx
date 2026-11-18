@@ -63,9 +63,9 @@ export function ConversationView({ otherId, otherName }) {
       {/* Messages list */}
       <div style={{flex:1, overflowY:'auto', padding:'12px 16px', display:'flex', flexDirection:'column', gap:8}}>
         {loading ? (
-          <div style={{textAlign:'center', color:'#666', fontSize:13, paddingTop:20}}>Chargement...</div>
+          <div style={{textAlign:'center', color:'var(--label3)', fontSize:13, paddingTop:20}}>Chargement...</div>
         ) : messages.length === 0 ? (
-          <div style={{textAlign:'center', color:'#666', fontSize:13, paddingTop:40}}>
+          <div style={{textAlign:'center', color:'var(--label3)', fontSize:13, paddingTop:40}}>
             <p>Aucun message.</p>
             <p style={{fontSize:12}}>Envoie le premier message !</p>
           </div>
@@ -75,11 +75,11 @@ export function ConversationView({ otherId, otherName }) {
             <div key={msg.id} style={{display:'flex', justifyContent: isMe ? 'flex-end' : 'flex-start'}}>
               <div style={{
                 maxWidth:'72%', padding:'9px 13px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                background: isMe ? '#6366f1' : '#1e1e2e',
-                color:'white', fontSize:14, lineHeight:1.4
+                background: isMe ? '#6366f1' : 'var(--card)',
+                color: isMe ? 'white' : 'var(--label)', fontSize:15, lineHeight:1.4, boxShadow: isMe ? 'none' : 'var(--card-shadow)'
               }}>
                 <p style={{margin:0}}>{msg.content}</p>
-                <p style={{margin:'4px 0 0', fontSize:10, color: isMe ? 'rgba(255,255,255,0.6)' : '#666', textAlign:'right'}}>
+                <p style={{margin:'4px 0 0', fontSize:10, color: isMe ? 'rgba(255,255,255,0.7)' : 'var(--label3)', textAlign:'right'}}>
                   {fmt(msg.created_at)}
                 </p>
               </div>
@@ -89,21 +89,21 @@ export function ConversationView({ otherId, otherName }) {
         <div ref={bottomRef}/>
       </div>
       {/* Input */}
-      <div style={{padding:'10px 16px', background:'#1e1e2e', display:'flex', gap:8, alignItems:'flex-end'}}>
+      <div style={{padding:'10px 16px', background:'var(--card)', display:'flex', gap:8, alignItems:'flex-end'}}>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={handleKey}
           placeholder={`Message à ${otherName || '...'}...`}
           rows={1}
-          style={{flex:1, background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:12, padding:'10px 14px',
-            color:'white', fontSize:14, resize:'none', outline:'none', fontFamily:'inherit',
-            WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}
+          style={{flex:1, background:'var(--fill)', border:'1px solid var(--separator)', borderRadius:12, padding:'10px 14px',
+            color:'var(--label)', fontSize:14, resize:'none', outline:'none', fontFamily:'inherit',
+            WebkitTextFillColor:'var(--label)', WebkitBoxShadow:'0 0 0px 1000px var(--fill) inset'}}
         />
         <button
           onClick={sendMessage}
           disabled={!text.trim()}
-          style={{width:40, height:40, borderRadius:20, background: text.trim() ? '#6366f1' : '#2a2a3e',
+          style={{width:40, height:40, borderRadius:20, background: text.trim() ? '#6366f1' : 'var(--fill)',
             border:'none', color:'white', cursor: text.trim() ? 'pointer' : 'default',
             display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
             transition:'background 0.2s'}}>
@@ -154,10 +154,10 @@ export function CoachMessages() {
   // ── Conversation view ──
   if (clientId) {
     return (
-      <div style={{height:'100vh', background:'#0f0f1a', display:'flex', flexDirection:'column'}}>
-        <div style={{background:'#1e1e2e', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
+      <div style={{height:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
+        <div style={{background:'var(--card)', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
           <button onClick={() => navigate('/coach/messages')}
-            style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:4}}>
+            style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
             <ArrowLeft size={20}/>
           </button>
           <div>
@@ -165,7 +165,7 @@ export function CoachMessages() {
               {selectedClient ? selectedClient.name : 'Conversation'}
             </p>
             {selectedClient?.sport && (
-              <p style={{margin:0, fontSize:12, color:'#888'}}>{selectedClient.sport}</p>
+              <p style={{margin:0, fontSize:12, color:'var(--label2)'}}>{selectedClient.sport}</p>
             )}
           </div>
         </div>
@@ -173,7 +173,7 @@ export function CoachMessages() {
           {selectedClient || !loading ? (
             <ConversationView otherId={clientId} otherName={selectedClient?.name || ''}/>
           ) : (
-            <div style={{textAlign:'center', color:'#666', padding:40}}>Chargement...</div>
+            <div style={{textAlign:'center', color:'var(--label3)', padding:40}}>Chargement...</div>
           )}
         </div>
       </div>
@@ -182,9 +182,9 @@ export function CoachMessages() {
 
   // ── Client list ──
   return (
-    <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:80}}>
-      <div style={{background:'#1e1e2e', padding:'16px 20px', position:'sticky', top:0, zIndex:10, display:'flex', alignItems:'center', gap:12}}>
-        <button onClick={() => navigate('/coach')} style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:4}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
+      <div style={{background:'var(--card)', padding:'16px 20px', position:'sticky', top:'var(--sat)', zIndex:10, display:'flex', alignItems:'center', gap:12}}>
+        <button onClick={() => navigate('/coach')} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
           <ArrowLeft size={20}/>
         </button>
         <h2 style={{margin:0, fontSize:18}}>Messages</h2>
@@ -192,26 +192,26 @@ export function CoachMessages() {
       <div style={{padding:'12px 16px'}}>
         {loading ? (
           [1,2,3].map(i => (
-            <div key={i} style={{height:64, background:'#1e1e2e', borderRadius:12, marginBottom:8, opacity:0.5}}/>
+            <div key={i} style={{height:64, background:'var(--card)', borderRadius:12, marginBottom:8, opacity:0.5}}/>
           ))
         ) : clients.length === 0 ? (
-          <div style={{textAlign:'center', color:'#888', paddingTop:60}}>
+          <div style={{textAlign:'center', color:'var(--label2)', paddingTop:60}}>
             <p style={{fontSize:15}}>Aucun client</p>
             <p style={{fontSize:12}}>Ajoute des clients pour leur envoyer des messages.</p>
           </div>
         ) : clients.map(client => (
           <button key={client.id}
             onClick={() => navigate(`/coach/messages/${client.id}`)}
-            style={{display:'flex', alignItems:'center', gap:12, width:'100%', background:'#1e1e2e',
+            style={{display:'flex', alignItems:'center', gap:12, width:'100%', background:'var(--card)',
               border:'none', borderRadius:12, padding:'12px 16px', marginBottom:8,
-              color:'white', cursor:'pointer', textAlign:'left'}}>
+              color:'var(--label)', cursor:'pointer', textAlign:'left'}}>
             <div style={{width:40, height:40, borderRadius:20, background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
               display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:16, flexShrink:0}}>
               {client.name?.[0]?.toUpperCase() || '?'}
             </div>
             <div style={{flex:1, minWidth:0}}>
               <p style={{margin:0, fontWeight:600, fontSize:14}}>{client.name}</p>
-              {client.sport && <p style={{margin:0, fontSize:12, color:'#888'}}>{client.sport}</p>}
+              {client.sport && <p style={{margin:0, fontSize:12, color:'var(--label2)'}}>{client.sport}</p>}
             </div>
             {unread[client.id] > 0 && (
               <div style={{background:'#ef4444', borderRadius:10, padding:'2px 7px', fontSize:11, fontWeight:700, color:'white', flexShrink:0}}>
@@ -249,7 +249,7 @@ export function ClientMessages() {
 
   if (loading) {
     return (
-      <div style={{minHeight:'100vh', background:'#0f0f1a', display:'flex', alignItems:'center', justifyContent:'center', color:'#666'}}>
+      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--label3)'}}>
         Chargement...
       </div>
     )
@@ -257,7 +257,7 @@ export function ClientMessages() {
 
   if (!coach) {
     return (
-      <div style={{minHeight:'100vh', background:'#0f0f1a', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'#888', padding:32}}>
+      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'var(--label2)', padding:32}}>
         <p style={{fontSize:15, marginBottom:8}}>Aucun coach assigné</p>
         <p style={{fontSize:12, textAlign:'center'}}>Tu n'as pas encore de coach. Contacte ton coach pour qu'il t'ajoute.</p>
       </div>
@@ -265,10 +265,10 @@ export function ClientMessages() {
   }
 
   return (
-    <div style={{height:'100vh', background:'#0f0f1a', display:'flex', flexDirection:'column'}}>
-      <div style={{background:'#1e1e2e', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
+    <div style={{height:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
+      <div style={{background:'var(--card)', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
         <button onClick={() => navigate(-1)}
-          style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:4}}>
+          style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
           <ArrowLeft size={20}/>
         </button>
         <div style={{width:36, height:36, borderRadius:18, background:'linear-gradient(135deg,#6366f1,#8b5cf6)',

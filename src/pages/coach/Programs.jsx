@@ -149,14 +149,14 @@ export default function Programs() {
                             </Card>
                           ) : (
                             programs.map(prog => (
-                                          <div key={prog.id} className="bg-dark-800 border border-white/10 rounded-2xl overflow-hidden">
+                                          <div key={prog.id} className="bg-dark-800 border border-contrast/10 rounded-2xl overflow-hidden">
                                                         <button
                                                                           onClick={() => navigate('/coach/programs/' + prog.id)}
                                                                           className="w-full p-4 text-left hover:bg-dark-800/70 transition-colors">
                                                                         <div className="flex items-start justify-between gap-2">
                                                                                           <div className="flex-1 min-w-0">
                                                                                                               <div className="flex items-center gap-2 mb-1">
-                                                                                                                                    <p className="text-white font-semibold truncate">{prog.name}</p>
+                                                                                                                                    <p className="text-label font-semibold truncate">{prog.name}</p>
                                                                                                                                     <Badge color={prog.type === 'block' ? 'brand' : 'green'}>
                                                                                                                                       {prog.type === 'block' ? 'Blocs' : 'Simple'}
                                                                                                                                       </Badge>
@@ -184,7 +184,7 @@ export default function Programs() {
                                                         </button>
                                           
                                             {deleteConfirm?.id === prog.id ? (
-                                                            <div className="border-t border-white/5 px-4 py-2.5 flex items-center justify-between bg-red-500/5">
+                                                            <div className="border-t border-contrast/5 px-4 py-2.5 flex items-center justify-between bg-red-500/5">
                                                                               <p className="text-red-400 text-xs">Supprimer "{prog.name}" ?</p>
                                                                               <div className="flex gap-2">
                                                                                                   <button onClick={() => setDeleteConfirm(null)} className="text-gray-400 text-xs px-2 py-1 rounded-lg bg-dark-900">Annuler</button>
@@ -194,12 +194,12 @@ export default function Programs() {
                                                                               </div>
                                                             </div>
                                                           ) : (
-                                                            <div className="border-t border-white/5 px-4 py-2 flex items-center justify-between">
+                                                            <div className="border-t border-contrast/5 px-4 py-2 flex items-center justify-between">
                                                                               <div className="flex gap-1">
                                                                                                   <button
                                                                                                                           onClick={(e) => { e.stopPropagation(); duplicateProgram(prog) }}
                                                                                                                           disabled={duplicating === prog.id}
-                                                                                                                          className="text-gray-400 text-xs font-medium hover:text-white transition-colors px-2 py-1 flex items-center gap-1">
+                                                                                                                          className="text-gray-400 text-xs font-medium hover:text-label transition-colors px-2 py-1 flex items-center gap-1">
                                                                                                                         <Copy size={11} />
                                                                                                     {duplicating === prog.id ? 'Copie...' : 'Dupliquer'}
                                                                                                     </button>
@@ -225,9 +225,9 @@ export default function Programs() {
           {/* Modal assignation */}
           {assignProg && (
                           <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center p-4" onClick={() => setAssignProg(null)}>
-                                    <div className="bg-dark-800 border border-white/10 rounded-2xl p-4 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+                                    <div className="bg-dark-800 border border-contrast/10 rounded-2xl p-4 w-full max-w-sm" onClick={e => e.stopPropagation()}>
                                                 <div className="flex items-center justify-between mb-4">
-                                                              <h3 className="text-white font-semibold text-sm">Assigner "{assignProg.name}"</h3>
+                                                              <h3 className="text-label font-semibold text-sm">Assigner "{assignProg.name}"</h3>
                                                               <button onClick={() => setAssignProg(null)} className="text-gray-500"><X size={16} /></button>
                                                 </div>
                                                 <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -243,7 +243,7 @@ export default function Programs() {
                                                                 key={c.id}
                                                                 onClick={() => assignToClient(c.id)}
                                                                 disabled={assigning}
-                                                                className="w-full text-left px-3 py-2.5 rounded-xl text-white text-sm hover:bg-dark-900 transition-colors flex items-center justify-between">
+                                                                className="w-full text-left px-3 py-2.5 rounded-xl text-label text-sm hover:bg-dark-900 transition-colors flex items-center justify-between">
                                                               <div>
                                                                                   <p className="font-medium">{c.name}</p>
                                                                 {c.sport && <p className="text-gray-500 text-xs">{c.sport}</p>}

@@ -7,7 +7,7 @@ import ClientNutritionTab from '../../components/ClientNutritionTab'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
-    return <p style={{color:'#888', fontSize:12, margin:'4px 0 8px'}}>Pas encore assez de données</p>
+    return <p style={{color:'var(--label2)', fontSize:12, margin:'4px 0 8px'}}>Pas encore assez de données</p>
   }
   const values = data.map(d => d.value)
   const min = Math.min(...values)
@@ -27,7 +27,7 @@ function ProgressChart({ data, label }) {
   return (
     <div style={{marginBottom: 4}}>
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
-        <span style={{fontSize:13, fontWeight:600, color:'#e2e8f0'}}>{label}</span>
+        <span style={{fontSize:13, fontWeight:600, color:'var(--label1b)'}}>{label}</span>
         <span style={{fontSize:12, color, fontWeight:600}}>
           {diff >= 0 ? '+' : ''}{diff % 1 === 0 ? diff : diff.toFixed(1)} kg
         </span>
@@ -45,12 +45,12 @@ function ProgressChart({ data, label }) {
         />
         <polyline points={polyPts} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round"/>
         {pts.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={3} fill={color} stroke="#1e1e2e" strokeWidth={1.5}/>
+          <circle key={i} cx={p.x} cy={p.y} r={3} fill={color} stroke="var(--card)" strokeWidth={1.5}/>
         ))}
       </svg>
-      <div style={{display:'flex', justifyContent:'space-between', fontSize:10, color:'#666', marginTop:3}}>
+      <div style={{display:'flex', justifyContent:'space-between', fontSize:10, color:'var(--label3)', marginTop:3}}>
         <span>{data[0].date}</span>
-        <span style={{color:'#888'}}>{first} kg   {last} kg</span>
+        <span style={{color:'var(--label2)'}}>{first} kg   {last} kg</span>
         <span>{data[data.length-1].date}</span>
       </div>
     </div>
@@ -173,8 +173,8 @@ export default function ClientDetail() {
   const [editForm, setEditForm] = useState({})
   const [editSaving, setEditSaving] = useState(false)
 
-  if (loading) return <div style={{color:'white',padding:20}}>Chargement...</div>
-  if (!client) return <div style={{color:'white',padding:20}}>Client introuvable</div>
+  if (loading) return <div style={{color:'var(--label)',padding:20}}>Chargement...</div>
+  if (!client) return <div style={{color:'var(--label)',padding:20}}>Client introuvable</div>
 
   const streak = calcStreak()
   const progressEntries = Object.entries(progressData).filter(([, d]) => d.length >= 2)
@@ -209,16 +209,16 @@ export default function ClientDetail() {
   }
 
   return (
-    <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:40}}>
-      <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
-        <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:4}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
+      <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
+        <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
           <ArrowLeft size={20}/>
         </button>
         <div style={{flex:1}}>
           <h2 style={{margin:0, fontSize:18}}>{client.name}</h2>
-          {client.sport && <p style={{margin:0, fontSize:13, color:'#888'}}>{client.sport}{client.position ? ' · ' + client.position : ''}</p>}
+          {client.sport && <p style={{margin:0, fontSize:13, color:'var(--label2)'}}>{client.sport}{client.position ? ' · ' + client.position : ''}</p>}
 
-        <button onClick={openEdit} style={{background:'none', border:'none', color:'#a0aec0', cursor:'pointer', padding:4, marginRight:4}}>
+        <button onClick={openEdit} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4, marginRight:4}}>
           <Pencil size={16}/>
         </button>
         <button onClick={deleteClient} style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}>
@@ -228,25 +228,25 @@ export default function ClientDetail() {
       </div>
 
       <div style={{display:'flex', gap:10, padding:'12px 16px'}}>
-        <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
+        <div style={{flex:1, background:'var(--card)', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
           <p style={{margin:0, fontSize:22, fontWeight:700, color:'#6366f1'}}>{completions.length}</p>
-          <p style={{margin:0, fontSize:11, color:'#888'}}>séances</p>
+          <p style={{margin:0, fontSize:11, color:'var(--label2)'}}>séances</p>
         </div>
-        <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
+        <div style={{flex:1, background:'var(--card)', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
           <p style={{margin:0, fontSize:22, fontWeight:700, color:'#f59e0b'}}>{streak} 🔥</p>
-          <p style={{margin:0, fontSize:11, color:'#888'}}>jours consec.</p>
+          <p style={{margin:0, fontSize:11, color:'var(--label2)'}}>jours consec.</p>
         </div>
-        <div style={{flex:1, background:'#1e1e2e', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
+        <div style={{flex:1, background:'var(--card)', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
           <p style={{margin:0, fontSize:22, fontWeight:700, color:'#22c55e'}}>{progressEntries.length}</p>
-          <p style={{margin:0, fontSize:11, color:'#888'}}>exercices suivis</p>
+          <p style={{margin:0, fontSize:11, color:'var(--label2)'}}>exercices suivis</p>
         </div>
       </div>
 
-      <div style={{margin:'0 16px 12px', background:'#1e1e2e', borderRadius:12, padding:'14px 16px'}}>
+      <div style={{margin:'0 16px 12px', background:'var(--card)', borderRadius:12, padding:'14px 16px'}}>
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
           <div>
-            <p style={{margin:'0 0 3px', fontSize:11, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px'}}>Programme actif</p>
-            <p style={{margin:0, fontSize:15, fontWeight:600, color: currentProgram ? '#a78bfa' : '#555'}}>
+            <p style={{margin:'0 0 3px', fontSize:11, color:'var(--label2)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Programme actif</p>
+            <p style={{margin:0, fontSize:15, fontWeight:600, color: currentProgram ? '#a78bfa' : 'var(--label3)'}}>
               {currentProgram ? currentProgram.name : 'Aucun programme assigné'}
             </p>
           </div>
@@ -259,11 +259,11 @@ export default function ClientDetail() {
         </div>
       </div>
 
-      <div style={{display:'flex', margin:'0 16px 12px', background:'#1e1e2e', borderRadius:10, padding:4, overflowX:'auto', gap:2}}>
+      <div style={{display:'flex', margin:'0 16px 12px', background:'var(--card)', borderRadius:10, padding:4, overflowX:'auto', gap:2}}>
         {[['history','📋 Historique'], ['progress','📈 Progression'], ['measurements','📏 Mensurations'], ['calendar','📅 Calendrier'], ['checkins','📊 Bilans'], ['nutrition','🍎 Nutrition']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{
             flexShrink:0, padding:'8px 10px', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:600, whiteSpace:'nowrap',
-            background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? 'white' : '#888'
+            background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? 'white' : 'var(--label2)'
           }}>
             {label}
           </button>
@@ -273,14 +273,14 @@ export default function ClientDetail() {
       {tab === 'history' && (
         <div style={{padding:'0 16px'}}>
           {completions.length === 0 && (
-            <p style={{color:'#888', textAlign:'center', marginTop:40}}>Aucune séance enregistrée</p>
+            <p style={{color:'var(--label2)', textAlign:'center', marginTop:40}}>Aucune séance enregistrée</p>
           )}
           {completions.map(comp => (
-            <div key={comp.id} style={{background:'#1e1e2e', borderRadius:12, marginBottom:12, overflow:'hidden'}}>
+            <div key={comp.id} style={{background:'var(--card)', borderRadius:12, marginBottom:12, overflow:'hidden'}}>
               <div style={{padding:'12px 14px', display:'flex', alignItems:'center', gap:8}}>
                 <div style={{flex:1}}>
                   <p style={{margin:0, fontWeight:600, fontSize:15}}>{comp.program_sessions?.name || 'Séance libre'}</p>
-                  <p style={{margin:0, fontSize:12, color:'#888'}}>
+                  <p style={{margin:0, fontSize:12, color:'var(--label2)'}}>
                     {new Date(comp.created_at).toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short', year:'numeric'})}
                   </p>
                 </div>
@@ -289,56 +289,56 @@ export default function ClientDetail() {
                   <Trash2 size={16}/>
                 </button>
                 <button onClick={() => toggleExpand(comp.id)}
-                  style={{background:'none', border:'none', color:'#888', cursor:'pointer', padding:4}}>
+                  style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4}}>
                   {expanded[comp.id] ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
                 </button>
               </div>
               {expanded[comp.id] && (
-                <div style={{borderTop:'1px solid #2a2a3e', padding:'10px 14px'}}>
+                <div style={{borderTop:'1px solid var(--fill)', padding:'10px 14px'}}>
                   {(comp.exercise_logs || []).map((log, li) => (
                     <div key={li} style={{marginBottom:10}}>
-                      <p style={{margin:'0 0 5px', fontSize:13, fontWeight:600, color:'#a78bfa'}}>
+                      <p style={{margin:'0 0 5px', fontSize:13, fontWeight:600, color:'var(--accent-text)'}}>
                         {log.exercise?.name || log.exercise_name || 'Exercice'}
                       </p>
                       <div style={{display:'flex', flexWrap:'wrap', gap:4}}>
                         {(log.set_data || []).map((s, si) => (
                           <div key={si} style={{
-                            background: s._done === false ? '#2a2a3e' : '#1a2a1a',
-                            border: '1px solid ' + (s._done === false ? '#3a3a4e' : '#22c55e44'),
+                            background: s._done === false ? 'var(--fill)' : 'rgba(52,199,89,0.12)',
+                            border: '1px solid ' + (s._done === false ? 'var(--separator)' : '#22c55e44'),
                             borderRadius:6, padding:'3px 8px', fontSize:11,
-                            color: s._done === false ? '#555' : '#ccc'
+                            color: s._done === false ? 'var(--label3)' : 'var(--label1b)'
                           }}>
                             {s.reps ? s.reps + ' reps' : ''}{s.load ? ' · ' + s.load + 'kg' : ''}{s.rpe ? ' · RPE ' + s.rpe : ''}
                           </div>
                         ))}
                       </div>
-                      {log.notes && <p style={{margin:'4px 0 0', fontSize:11, color:'#888', fontStyle:'italic'}}>{log.notes}</p>}
+                      {log.notes && <p style={{margin:'4px 0 0', fontSize:11, color:'var(--label2)', fontStyle:'italic'}}>{log.notes}</p>}
                     </div>
                   ))}
                   {(comp.rpe_session || comp.notes || comp.wellbeing_note) && (
-                    <div style={{marginTop:10, paddingTop:10, borderTop:'1px solid #2a2a3e', display:'flex', flexDirection:'column', gap:6}}>
+                    <div style={{marginTop:10, paddingTop:10, borderTop:'1px solid var(--fill)', display:'flex', flexDirection:'column', gap:6}}>
                       {comp.rpe_session && (
                         <div style={{display:'flex', alignItems:'center', gap:8}}>
-                          <span style={{fontSize:11, color:'#888'}}>RPE séance :</span>
+                          <span style={{fontSize:11, color:'var(--label2)'}}>RPE séance :</span>
                           <div style={{display:'flex', gap:3}}>
                             {[1,2,3,4,5,6,7,8,9,10].map(n => (
                               <div key={n} style={{width:14, height:14, borderRadius:3,
-                                background: n <= comp.rpe_session ? (comp.rpe_session >= 9 ? '#ef4444' : comp.rpe_session >= 7 ? '#f59e0b' : '#22c55e') : '#2a2a3e'}}/>
+                                background: n <= comp.rpe_session ? (comp.rpe_session >= 9 ? '#ef4444' : comp.rpe_session >= 7 ? '#f59e0b' : '#22c55e') : 'var(--fill)'}}/>
                             ))}
-                            <span style={{fontSize:11, color:'#aaa', marginLeft:4}}>{comp.rpe_session}/10</span>
+                            <span style={{fontSize:11, color:'var(--label2)', marginLeft:4}}>{comp.rpe_session}/10</span>
                           </div>
                         </div>
                       )}
                       {comp.notes && (
-                        <div style={{background:'#0f0f1a', borderRadius:8, padding:'7px 10px'}}>
-                          <p style={{margin:'0 0 2px', fontSize:10, color:'#666', textTransform:'uppercase', letterSpacing:'0.5px'}}>Notes de séance</p>
-                          <p style={{margin:0, fontSize:12, color:'#ccc'}}>{comp.notes}</p>
+                        <div style={{background:'var(--bg)', borderRadius:8, padding:'7px 10px'}}>
+                          <p style={{margin:'0 0 2px', fontSize:10, color:'var(--label3)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Notes de séance</p>
+                          <p style={{margin:0, fontSize:12, color:'var(--label1b)'}}>{comp.notes}</p>
                         </div>
                       )}
                       {comp.wellbeing_note && (
-                        <div style={{background:'#0f0f1a', borderRadius:8, padding:'7px 10px'}}>
-                          <p style={{margin:'0 0 2px', fontSize:10, color:'#666', textTransform:'uppercase', letterSpacing:'0.5px'}}>Bien-être</p>
-                          <p style={{margin:0, fontSize:12, color:'#ccc'}}>{comp.wellbeing_note}</p>
+                        <div style={{background:'var(--bg)', borderRadius:8, padding:'7px 10px'}}>
+                          <p style={{margin:'0 0 2px', fontSize:10, color:'var(--label3)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Bien-être</p>
+                          <p style={{margin:0, fontSize:12, color:'var(--label1b)'}}>{comp.wellbeing_note}</p>
                         </div>
                       )}
                     </div>
@@ -353,14 +353,14 @@ export default function ClientDetail() {
       {tab === 'progress' && (
         <div style={{padding:'0 16px'}}>
           {progressEntries.length === 0 ? (
-            <div style={{textAlign:'center', marginTop:50, color:'#888'}}>
+            <div style={{textAlign:'center', marginTop:50, color:'var(--label2)'}}>
               <TrendingUp size={44} style={{margin:'0 auto 14px', display:'block', opacity:0.3}}/>
               <p style={{fontSize:15, margin:'0 0 8px'}}>Pas encore assez de données</p>
               <p style={{fontSize:12, margin:0}}>Il faut au moins 2 séances avec des charges renseignées.</p>
             </div>
           ) : (
             progressEntries.map(([name, data]) => (
-              <div key={name} style={{background:'#1e1e2e', borderRadius:12, padding:'14px 16px', marginBottom:12}}>
+              <div key={name} style={{background:'var(--card)', borderRadius:12, padding:'14px 16px', marginBottom:12}}>
                 <ProgressChart data={data} label={name}/>
               </div>
             ))
@@ -372,12 +372,12 @@ export default function ClientDetail() {
       {tab === 'measurements' && (
         <div style={{padding:'0 16px'}}>
           {measurements.length === 0 ? (
-            <div style={{textAlign:'center', paddingTop:40, color:'#666'}}>
+            <div style={{textAlign:'center', paddingTop:40, color:'var(--label3)'}}>
               <p style={{fontSize:15}}>Aucune mensuration</p>
               <p style={{fontSize:12}}>Le client n'a pas encore renseigné de mensurations.</p>
             </div>
           ) : measurements.map(m => (
-            <div key={m.id} style={{background:'#1e1e2e', borderRadius:12, padding:'14px 16px', marginBottom:10}}>
+            <div key={m.id} style={{background:'var(--card)', borderRadius:12, padding:'14px 16px', marginBottom:10}}>
               <p style={{margin:'0 0 10px', fontSize:12, color:'#6366f1', fontWeight:700}}>
                 {new Date(m.measured_at).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})}
               </p>
@@ -385,13 +385,13 @@ export default function ClientDetail() {
                 {[['Poids', m.weight, 'kg'],['% Graisse', m.body_fat, '%'],['Masse musc.', m.muscle_mass, 'kg'],
                   ['Tour taille', m.waist, 'cm'],['Tour hanches', m.hips, 'cm'],['Poitrine', m.chest, 'cm'],
                   ['Bras', m.arms, 'cm'],['Cuisses', m.thighs, 'cm']].filter(([,v]) => v != null).map(([lbl, val, unit]) => (
-                  <div key={lbl} style={{background:'#0f0f1a', borderRadius:8, padding:'8px 6px', textAlign:'center'}}>
-                    <p style={{margin:0, fontSize:15, fontWeight:700, color:'white'}}>{val}<span style={{fontSize:10, color:'#888'}}> {unit}</span></p>
-                    <p style={{margin:0, fontSize:10, color:'#888'}}>{lbl}</p>
+                  <div key={lbl} style={{background:'var(--bg)', borderRadius:8, padding:'8px 6px', textAlign:'center'}}>
+                    <p style={{margin:0, fontSize:15, fontWeight:700, color:'var(--label)'}}>{val}<span style={{fontSize:10, color:'var(--label2)'}}> {unit}</span></p>
+                    <p style={{margin:0, fontSize:10, color:'var(--label2)'}}>{lbl}</p>
                   </div>
                 ))}
               </div>
-              {m.notes && <p style={{margin:'10px 0 0', fontSize:12, color:'#aaa', fontStyle:'italic'}}>{m.notes}</p>}
+              {m.notes && <p style={{margin:'10px 0 0', fontSize:12, color:'var(--label2)', fontStyle:'italic'}}>{m.notes}</p>}
             </div>
           ))}
         </div>
@@ -401,7 +401,7 @@ export default function ClientDetail() {
       {tab === 'calendar' && (
         <div style={{padding:'0 16px'}}>
           {sessions.length === 0 ? (
-            <div style={{textAlign:'center', paddingTop:40, color:'#666'}}>
+            <div style={{textAlign:'center', paddingTop:40, color:'var(--label3)'}}>
               <p style={{fontSize:15}}>Aucune séance planifiée</p>
               <p style={{fontSize:12}}>Aucune session dans le calendrier.</p>
             </div>
@@ -409,41 +409,41 @@ export default function ClientDetail() {
             const done = s.status === 'completed' || s.completed_at
             const d = s.session_date ? new Date(s.session_date) : null
             return (
-              <div key={s.id} style={{background:'#1e1e2e', borderRadius:12, padding:'12px 16px', marginBottom:8}}>
+              <div key={s.id} style={{background:'var(--card)', borderRadius:12, padding:'12px 16px', marginBottom:8}}>
               <div style={{display:'flex', alignItems:'center', gap:12}}>
                 <div style={{width:44, textAlign:'center', flexShrink:0}}>
                   {d ? (
                     <>
                       <p style={{margin:0, fontSize:18, fontWeight:700, color: done ? '#22c55e' : '#6366f1', lineHeight:1}}>{d.getDate()}</p>
-                      <p style={{margin:0, fontSize:10, color:'#888'}}>{d.toLocaleDateString('fr-FR',{month:'short'}).toUpperCase()}</p>
+                      <p style={{margin:0, fontSize:10, color:'var(--label2)'}}>{d.toLocaleDateString('fr-FR',{month:'short'}).toUpperCase()}</p>
                     </>
-                  ) : <p style={{margin:0, fontSize:11, color:'#666'}}>–</p>}
+                  ) : <p style={{margin:0, fontSize:11, color:'var(--label3)'}}>–</p>}
                 </div>
                 <div style={{flex:1, minWidth:0}}>
                   <p style={{margin:0, fontWeight:600, fontSize:14}}>{s.day_title || 'Séance jour ' + s.day_number}</p>
-                  {s.notes && !expanded[s.id] && <p style={{margin:'2px 0 0', fontSize:12, color:'#888', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.notes}</p>}
+                  {s.notes && !expanded[s.id] && <p style={{margin:'2px 0 0', fontSize:12, color:'var(--label2)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.notes}</p>}
                 </div>
-                <div style={{flexShrink:0, background: done ? '#14532d' : '#1e3a5f', borderRadius:20, padding:'3px 10px', marginRight:4}}>
+                <div style={{flexShrink:0, background: done ? 'rgba(52,199,89,0.16)' : 'rgba(0,122,255,0.14)', borderRadius:20, padding:'3px 10px', marginRight:4}}>
                   <span style={{fontSize:11, color: done ? '#22c55e' : '#60a5fa', fontWeight:600}}>{done ? 'Fait ✓' : 'Planifié'}</span>
                 </div>
-                <button onClick={() => toggleExpand(s.id)} style={{background:'none', border:'none', color:'#888', cursor:'pointer', padding:4}}>
+                <button onClick={() => toggleExpand(s.id)} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4}}>
                   {expanded[s.id] ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
                 </button>
               </div>
               {expanded[s.id] && (
-                <div style={{marginTop:12, paddingTop:12, borderTop:'1px solid #2a2a3e'}}>
+                <div style={{marginTop:12, paddingTop:12, borderTop:'1px solid var(--fill)'}}>
                   {s.notes ? (
                     <div style={{marginBottom:10}}>
-                      <p style={{margin:'0 0 4px', fontSize:11, color:'#888', textTransform:'uppercase', letterSpacing:1}}>Notes</p>
-                      <p style={{margin:0, fontSize:13, color:'#ccc', lineHeight:1.5}}>{s.notes}</p>
+                      <p style={{margin:'0 0 4px', fontSize:11, color:'var(--label2)', textTransform:'uppercase', letterSpacing:1}}>Notes</p>
+                      <p style={{margin:0, fontSize:13, color:'var(--label1b)', lineHeight:1.5}}>{s.notes}</p>
                     </div>
                   ) : (
-                    <p style={{margin:'0 0 10px', fontSize:12, color:'#555', fontStyle:'italic'}}>Aucune note pour cette séance</p>
+                    <p style={{margin:'0 0 10px', fontSize:12, color:'var(--label3)', fontStyle:'italic'}}>Aucune note pour cette séance</p>
                   )}
                   <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
-                    {s.day_number && <span style={{fontSize:11, background:'#2a2a3e', borderRadius:8, padding:'3px 8px', color:'#888'}}>Jour {s.day_number}</span>}
-                    {done && s.completed_at && <span style={{fontSize:11, background:'#14532d', borderRadius:8, padding:'3px 8px', color:'#22c55e'}}>Complétée le {new Date(s.completed_at).toLocaleDateString('fr-FR')}</span>}
-                    {!done && s.session_date && <span style={{fontSize:11, background:'#1e3a5f', borderRadius:8, padding:'3px 8px', color:'#60a5fa'}}>Planifiée le {new Date(s.session_date).toLocaleDateString('fr-FR')}</span>}
+                    {s.day_number && <span style={{fontSize:11, background:'var(--fill)', borderRadius:8, padding:'3px 8px', color:'var(--label2)'}}>Jour {s.day_number}</span>}
+                    {done && s.completed_at && <span style={{fontSize:11, background:'rgba(52,199,89,0.16)', borderRadius:8, padding:'3px 8px', color:'#22c55e'}}>Complétée le {new Date(s.completed_at).toLocaleDateString('fr-FR')}</span>}
+                    {!done && s.session_date && <span style={{fontSize:11, background:'rgba(0,122,255,0.14)', borderRadius:8, padding:'3px 8px', color:'var(--accent-text)'}}>Planifiée le {new Date(s.session_date).toLocaleDateString('fr-FR')}</span>}
                   </div>
                 </div>
               )}
@@ -459,7 +459,7 @@ export default function ClientDetail() {
       {tab === 'checkins' && (
         <div style={{padding:'0 16px'}}>
           {checkins.length === 0 ? (
-            <div style={{textAlign:'center', paddingTop:40, color:'#666'}}>
+            <div style={{textAlign:'center', paddingTop:40, color:'var(--label3)'}}>
               <p style={{fontSize:15}}>Aucun bilan</p>
               <p style={{fontSize:12}}>Le client n'a pas encore soumis de bilan hebdomadaire.</p>
             </div>
@@ -467,8 +467,8 @@ export default function ClientDetail() {
             const stars = (n, color) => n ? '★'.repeat(n) + '☆'.repeat(5-n) : '–'
             const week = new Date(ch.week_start)
             return (
-              <div key={ch.id} style={{background:'#1e1e2e', borderRadius:12, padding:'14px 16px', marginBottom:10}}>
-                <p style={{margin:'0 0 12px', fontSize:13, fontWeight:700, color:'#a78bfa'}}>
+              <div key={ch.id} style={{background:'var(--card)', borderRadius:12, padding:'14px 16px', marginBottom:10}}>
+                <p style={{margin:'0 0 12px', fontSize:13, fontWeight:700, color:'var(--accent-text)'}}>
                   Semaine du {week.toLocaleDateString('fr-FR', {day:'numeric', month:'long'})}
                 </p>
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8}}>
@@ -476,15 +476,15 @@ export default function ClientDetail() {
                     ['⚡ Énergie', ch.energy_level, '#f59e0b'],
                     ['😴 Sommeil', ch.sleep_quality, '#22c55e'],
                     ['😤 Stress', ch.stress_level, '#ef4444']].map(([lbl, val, color]) => (
-                    <div key={lbl} style={{background:'#0f0f1a', borderRadius:8, padding:'8px 10px'}}>
-                      <p style={{margin:'0 0 3px', fontSize:11, color:'#888'}}>{lbl}</p>
+                    <div key={lbl} style={{background:'var(--bg)', borderRadius:8, padding:'8px 10px'}}>
+                      <p style={{margin:'0 0 3px', fontSize:11, color:'var(--label2)'}}>{lbl}</p>
                       <p style={{margin:0, fontSize:16, letterSpacing:1, color}}>{val ? stars(val) : '–'}</p>
                     </div>
                   ))}
                 </div>
                 {ch.notes && (
-                  <div style={{marginTop:10, padding:'8px 10px', background:'#0f0f1a', borderRadius:8}}>
-                    <p style={{margin:0, fontSize:12, color:'#ccc', fontStyle:'italic'}}>" {ch.notes} "</p>
+                  <div style={{marginTop:10, padding:'8px 10px', background:'var(--bg)', borderRadius:8}}>
+                    <p style={{margin:0, fontSize:12, color:'var(--label1b)', fontStyle:'italic'}}>" {ch.notes} "</p>
                   </div>
                 )}
               </div>
@@ -496,26 +496,26 @@ export default function ClientDetail() {
       {assignModal && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:1000, display:'flex', alignItems:'flex-end'}}
           onClick={(e) => { if (e.target === e.currentTarget) setAssignModal(false) }}>
-          <div style={{background:'#1e1e2e', width:'100%', borderRadius:'16px 16px 0 0', padding:'20px 16px', maxHeight:'70vh', overflowY:'auto'}}>
+          <div style={{background:'var(--card)', width:'100%', borderRadius:'16px 16px 0 0', padding:'20px 16px', maxHeight:'70vh', overflowY:'auto'}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
               <h3 style={{margin:0, fontSize:16}}>Choisir un programme</h3>
-              <button onClick={() => setAssignModal(false)} style={{background:'none', border:'none', color:'#888', cursor:'pointer', fontSize:20, lineHeight:1}}>✕</button>
+              <button onClick={() => setAssignModal(false)} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', fontSize:20, lineHeight:1}}>✕</button>
             </div>
             {programs.length === 0 ? (
-              <p style={{color:'#888', textAlign:'center', padding:'20px 0'}}>Aucun programme créé</p>
+              <p style={{color:'var(--label2)', textAlign:'center', padding:'20px 0'}}>Aucun programme créé</p>
             ) : (
               programs.map(prog => (
                 <button key={prog.id} onClick={() => assignProgram(prog.id)} disabled={assigning}
                   style={{
                     display:'flex', alignItems:'center', justifyContent:'space-between',
-                    width:'100%', background: currentProgram?.id === prog.id ? '#2d2b55' : '#252537',
-                    border: '1px solid ' + (currentProgram?.id === prog.id ? '#6366f1' : '#3a3a4e'),
-                    borderRadius:10, padding:'12px 14px', marginBottom:8, cursor:'pointer', color:'white', textAlign:'left',
+                    width:'100%', background: currentProgram?.id === prog.id ? 'var(--accent-soft)' : 'var(--fill)',
+                    border: '1px solid ' + (currentProgram?.id === prog.id ? '#6366f1' : 'var(--separator)'),
+                    borderRadius:10, padding:'12px 14px', marginBottom:8, cursor:'pointer', color:'var(--label)', textAlign:'left',
                     opacity: assigning ? 0.6 : 1
                   }}>
                   <div>
                     <p style={{margin:0, fontWeight:600, fontSize:14}}>{prog.name}</p>
-                    {prog.type && <p style={{margin:0, fontSize:12, color:'#888'}}>{prog.type}</p>}
+                    {prog.type && <p style={{margin:0, fontSize:12, color:'var(--label2)'}}>{prog.type}</p>}
                   </div>
                   {currentProgram?.id === prog.id && <Check size={16} color="#6366f1"/>}
                 </button>
@@ -526,16 +526,16 @@ export default function ClientDetail() {
       )}
       {editModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:50,display:'flex',alignItems:'flex-end',justifyContent:'center',padding:16}}>
-          <div style={{background:'#1e1e2e',border:'1px solid rgba(255,255,255,0.1)',borderRadius:24,padding:20,width:'100%',maxWidth:400}}>
+          <div style={{background:'var(--card)',border:'1px solid rgba(var(--contrast),0.1)',borderRadius:24,padding:20,width:'100%',maxWidth:400}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-              <h3 style={{margin:0,fontSize:16,fontWeight:600,color:'white'}}>Modifier le client</h3>
-              <button onClick={()=>setEditModal(false)} style={{background:'none',border:'none',color:'#888',cursor:'pointer'}}><X size={18}/></button>
+              <h3 style={{margin:0,fontSize:16,fontWeight:600,color:'var(--label)'}}>Modifier le client</h3>
+              <button onClick={()=>setEditModal(false)} style={{background:'none',border:'none',color:'var(--label2)',cursor:'pointer'}}><X size={18}/></button>
             </div>
             {[{key:'name',label:'Nom complet'},{key:'sport',label:'Sport'},{key:'position',label:'Poste'},{key:'current_phase',label:'Phase actuelle'}].map(f=>(
               <div key={f.key} style={{marginBottom:12}}>
-                <label style={{display:'block',fontSize:12,color:'#888',marginBottom:4}}>{f.label}</label>
+                <label style={{display:'block',fontSize:12,color:'var(--label2)',marginBottom:4}}>{f.label}</label>
                 <input value={editForm[f.key]||''} onChange={e=>setEditForm(p=>({...p,[f.key]:e.target.value}))}
-                  style={{width:'100%',background:'#0f0f1a',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'10px 14px',color:'white',fontSize:14,outline:'none',boxSizing:'border-box'}}/>
+                  style={{width:'100%',background:'var(--bg)',border:'1px solid rgba(var(--contrast),0.1)',borderRadius:10,padding:'10px 14px',color:'var(--label)',fontSize:14,outline:'none',boxSizing:'border-box'}}/>
               </div>
             ))}
             <button onClick={saveEdit} disabled={editSaving}

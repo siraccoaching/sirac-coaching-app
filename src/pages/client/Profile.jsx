@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout } from '../../components/Layout'
+import ThemePicker from '../../components/ThemePicker'
 import { Save, Zap } from 'lucide-react'
 
 const ACTIVITY_LEVELS = [
@@ -72,15 +73,16 @@ export default function Profile() {
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const inp = { background:'#1e1e2e', border:'1px solid #2a2a3e', borderRadius:10, padding:'10px 14px', color:'white', fontSize:14, width:'100%', outline:'none' }
-  const lbl = { fontSize:12, color:'#888', marginBottom:4, display:'block' }
+  const inp = { background:'var(--card)', border:'1px solid var(--fill)', borderRadius:10, padding:'10px 14px', color:'var(--label)', fontSize:14, width:'100%', outline:'none' }
+  const lbl = { fontSize:12, color:'var(--label2)', marginBottom:4, display:'block' }
 
   return (
-    <PageLayout title="Mon profil" back="/client">
-      <div style={{padding:'16px 16px 100px', display:'flex', flexDirection:'column', gap:16}}>
+    <PageLayout title="Profil">
+      <div style={{padding:'16px 16px 100px', display:'flex', flexDirection:'column', gap:16, maxWidth:640, margin:'0 auto'}}>
+        <ThemePicker />
 
-        <div style={{background:'#1e1e2e', borderRadius:16, padding:16}}>
-          <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'#a78bfa'}}>Identite</p>
+        <div style={{background:'var(--card)', borderRadius:16, padding:16}}>
+          <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'var(--accent-text)'}}>Identité</p>
           <div style={{display:'flex', flexDirection:'column', gap:10}}>
             <div>
               <label style={lbl}>Prenom / Nom</label>
@@ -103,7 +105,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <div style={{background:'#1e1e2e', borderRadius:16, padding:16}}>
+        <div style={{background:'var(--card)', borderRadius:16, padding:16}}>
           <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'#6366f1'}}>Mensurations</p>
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
             <div>
@@ -117,20 +119,20 @@ export default function Profile() {
           </div>
         </div>
 
-        <div style={{background:'#1e1e2e', borderRadius:16, padding:16}}>
+        <div style={{background:'var(--card)', borderRadius:16, padding:16}}>
           <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'#22c55e'}}>Niveau d\'activite</p>
           <div style={{display:'flex', flexDirection:'column', gap:8}}>
             {ACTIVITY_LEVELS.map(a => (
               <button key={a.value} onClick={() => setForm(f => ({...f, activity_level: a.value}))}
-                style={{background: form.activity_level === a.value ? '#14532d' : '#12121f',
-                  border: '1px solid ' + (form.activity_level === a.value ? '#22c55e' : '#2a2a3e'),
+                style={{background: form.activity_level === a.value ? 'rgba(52,199,89,0.16)' : 'var(--fill)',
+                  border: '1px solid ' + (form.activity_level === a.value ? '#22c55e' : 'var(--fill)'),
                   borderRadius:10, padding:'10px 14px', cursor:'pointer',
                   display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                 <div style={{textAlign:'left'}}>
                   <p style={{margin:0, fontSize:13, fontWeight:600, color: form.activity_level === a.value ? '#22c55e' : 'white'}}>{a.label}</p>
-                  <p style={{margin:0, fontSize:11, color:'#666'}}>{a.desc}</p>
+                  <p style={{margin:0, fontSize:11, color:'var(--label3)'}}>{a.desc}</p>
                 </div>
-                <p style={{margin:0, fontSize:11, color:'#555'}}>x{a.mult}</p>
+                <p style={{margin:0, fontSize:11, color:'var(--label3)'}}>x{a.mult}</p>
               </button>
             ))}
           </div>
@@ -143,22 +145,22 @@ export default function Profile() {
               <p style={{margin:0, fontWeight:700, fontSize:15}}>Tes besoins caloriques</p>
             </div>
             <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
-              <div style={{background:'rgba(255,255,255,0.04)', borderRadius:12, padding:12, textAlign:'center'}}>
-                <p style={{margin:0, fontSize:11, color:'#888', marginBottom:4}}>Metabolisme de base</p>
-                <p style={{margin:0, fontSize:22, fontWeight:800, color:'#a78bfa'}}>{bmr}</p>
-                <p style={{margin:0, fontSize:10, color:'#666'}}>kcal / jour</p>
+              <div style={{background:'rgba(var(--contrast),0.04)', borderRadius:12, padding:12, textAlign:'center'}}>
+                <p style={{margin:0, fontSize:11, color:'var(--label2)', marginBottom:4}}>Metabolisme de base</p>
+                <p style={{margin:0, fontSize:22, fontWeight:800, color:'var(--accent-text)'}}>{bmr}</p>
+                <p style={{margin:0, fontSize:10, color:'var(--label3)'}}>kcal / jour</p>
               </div>
-              <div style={{background:'rgba(255,255,255,0.06)', borderRadius:12, padding:12, textAlign:'center', border:'1px solid #6366f133'}}>
-                <p style={{margin:0, fontSize:11, color:'#888', marginBottom:4}}>Depense totale (TDEE)</p>
+              <div style={{background:'rgba(var(--contrast),0.06)', borderRadius:12, padding:12, textAlign:'center', border:'1px solid #6366f133'}}>
+                <p style={{margin:0, fontSize:11, color:'var(--label2)', marginBottom:4}}>Depense totale (TDEE)</p>
                 <p style={{margin:0, fontSize:22, fontWeight:800, color:'#6366f1'}}>{tdee}</p>
-                <p style={{margin:0, fontSize:10, color:'#666'}}>kcal / jour</p>
+                <p style={{margin:0, fontSize:10, color:'var(--label3)'}}>kcal / jour</p>
               </div>
             </div>
-            <p style={{margin:'12px 0 0', fontSize:11, color:'#555', textAlign:'center'}}>Formule Mifflin-St Jeor · {age} ans · {form.sex}</p>
+            <p style={{margin:'12px 0 0', fontSize:11, color:'var(--label3)', textAlign:'center'}}>Formule Mifflin-St Jeor · {age} ans · {form.sex}</p>
           </div>
         ) : (
-          <div style={{background:'#1e1e2e', borderRadius:12, padding:16, textAlign:'center', border:'1px dashed #2a2a3e'}}>
-            <p style={{margin:0, fontSize:13, color:'#555'}}>Remplis taille, poids, date de naissance, sexe et niveau d\'activite pour voir tes besoins caloriques</p>
+          <div style={{background:'var(--card)', borderRadius:12, padding:16, textAlign:'center', border:'1px dashed var(--fill)'}}>
+            <p style={{margin:0, fontSize:13, color:'var(--label3)'}}>Remplis taille, poids, date de naissance, sexe et niveau d\'activite pour voir tes besoins caloriques</p>
           </div>
         )}
 

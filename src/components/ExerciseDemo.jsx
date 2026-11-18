@@ -33,7 +33,7 @@ export function ExerciseThumb({ exercise, size = 48 }) {
   const [failed, setFailed] = useState(false)
   if (!src || failed) {
     return (
-      <div style={{ width: size, height: size, borderRadius: 10, background: '#2a2a3e', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', fontWeight: 700, fontSize: size / 2.6 }}>
+      <div style={{ width: size, height: size, borderRadius: 10, background: 'var(--fill)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', fontWeight: 700, fontSize: size / 2.6 }}>
         {(exercise?.name || '?').slice(0, 1).toUpperCase()}
       </div>
     )
@@ -75,16 +75,16 @@ export function ExerciseDetailModal({ exercise, onClose, footer }) {
   return (
     <div data-testid="exercise-detail" onClick={e => { if (e.target === e.currentTarget) onClose() }}
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div style={{ background: '#1e1e2e', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 520, maxHeight: '92vh', overflowY: 'auto', padding: '16px 16px 28px' }}>
+      <div style={{ background: 'var(--card)', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 520, maxHeight: '92vh', overflowY: 'auto', padding: '16px 16px 28px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 17, color: 'white' }}>{ex.name}</p>
-            {ex.name_en && ex.name_en !== ex.name && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#777' }}>{ex.name_en}</p>}
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 17, color: 'var(--label)' }}>{ex.name}</p>
+            {ex.name_en && ex.name_en !== ex.name && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--label3)' }}>{ex.name_en}</p>}
           </div>
           {ex.video_url && !getEmbedUrl(ex.video_url) && !isDirectVideo(ex.video_url) && (
-            <a href={ex.video_url} target="_blank" rel="noopener noreferrer" style={{ color: '#888', padding: 4 }} title="Ouvrir la vidéo"><ExternalLink size={18} /></a>
+            <a href={ex.video_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--label2)', padding: 4 }} title="Ouvrir la vidéo"><ExternalLink size={18} /></a>
           )}
-          <button onClick={onClose} aria-label="Fermer" style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
+          <button onClick={onClose} aria-label="Fermer" style={{ background: 'none', border: 'none', color: 'var(--label2)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
         </div>
         <ExerciseMedia exercise={ex} height={240} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '12px 0' }}>
@@ -93,17 +93,17 @@ export function ExerciseDetailModal({ exercise, onClose, footer }) {
           {ex.equipment && <Chip color="#94a3b8">{ex.equipment}</Chip>}
           {ex.level && <Chip color="#94a3b8">{ex.level}</Chip>}
         </div>
-        {ex.secondary_muscles && <p style={{ margin: '0 0 10px', fontSize: 12, color: '#888' }}>Muscles secondaires : {ex.secondary_muscles}</p>}
+        {ex.secondary_muscles && <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--label2)' }}>Muscles secondaires : {ex.secondary_muscles}</p>}
         {ex.description && (
-          <div style={{ background: '#2a2a3e', borderRadius: 12, padding: '10px 12px', marginBottom: 10 }}>
-            <p style={{ margin: '0 0 4px', fontSize: 11, fontWeight: 700, color: '#a5b4fc', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Consignes</p>
-            <p style={{ margin: 0, fontSize: 13, color: '#e2e8f0', lineHeight: 1.5 }}>{ex.description}</p>
+          <div style={{ background: 'var(--fill)', borderRadius: 12, padding: '10px 12px', marginBottom: 10 }}>
+            <p style={{ margin: '0 0 4px', fontSize: 11, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Consignes</p>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--label1b)', lineHeight: 1.5 }}>{ex.description}</p>
           </div>
         )}
         {ex.instructions?.length > 0 && (
-          <details open={!ex.description} style={{ background: '#2a2a3e', borderRadius: 12, padding: '10px 12px' }}>
-            <summary style={{ fontSize: 12, fontWeight: 600, color: '#aaa', cursor: 'pointer' }}>Instructions détaillées (anglais)</summary>
-            <ol style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: '#bbb', lineHeight: 1.5 }}>
+          <details open={!ex.description} style={{ background: 'var(--fill)', borderRadius: 12, padding: '10px 12px' }}>
+            <summary style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)', cursor: 'pointer' }}>Instructions détaillées (anglais)</summary>
+            <ol style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: 'var(--label2)', lineHeight: 1.5 }}>
               {ex.instructions.map((s, i) => <li key={i} style={{ marginBottom: 4 }}>{s}</li>)}
             </ol>
           </details>
@@ -140,18 +140,18 @@ export function ExercisePicker({ onPick, onClose, title = 'Choisir un exercice',
     && (!onlyFeatured || q || e.featured || e.coach_id)
   ).slice(0, 120)
 
-  const sel = { background: '#2a2a3e', border: '1px solid #3a3a4e', borderRadius: 10, padding: '8px 10px', color: 'white', fontSize: 13, minWidth: 0 }
+  const sel = { background: 'var(--fill)', border: '1px solid var(--separator)', borderRadius: 10, padding: '8px 10px', color: 'var(--label)', fontSize: 13, minWidth: 0 }
   return (
     <div data-testid="exercise-picker" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div style={{ background: '#1e1e2e', borderRadius: '20px 20px 0 0', padding: '18px 16px 28px', width: '100%', maxWidth: 520, height: '85vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: 'var(--card)', borderRadius: '20px 20px 0 0', padding: '18px 16px 28px', width: '100%', maxWidth: 520, height: '85vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: 'white' }}>{title}</p>
-          <button onClick={onClose} aria-label="Fermer" style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}><X size={20} /></button>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: 'var(--label)' }}>{title}</p>
+          <button onClick={onClose} aria-label="Fermer" style={{ background: 'none', border: 'none', color: 'var(--label2)', cursor: 'pointer' }}><X size={20} /></button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#2a2a3e', borderRadius: 10, padding: '8px 12px', marginBottom: 8 }}>
-          <Search size={14} color="#888" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--fill)', borderRadius: 10, padding: '8px 12px', marginBottom: 8 }}>
+          <Search size={14} color="var(--label2)" />
           <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher (squat, pompes, dos…)"
-            style={{ background: 'none', border: 'none', color: 'white', outline: 'none', flex: 1, WebkitTextFillColor: 'white' }} />
+            style={{ background: 'none', border: 'none', color: 'var(--label)', outline: 'none', flex: 1, WebkitTextFillColor: 'var(--label)' }} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
           <select value={muscle} onChange={e => setMuscle(e.target.value)} style={sel} aria-label="Muscle">
@@ -163,34 +163,34 @@ export function ExercisePicker({ onPick, onClose, title = 'Choisir un exercice',
             {EQUIPMENT.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#aaa', marginBottom: 8 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--label2)', marginBottom: 8 }}>
           <input type="checkbox" checked={onlyFeatured} onChange={e => setOnlyFeatured(e.target.checked)} />
           Essentiels uniquement (la recherche couvre toute la base)
         </label>
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          {loading ? <p style={{ color: '#888', textAlign: 'center', marginTop: 20 }}>Chargement…</p>
-            : error ? <p style={{ color: '#f87171', textAlign: 'center', marginTop: 20 }}>{error}</p>
+          {loading ? <p style={{ color: 'var(--label2)', textAlign: 'center', marginTop: 20 }}>Chargement…</p>
+            : error ? <p style={{ color: 'var(--red-text)', textAlign: 'center', marginTop: 20 }}>{error}</p>
             : filtered.length === 0 ? (
               <div style={{ textAlign: 'center', marginTop: 20 }}>
-                <p style={{ color: '#888', margin: '0 0 10px' }}>Aucun exercice trouvé</p>
+                <p style={{ color: 'var(--label2)', margin: '0 0 10px' }}>Aucun exercice trouvé</p>
                 {allowCustom && q.trim() && (
                   <button onClick={() => onPick({ id: null, name: q.trim(), images: null, video_url: null })}
-                    style={{ background: 'none', border: '1px dashed #6366f1', borderRadius: 10, padding: '10px 16px', color: '#a5b4fc', cursor: 'pointer', fontSize: 14 }}>
+                    style={{ background: 'none', border: '1px dashed #6366f1', borderRadius: 10, padding: '10px 16px', color: 'var(--accent-text)', cursor: 'pointer', fontSize: 14 }}>
                     + Ajouter « {q.trim()} » (sans démo)
                   </button>
                 )}
               </div>
             )
             : filtered.map(ex => (
-              <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#2a2a3e', borderRadius: 12, padding: 8, marginBottom: 6 }}>
+              <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--fill)', borderRadius: 12, padding: 8, marginBottom: 6 }}>
                 <button onClick={() => setPreview(ex)} aria-label={'Voir ' + ex.name} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                   <ExerciseThumb exercise={ex} size={46} />
                 </button>
                 <button onClick={() => onPick(ex)} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', padding: 0 }}>
-                  <p style={{ margin: 0, fontWeight: 600, color: 'white', fontSize: 14, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <p style={{ margin: 0, fontWeight: 600, color: 'var(--label)', fontSize: 14, display: 'flex', alignItems: 'center', gap: 5 }}>
                     {ex.coach_id && <Star size={11} color="#fbbf24" fill="#fbbf24" />}{ex.name}
                   </p>
-                  <p style={{ margin: 0, fontSize: 11, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <p style={{ margin: 0, fontSize: 11, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {[ex.muscles, ex.equipment].filter(Boolean).join(' · ')}
                   </p>
                 </button>

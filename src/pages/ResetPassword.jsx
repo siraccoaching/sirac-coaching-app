@@ -42,29 +42,29 @@ export default function ResetPassword() {
     setTimeout(() => navigate('/', { replace: true }), 1800)
   }
 
-  const input = { width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: 15, boxSizing: 'border-box', WebkitTextFillColor: 'white' }
+  const input = { width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(var(--contrast),0.12)', background: 'rgba(var(--contrast),0.05)', color: 'var(--label)', fontSize: 15, boxSizing: 'border-box', WebkitTextFillColor: 'var(--label)' }
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d0d1a', padding: 24 }}>
-      <div style={{ width: '100%', maxWidth: 360, background: '#1e1e2e', borderRadius: 24, border: '1px solid rgba(255,255,255,0.08)', padding: 24 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'white', margin: '0 0 6px' }}>Nouveau mot de passe</h2>
+    <div style={{ minHeight: 'calc(100dvh - var(--sat))', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 360, background: 'var(--card)', borderRadius: 24, border: '1px solid rgba(var(--contrast),0.08)', padding: 24 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--label)', margin: '0 0 6px' }}>Nouveau mot de passe</h2>
         {done ? (
-          <p style={{ color: '#4ade80', fontSize: 14 }}>Mot de passe enregistré ✓ Redirection vers ton espace…</p>
+          <p style={{ color: 'var(--green-text)', fontSize: 14 }}>Mot de passe enregistré ✓ Redirection vers ton espace…</p>
         ) : checking && !ready ? (
-          <p style={{ color: '#888', fontSize: 14 }}>Vérification du lien…</p>
+          <p style={{ color: 'var(--label2)', fontSize: 14 }}>Vérification du lien…</p>
         ) : !ready ? (
           <>
-            <p style={{ color: '#f87171', fontSize: 14 }}>{error || 'Ce lien est invalide ou a expiré.'}</p>
+            <p style={{ color: 'var(--red-text)', fontSize: 14 }}>{error || 'Ce lien est invalide ou a expiré.'}</p>
             <button onClick={() => navigate('/login')} style={{ marginTop: 8, width: '100%', padding: '12px 0', background: '#6366f1', border: 'none', borderRadius: 12, color: 'white', fontWeight: 600, cursor: 'pointer' }}>
               Redemander un lien
             </button>
           </>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-            <p style={{ color: '#888', fontSize: 13, margin: 0 }}>Choisis ton nouveau mot de passe (8 caractères minimum).</p>
+            <p style={{ color: 'var(--label2)', fontSize: 13, margin: 0 }}>Choisis ton nouveau mot de passe (8 caractères minimum).</p>
             <input type="password" autoComplete="new-password" placeholder="Nouveau mot de passe" value={password} onChange={e => setPassword(e.target.value)} style={input} />
             <input type="password" autoComplete="new-password" placeholder="Confirme le mot de passe" value={confirm} onChange={e => setConfirm(e.target.value)} style={input} />
-            {error && <p style={{ color: '#f87171', fontSize: 13, margin: 0 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--red-text)', fontSize: 13, margin: 0 }}>{error}</p>}
             <button type="submit" disabled={saving} style={{ padding: '13px 0', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', border: 'none', borderRadius: 12, color: 'white', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
               {saving ? 'Enregistrement…' : 'Enregistrer le mot de passe'}
             </button>

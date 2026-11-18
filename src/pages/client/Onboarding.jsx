@@ -45,41 +45,41 @@ export default function Onboarding() {
     navigate('/client')
   }
 
-  const inp = {background:'#2a2a3e',border:'1px solid #3a3a4e',borderRadius:12,padding:'12px 14px',color:'white',fontSize:14,width:'100%',boxSizing:'border-box',outline:'none',WebkitTextFillColor:'white',WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}
-  const chip = (selected) => ({ padding:'8px 14px',borderRadius:20,border:'none',cursor:'pointer',fontSize:13,fontWeight:600, background:selected?'#6366f1':'#2a2a3e', color:selected?'white':'#aaa' })
+  const inp = {background:'var(--fill)',border:'1px solid var(--separator)',borderRadius:12,padding:'12px 14px',color:'var(--label)',fontSize:14,width:'100%',boxSizing:'border-box',outline:'none',WebkitTextFillColor:'var(--label)',WebkitBoxShadow:'0 0 0px 1000px var(--fill) inset'}
+  const chip = (selected) => ({ padding:'8px 14px',borderRadius:20,border:'none',cursor:'pointer',fontSize:13,fontWeight:600, background:selected?'#6366f1':'var(--fill)', color:selected?'white':'var(--label2)' })
 
   const current = STEPS[step]
 
   return (
-    <div style={{minHeight:'100vh',background:'#0f0f1a',color:'white',display:'flex',flexDirection:'column'}}>
+    <div style={{minHeight:'calc(100dvh - var(--sat))',background:'var(--bg)',color:'var(--label)',display:'flex',flexDirection:'column'}}>
       {/* Progress bar */}
-      <div style={{height:3,background:'#1e1e2e'}}>
+      <div style={{height:3,background:'var(--card)'}}>
         <div style={{height:'100%',background:'#6366f1',transition:'width 0.3s',width:((step+1)/STEPS.length*100)+'%'}}/>
       </div>
 
       <div style={{flex:1,padding:'24px 20px',display:'flex',flexDirection:'column'}}>
-        <p style={{margin:'0 0 4px',fontSize:12,color:'#888'}}>{step+1} / {STEPS.length}</p>
+        <p style={{margin:'0 0 4px',fontSize:12,color:'var(--label2)'}}>{step+1} / {STEPS.length}</p>
         <h2 style={{margin:'0 0 6px',fontSize:22,fontWeight:700}}>{current.title}</h2>
-        <p style={{margin:'0 0 28px',color:'#888',fontSize:14}}>{current.subtitle}</p>
+        <p style={{margin:'0 0 28px',color:'var(--label2)',fontSize:14}}>{current.subtitle}</p>
 
         {step === 0 && (
           <div>
-            <p style={{margin:'0 0 10px',fontSize:13,color:'#ccc',fontWeight:600}}>Sport</p>
+            <p style={{margin:'0 0 10px',fontSize:13,color:'var(--label1b)',fontWeight:600}}>Sport</p>
             <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:20}}>
               {SPORTS.map(s=><button key={s} onClick={()=>set('sport',s)} style={chip(data.sport===s)}>{s}</button>)}
             </div>
-            <p style={{margin:'0 0 8px',fontSize:13,color:'#ccc',fontWeight:600}}>Poste / spécialité (optionnel)</p>
+            <p style={{margin:'0 0 8px',fontSize:13,color:'var(--label1b)',fontWeight:600}}>Poste / spécialité (optionnel)</p>
             <input value={data.position} onChange={e=>set('position',e.target.value)} placeholder="Ex : Pilier, Milieu de terrain, Gardien..." style={inp}/>
           </div>
         )}
 
         {step === 1 && (
           <div>
-            <p style={{margin:'0 0 10px',fontSize:13,color:'#ccc',fontWeight:600}}>Objectifs (plusieurs possibles)</p>
+            <p style={{margin:'0 0 10px',fontSize:13,color:'var(--label1b)',fontWeight:600}}>Objectifs (plusieurs possibles)</p>
             <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:20}}>
               {GOALS.map(g=><button key={g} onClick={()=>toggleGoal(g)} style={chip(data.selectedGoals.includes(g))}>{g}</button>)}
             </div>
-            <p style={{margin:'0 0 8px',fontSize:13,color:'#ccc',fontWeight:600}}>Fréquence d'entraînement souhaitée</p>
+            <p style={{margin:'0 0 8px',fontSize:13,color:'var(--label1b)',fontWeight:600}}>Fréquence d'entraînement souhaitée</p>
             <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
               {FREQS.map(f=><button key={f} onClick={()=>set('frequency',f)} style={chip(data.frequency===f)}>{f}</button>)}
             </div>
@@ -90,29 +90,29 @@ export default function Onboarding() {
           <div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
               <div>
-                <p style={{margin:'0 0 6px',fontSize:13,color:'#ccc'}}>Poids (kg)</p>
+                <p style={{margin:'0 0 6px',fontSize:13,color:'var(--label1b)'}}>Poids (kg)</p>
                 <input type="number" inputMode="decimal" value={data.weight} onChange={e=>set('weight',e.target.value)} placeholder="75" style={inp}/>
               </div>
               <div>
-                <p style={{margin:'0 0 6px',fontSize:13,color:'#ccc'}}>Taille (cm)</p>
+                <p style={{margin:'0 0 6px',fontSize:13,color:'var(--label1b)'}}>Taille (cm)</p>
                 <input type="number" inputMode="decimal" value={data.height} onChange={e=>set('height',e.target.value)} placeholder="180" style={inp}/>
               </div>
             </div>
-            <p style={{margin:'0 0 8px',fontSize:13,color:'#ccc',fontWeight:600}}>Blessures / antécédents (optionnel)</p>
+            <p style={{margin:'0 0 8px',fontSize:13,color:'var(--label1b)',fontWeight:600}}>Blessures / antécédents (optionnel)</p>
             <textarea value={data.injuries} onChange={e=>set('injuries',e.target.value)} placeholder="Ex : Entorse cheville 2023, douleurs lombaires..." rows={3}
-              style={{...inp,resize:'none',WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
+              style={{...inp,resize:'none',WebkitBoxShadow:'0 0 0px 1000px var(--fill) inset'}}/>
           </div>
         )}
 
         {step === 3 && (
           <div>
-            <p style={{margin:'0 0 10px',fontSize:13,color:'#ccc',fontWeight:600}}>Niveau d'expérience</p>
+            <p style={{margin:'0 0 10px',fontSize:13,color:'var(--label1b)',fontWeight:600}}>Niveau d'expérience</p>
             <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:20}}>
               {LEVELS.map(l=><button key={l} onClick={()=>set('level',l)} style={chip(data.level===l)}>{l}</button>)}
             </div>
-            <p style={{margin:'0 0 8px',fontSize:13,color:'#ccc',fontWeight:600}}>Notes pour ton coach (optionnel)</p>
+            <p style={{margin:'0 0 8px',fontSize:13,color:'var(--label1b)',fontWeight:600}}>Notes pour ton coach (optionnel)</p>
             <textarea value={data.notes} onChange={e=>set('notes',e.target.value)} placeholder="Informations supplémentaires que tu veux partager..." rows={3}
-              style={{...inp,resize:'none',WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset'}}/>
+              style={{...inp,resize:'none',WebkitBoxShadow:'0 0 0px 1000px var(--fill) inset'}}/>
           </div>
         )}
 
@@ -124,16 +124,16 @@ export default function Onboarding() {
             </button>
           ) : (
             <button onClick={finish} disabled={saving}
-              style={{width:'100%',padding:'14px 0',background:saving?'#3a3a4e':'linear-gradient(135deg,#6366f1,#8b5cf6)',border:'none',borderRadius:14,color:'white',fontSize:16,fontWeight:700,cursor:saving?'default':'pointer'}}>
+              style={{width:'100%',padding:'14px 0',background:saving?'var(--separator)':'linear-gradient(135deg,#6366f1,#8b5cf6)',border:'none',borderRadius:14,color:'white',fontSize:16,fontWeight:700,cursor:saving?'default':'pointer'}}>
               {saving ? 'Enregistrement...' : 'Terminer et accéder à mon espace 🚀'}
             </button>
           )}
           {step > 0 && (
-            <button onClick={()=>setStep(s=>s-1)} style={{width:'100%',marginTop:10,padding:'10px 0',background:'transparent',border:'none',color:'#666',fontSize:13,cursor:'pointer'}}>
+            <button onClick={()=>setStep(s=>s-1)} style={{width:'100%',marginTop:10,padding:'10px 0',background:'transparent',border:'none',color:'var(--label3)',fontSize:13,cursor:'pointer'}}>
               Retour
             </button>
           )}
-          <button onClick={()=>navigate('/client')} style={{width:'100%',marginTop:6,padding:'10px 0',background:'transparent',border:'none',color:'#555',fontSize:12,cursor:'pointer'}}>
+          <button onClick={()=>navigate('/client')} style={{width:'100%',marginTop:6,padding:'10px 0',background:'transparent',border:'none',color:'var(--label3)',fontSize:12,cursor:'pointer'}}>
             Passer pour l'instant
           </button>
         </div>

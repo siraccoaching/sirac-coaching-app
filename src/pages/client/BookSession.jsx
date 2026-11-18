@@ -59,13 +59,13 @@ export default function BookSession() {
                   <Calendar size={18} className="text-brand-400" />
                 </div>
                 <div>
-                  <p className="text-white text-sm font-semibold">Réserver avec {coachCalendly.name}</p>
+                  <p className="text-label text-sm font-semibold">Réserver avec {coachCalendly.name}</p>
                   <p className="text-gray-500 text-xs">Choisis un créneau disponible</p>
                 </div>
               </div>
             </Card>
 
-            <div className="bg-dark-800 border border-white/10 rounded-2xl overflow-hidden" style={{ minHeight: '600px' }}>
+            <div className="bg-dark-800 border border-contrast/10 rounded-2xl overflow-hidden" style={{ minHeight: '600px' }}>
               <iframe
                 src={getEmbedUrl(coachCalendly.calendly_url)}
                 width="100%"
@@ -87,7 +87,7 @@ export default function BookSession() {
             <div className="w-14 h-14 bg-dark-900 rounded-2xl flex items-center justify-center mx-auto">
               <Calendar size={24} className="text-gray-500" />
             </div>
-            <p className="text-white font-semibold">Pas encore disponible</p>
+            <p className="text-label font-semibold">Pas encore disponible</p>
             <p className="text-gray-500 text-sm">
               Ton coach n'a pas encore configuré son lien de réservation.
               Contacte-le directement pour prendre rendez-vous.

@@ -73,11 +73,11 @@ export default function FreeSession() {
   }
 
   if (done) return (
-    <div style={{ minHeight: '100vh', background: '#0f0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+    <div style={{ minHeight: 'calc(100dvh - var(--sat))', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
       <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#22c55e22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Check size={28} color="#22c55e" />
       </div>
-      <p style={{ color: 'white', fontSize: 18, fontWeight: 700, margin: 0 }}>Séance enregistrée !</p>
+      <p style={{ color: 'var(--label)', fontSize: 18, fontWeight: 700, margin: 0 }}>Séance enregistrée !</p>
     </div>
   )
 
@@ -86,18 +86,18 @@ export default function FreeSession() {
     <PageLayout title="Séance libre" back="/client">
       <div style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {selectedExercises.length === 0 ? (
-          <div style={{ background: '#15152a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '32px 20px', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 4px', fontSize: 15, color: 'rgba(255,255,255,0.4)' }}>Aucun exercice ajouté</p>
-            <p style={{ margin: 0, fontSize: 12, color: '#818cf8' }}>Ajoute des exercices ci-dessous</p>
+          <div style={{ background: 'var(--card)', border: '1px solid rgba(var(--contrast),0.07)', borderRadius: 16, padding: '32px 20px', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 4px', fontSize: 15, color: 'rgba(var(--contrast),0.4)' }}>Aucun exercice ajouté</p>
+            <p style={{ margin: 0, fontSize: 12, color: 'var(--accent-text)' }}>Ajoute des exercices ci-dessous</p>
           </div>
         ) : (
           selectedExercises.map((ex, exIdx) => (
-            <div key={exIdx} style={{ background: '#1e1e2e', borderRadius: 16, overflow: 'hidden' }}>
-              <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a3e' }}>
+            <div key={exIdx} style={{ background: 'var(--card)', borderRadius: 16, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--fill)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                   {ex.images?.length > 0 && <ExerciseThumb exercise={ex} size={36} />}
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#a78bfa' }}>{ex.name}</p>
-                  {ex.id && <button onClick={() => setDemo(ex)} aria-label="Voir la démo" style={{ background: 'none', border: 'none', color: '#818cf8', cursor: 'pointer', padding: 2, display: 'flex' }}><Info size={15} /></button>}
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: 'var(--accent-text)' }}>{ex.name}</p>
+                  {ex.id && <button onClick={() => setDemo(ex)} aria-label="Voir la démo" style={{ background: 'none', border: 'none', color: 'var(--accent-text)', cursor: 'pointer', padding: 2, display: 'flex' }}><Info size={15} /></button>}
                 </div>
                 <button onClick={() => removeExercise(exIdx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}>
                   <Trash2 size={15} />
@@ -106,7 +106,7 @@ export default function FreeSession() {
               <div style={{ padding: '10px 14px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 28px', gap: 6, marginBottom: 6 }}>
                   {['Reps', 'Kg', 'RPE', ''].map((h, i) => (
-                    <p key={i} style={{ margin: 0, fontSize: 10, color: '#555', textAlign: 'center', fontWeight: 600 }}>{h}</p>
+                    <p key={i} style={{ margin: 0, fontSize: 10, color: 'var(--label3)', textAlign: 'center', fontWeight: 600 }}>{h}</p>
                   ))}
                 </div>
                 {ex.sets.map((s, setIdx) => (
@@ -115,16 +115,16 @@ export default function FreeSession() {
                       <input key={field} type="number" inputMode={field === 'rpe' ? 'decimal' : 'numeric'}
                         value={s[field]} placeholder=""
                         onChange={e => updateSet(exIdx, setIdx, field, e.target.value)}
-                        style={{ background: '#12121f', border: '1px solid #2a2a3e', borderRadius: 8, padding: '7px 0', textAlign: 'center', color: 'white', fontSize: 14, width: '100%' }} />
+                        style={{ background: 'var(--fill)', border: '1px solid var(--fill)', borderRadius: 8, padding: '7px 0', textAlign: 'center', color: 'var(--label)', fontSize: 14, width: '100%' }} />
                     ))}
                     <button onClick={() => removeSet(exIdx, setIdx)}
-                      style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      style={{ background: 'none', border: 'none', color: 'var(--label3)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Trash2 size={12} />
                     </button>
                   </div>
                 ))}
                 <button onClick={() => addSet(exIdx)}
-                  style={{ background: 'none', border: '1px dashed #2a2a3e', borderRadius: 8, color: '#6366f1', fontSize: 12, padding: '6px 0', width: '100%', cursor: 'pointer', marginTop: 4 }}>
+                  style={{ background: 'none', border: '1px dashed var(--fill)', borderRadius: 8, color: '#6366f1', fontSize: 12, padding: '6px 0', width: '100%', cursor: 'pointer', marginTop: 4 }}>
                   + Série
                 </button>
               </div>
@@ -133,13 +133,13 @@ export default function FreeSession() {
         )}
 
         <button onClick={() => setShowPicker(true)}
-          style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 14, padding: '14px', color: '#818cf8', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 14, padding: '14px', color: 'var(--accent-text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <Plus size={16} /> Ajouter un exercice
         </button>
 
         <textarea value={sessionNotes} onChange={e => setSessionNotes(e.target.value)}
           placeholder="Notes sur la séance (optionnel)..."
-          style={{ background: '#1e1e2e', border: '1px solid #2a2a3e', borderRadius: 12, padding: '12px 14px', color: 'white', fontSize: 13, resize: 'none', minHeight: 72, fontFamily: 'inherit' }} />
+          style={{ background: 'var(--card)', border: '1px solid var(--fill)', borderRadius: 12, padding: '12px 14px', color: 'var(--label)', fontSize: 13, resize: 'none', minHeight: 72, fontFamily: 'inherit' }} />
 
         {selectedExercises.length > 0 && (
           <button onClick={saveSession} disabled={saving}

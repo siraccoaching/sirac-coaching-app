@@ -109,11 +109,11 @@ export default function CoachAlerts() {
     <div style={{marginBottom: 16}}>
       <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:8}}>
         <Bell size={13} color="#f59e0b"/>
-        <p style={{margin:0, fontSize:12, color:'#888', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>Alertes ({alerts.length})</p>
+        <p style={{margin:0, fontSize:12, color:'var(--label2)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.05em'}}>Alertes ({alerts.length})</p>
       </div>
       {alerts.map(alert => (
-        <div key={alert.id} onClick={() => navigate('/coach/clients/' + alert.clientId)}
-          style={{background: alert.type === 'pr' ? '#1a2a1a' : '#2a1a1a',
+        <div key={alert.id} onClick={() => navigate('/coach/client/' + alert.clientId)}
+          style={{background: alert.type === 'pr' ? 'rgba(52,199,89,0.12)' : 'rgba(255,59,48,0.10)',
             border: '1px solid ' + (alert.type === 'pr' ? '#22c55e33' : '#ef444433'),
             borderRadius:12, padding:'12px 14px', marginBottom:8, cursor:'pointer', display:'flex', alignItems:'flex-start', gap:10}}>
           <div style={{width:32, height:32, borderRadius:10, background: alert.type === 'pr' ? '#22c55e22' : '#ef444422',
@@ -121,7 +121,7 @@ export default function CoachAlerts() {
             {alert.type === 'pr' ? <Trophy size={16} color="#22c55e"/> : <Clock size={16} color="#ef4444"/>}
           </div>
           <div style={{flex:1}}>
-            <p style={{margin:'0 0 2px', fontSize:13, fontWeight:600, color:'white'}}>{alert.clientName}</p>
+            <p style={{margin:'0 0 2px', fontSize:13, fontWeight:600, color:'var(--label)'}}>{alert.clientName}</p>
             {alert.type === 'pr' ? (
               <p style={{margin:0, fontSize:12, color:'#22c55e'}}>🏆 PR sur {alert.exercise} : {alert.load} kg (+{(alert.load - alert.prev).toFixed(1)})</p>
             ) : (
@@ -129,7 +129,7 @@ export default function CoachAlerts() {
             )}
           </div>
           <button onClick={e => { e.stopPropagation(); dismiss(alert.id) }}
-            style={{background:'none', border:'none', color:'#555', cursor:'pointer', padding:2, flexShrink:0}}>
+            style={{background:'none', border:'none', color:'var(--label3)', cursor:'pointer', padding:2, flexShrink:0}}>
             <X size={14}/>
           </button>
         </div>

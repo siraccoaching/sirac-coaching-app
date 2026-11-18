@@ -48,7 +48,7 @@ export default function ProgramDetail() {
     <PageLayout title={prog.name} back="/coach/programs" action={
       <div className="flex gap-2">
         <button onClick={() => navigate(`/coach/programs/${id}/edit`)}
-          className="p-2 text-gray-400 hover:text-white transition-colors">
+          className="p-2 text-gray-400 hover:text-label transition-colors">
           <Pencil size={17} />
         </button>
         <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-red-400 transition-colors">
@@ -69,7 +69,7 @@ export default function ProgramDetail() {
         {isBlock && blocks.map((block, bi) => (
           <Card key={block.id} className="overflow-hidden">
             <button onClick={() => setOpenBlocks(ob => ({ ...ob, [bi]: !ob[bi] }))}
-              className="w-full flex items-center gap-2 p-3 bg-brand-600/10 border-b border-white/5 text-left">
+              className="w-full flex items-center gap-2 p-3 bg-brand-600/10 border-b border-contrast/5 text-left">
               {openBlocks[bi] ? <ChevronUp size={14} className="text-brand-400" /> : <ChevronDown size={14} className="text-brand-400" />}
               <span className="flex-1 text-brand-300 text-sm font-semibold">{block.name}</span>
               <span className="text-gray-500 text-xs">{block.duration_weeks} sem · {block.program_sessions?.length || 0} séances</span>
@@ -109,20 +109,20 @@ export default function ProgramDetail() {
 function SessionView({ sess, open, onToggle }) {
   const exercises = sess.program_exercises?.sort((a,b) => a.order_index - b.order_index) || []
   return (
-    <div className="border border-white/8 rounded-xl overflow-hidden">
+    <div className="border border-contrast/8 rounded-xl overflow-hidden">
       <button onClick={onToggle} className="w-full flex items-center gap-2 px-3 py-2.5 text-left bg-dark-800">
         {open ? <ChevronUp size={13} className="text-gray-500" /> : <ChevronDown size={13} className="text-gray-500" />}
-        <span className="flex-1 text-white text-sm">{sess.name}</span>
+        <span className="flex-1 text-label text-sm">{sess.name}</span>
         <span className="text-gray-600 text-xs">{exercises.length} exo{exercises.length !== 1 ? 's' : ''}</span>
       </button>
       {open && (
         <div className="p-3 space-y-2 bg-dark-900/50">
           {sess.notes && <p className="text-gray-500 text-xs px-1">{sess.notes}</p>}
           {exercises.map(ex => (
-            <div key={ex.id} className="bg-dark-800 border border-white/5 rounded-lg p-2.5">
+            <div key={ex.id} className="bg-dark-800 border border-contrast/5 rounded-lg p-2.5">
               <div className="flex items-center gap-2 mb-2">
                 <Dumbbell size={12} className="text-brand-400 flex-shrink-0" />
-                <p className="text-white text-sm font-medium">{ex.name}</p>
+                <p className="text-label text-sm font-medium">{ex.name}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Pill label="Séries" value={ex.sets} />
@@ -151,7 +151,7 @@ function Pill({ label, value, icon }) {
     <div className="flex items-center gap-1 bg-dark-700 rounded-lg px-2 py-1">
       {icon}
       <span className="text-gray-500 text-xs">{label}</span>
-      <span className="text-white text-xs font-semibold">{value}</span>
+      <span className="text-label text-xs font-semibold">{value}</span>
     </div>
   )
 }
