@@ -6,8 +6,8 @@ import { ArrowLeft, Plus, Pencil, Trash2, Search, X, Play, Star } from 'lucide-r
 import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
 import { CATEGORIES, MUSCLES, EQUIPMENT, CAT_COLORS, loadExerciseList, matchesSearch } from '../../lib/exercises'
 
-const field = { width: '100%', background: '#2a2a3e', border: '1px solid #3a3a4e', borderRadius: 10, padding: '10px 14px', color: 'white', fontSize: 14, boxSizing: 'border-box', marginBottom: 10, WebkitTextFillColor: 'white' }
-const selectStyle = { background: '#2a2a3e', border: '1px solid #3a3a4e', borderRadius: 10, padding: '10px 12px', color: 'white', fontSize: 13, width: '100%' }
+const field = { width: '100%', background: 'var(--fill)', border: '1px solid var(--separator)', borderRadius: 10, padding: '10px 14px', color: 'var(--label)', fontSize: 14, boxSizing: 'border-box', marginBottom: 10, WebkitTextFillColor: 'var(--label)' }
+const selectStyle = { background: 'var(--fill)', border: '1px solid var(--separator)', borderRadius: 10, padding: '10px 12px', color: 'var(--label)', fontSize: 13, width: '100%' }
 
 function ExerciseForm({ initial, onSave, onCancel, saving }) {
   const [form, setForm] = useState({
@@ -17,11 +17,11 @@ function ExerciseForm({ initial, onSave, onCancel, saving }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const isCustomizing = initial && !initial.coach_id
   return (
-    <div data-testid="exercise-form" style={{ background: '#1e1e2e', borderRadius: 16, padding: 20, marginBottom: 16 }}>
-      <p style={{ margin: '0 0 4px', fontWeight: 700, color: 'white', fontSize: 16 }}>
+    <div data-testid="exercise-form" style={{ background: 'var(--card)', borderRadius: 16, padding: 20, marginBottom: 16 }}>
+      <p style={{ margin: '0 0 4px', fontWeight: 700, color: 'var(--label)', fontSize: 16 }}>
         {isCustomizing ? 'Personnaliser l’exercice' : initial?.id ? 'Modifier' : 'Nouvel exercice'}
       </p>
-      {isCustomizing && <p style={{ margin: '0 0 12px', fontSize: 12, color: '#888' }}>Ta version (vidéo, consignes) remplacera celle de la base pour toi et tes clients.</p>}
+      {isCustomizing && <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--label2)' }}>Ta version (vidéo, consignes) remplacera celle de la base pour toi et tes clients.</p>}
       <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Nom de l'exercice *" style={{ ...field, marginTop: isCustomizing ? 0 : 10 }} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
         <select value={form.category} onChange={e => set('category', e.target.value)} style={selectStyle} aria-label="Catégorie">
@@ -42,9 +42,9 @@ function ExerciseForm({ initial, onSave, onCancel, saving }) {
       <textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Consignes d'exécution" rows={3}
         style={{ ...field, resize: 'none', marginBottom: 14 }} />
       <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={onCancel} style={{ flex: 1, padding: '10px 0', background: '#2a2a3e', border: 'none', borderRadius: 10, color: '#aaa', cursor: 'pointer', fontSize: 14 }}>Annuler</button>
+        <button onClick={onCancel} style={{ flex: 1, padding: '10px 0', background: 'var(--fill)', border: 'none', borderRadius: 10, color: 'var(--label2)', cursor: 'pointer', fontSize: 14 }}>Annuler</button>
         <button onClick={() => onSave(form)} disabled={!form.name.trim() || saving}
-          style={{ flex: 2, padding: '10px 0', background: form.name.trim() ? '#6366f1' : '#3a3a4e', border: 'none', borderRadius: 10, color: 'white', cursor: form.name.trim() ? 'pointer' : 'default', fontSize: 14, fontWeight: 600 }}>
+          style={{ flex: 2, padding: '10px 0', background: form.name.trim() ? '#6366f1' : 'var(--separator)', border: 'none', borderRadius: 10, color: 'white', cursor: form.name.trim() ? 'pointer' : 'default', fontSize: 14, fontWeight: 600 }}>
           {saving ? 'Enregistrement…' : initial?.coach_id ? 'Enregistrer' : 'Ajouter'}
         </button>
       </div>
@@ -116,9 +116,9 @@ export default function ExerciseLibrary() {
   const mineCount = exercises.filter(e => e.coach_id).length
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f0f1a', color: 'white', paddingBottom: 80 }}>
-      <div style={{ background: '#1e1e2e', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 10 }}>
-        <button onClick={() => navigate('/coach/programs')} aria-label="Retour" style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: 4 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--label)', paddingBottom: 80 }}>
+      <div style={{ background: 'var(--card)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, position: 'sticky', top: 0, zIndex: 10 }}>
+        <button onClick={() => navigate('/coach/programs')} aria-label="Retour" style={{ background: 'none', border: 'none', color: 'var(--label)', cursor: 'pointer', padding: 4 }}>
           <ArrowLeft size={20} />
         </button>
         <h2 style={{ margin: 0, flex: 1, fontSize: 18 }}>Bibliothèque d'exercices</h2>
@@ -136,21 +136,21 @@ export default function ExerciseLibrary() {
         <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
           {[['featured', 'Essentiels'], ['all', `Toute la base (${exercises.length})`], ['mine', `Mes exercices (${mineCount})`]].map(([k, l]) => (
             <button key={k} onClick={() => setScope(k)}
-              style={{ flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, background: scope === k ? '#6366f1' : '#1e1e2e', color: scope === k ? 'white' : '#888' }}>
+              style={{ flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, background: scope === k ? '#6366f1' : 'var(--card)', color: scope === k ? 'white' : 'var(--label2)' }}>
               {l}
             </button>
           ))}
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, background: '#1e1e2e', borderRadius: 10, padding: '8px 12px' }}>
-            <Search size={14} color="#888" />
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--card)', borderRadius: 10, padding: '8px 12px' }}>
+            <Search size={14} color="var(--label2)" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un exercice, un muscle…"
-              style={{ background: 'none', border: 'none', color: 'white', outline: 'none', flex: 1, minWidth: 0, WebkitTextFillColor: 'white' }} />
-            {search && <button onClick={() => setSearch('')} aria-label="Effacer" style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: 0 }}><X size={14} /></button>}
+              style={{ background: 'none', border: 'none', color: 'var(--label)', outline: 'none', flex: 1, minWidth: 0, WebkitTextFillColor: 'var(--label)' }} />
+            {search && <button onClick={() => setSearch('')} aria-label="Effacer" style={{ background: 'none', border: 'none', color: 'var(--label2)', cursor: 'pointer', padding: 0 }}><X size={14} /></button>}
           </div>
           <select value={filterMuscle} onChange={e => setFilterMuscle(e.target.value)} aria-label="Filtrer par muscle"
-            style={{ background: '#1e1e2e', border: 'none', borderRadius: 10, padding: '8px 6px', color: filterMuscle ? 'white' : '#888', fontSize: 13, width: 110, flexShrink: 0 }}>
+            style={{ background: 'var(--card)', border: 'none', borderRadius: 10, padding: '8px 6px', color: filterMuscle ? 'white' : 'var(--label2)', fontSize: 13, width: 110, flexShrink: 0 }}>
             <option value="">Muscle</option>
             {MUSCLES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
@@ -158,7 +158,7 @@ export default function ExerciseLibrary() {
 
         <div className="scrollbar-hide" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
           <button onClick={() => setFilterCat('')}
-            style={{ flexShrink: 0, padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: !filterCat ? '#6366f1' : '#1e1e2e', color: !filterCat ? 'white' : '#888', fontSize: 12, fontWeight: 600 }}>
+            style={{ flexShrink: 0, padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: !filterCat ? '#6366f1' : 'var(--card)', color: !filterCat ? 'white' : 'var(--label2)', fontSize: 12, fontWeight: 600 }}>
             Tous ({base.length})
           </button>
           {CATEGORIES.map(c => {
@@ -166,7 +166,7 @@ export default function ExerciseLibrary() {
             if (count === 0) return null
             return (
               <button key={c} onClick={() => setFilterCat(filterCat === c ? '' : c)}
-                style={{ flexShrink: 0, padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: filterCat === c ? (CAT_COLORS[c] || '#6366f1') : '#1e1e2e', color: filterCat === c ? 'white' : '#888', fontSize: 12, fontWeight: 600 }}>
+                style={{ flexShrink: 0, padding: '4px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', background: filterCat === c ? (CAT_COLORS[c] || '#6366f1') : 'var(--card)', color: filterCat === c ? 'white' : 'var(--label2)', fontSize: 12, fontWeight: 600 }}>
                 {c} ({count})
               </button>
             )
@@ -174,23 +174,23 @@ export default function ExerciseLibrary() {
         </div>
 
         {loading ? (
-          <p style={{ color: '#888', textAlign: 'center', marginTop: 40 }}>Chargement…</p>
+          <p style={{ color: 'var(--label2)', textAlign: 'center', marginTop: 40 }}>Chargement…</p>
         ) : error ? (
-          <p style={{ color: '#f87171', textAlign: 'center', marginTop: 40 }}>{error}</p>
+          <p style={{ color: 'var(--red-text)', textAlign: 'center', marginTop: 40 }}>{error}</p>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', marginTop: 60, color: '#888' }}>
+          <div style={{ textAlign: 'center', marginTop: 60, color: 'var(--label2)' }}>
             <p style={{ fontSize: 15 }}>{scope === 'mine' && !search ? 'Tu n’as pas encore d’exercice perso' : 'Aucun résultat'}</p>
             {scope === 'mine' && <p style={{ fontSize: 12 }}>Ajoute les tiens ou personnalise ceux de la base (vidéo, consignes).</p>}
           </div>
         ) : (
           <>
             {filtered.slice(0, limit).map(ex => (
-              <div key={ex.id} data-testid="exercise-row" style={{ background: '#1e1e2e', borderRadius: 12, padding: 10, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div key={ex.id} data-testid="exercise-row" style={{ background: 'var(--card)', borderRadius: 12, padding: 10, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <button onClick={() => setDetail(ex)} aria-label={'Démo ' + ex.name} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', position: 'relative' }}>
                   <ExerciseThumb exercise={ex} size={56} />
                   {ex.video_url && <span style={{ position: 'absolute', bottom: 2, right: 2, background: '#22c55e', borderRadius: 6, padding: 2, display: 'flex' }}><Play size={9} color="white" fill="white" /></span>}
                 </button>
-                <button onClick={() => setDetail(ex)} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', padding: 0, color: 'white' }}>
+                <button onClick={() => setDetail(ex)} style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', padding: 0, color: 'var(--label)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
                     {ex.coach_id && <Star size={12} color="#fbbf24" fill="#fbbf24" />}
                     <span style={{ fontWeight: 600, fontSize: 14 }}>{ex.name}</span>
@@ -198,10 +198,10 @@ export default function ExerciseLibrary() {
                       <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (CAT_COLORS[ex.category] || '#6366f1') + '22', color: CAT_COLORS[ex.category] || '#6366f1', fontWeight: 600 }}>{ex.category}</span>
                     )}
                   </div>
-                  <p style={{ margin: 0, fontSize: 12, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{[ex.muscles, ex.equipment].filter(Boolean).join(' · ')}</p>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{[ex.muscles, ex.equipment].filter(Boolean).join(' · ')}</p>
                 </button>
                 <button onClick={() => { setEditing(ex); setShowForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }} aria-label={'Modifier ' + ex.name}
-                  style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
+                  style={{ background: 'none', border: 'none', color: 'var(--label2)', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
                 {ex.coach_id && (
                   <button onClick={() => deleteExercise(ex)} aria-label={'Supprimer ' + ex.name}
                     style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
@@ -209,7 +209,7 @@ export default function ExerciseLibrary() {
               </div>
             ))}
             {filtered.length > limit && (
-              <button onClick={() => setLimit(l => l + 60)} style={{ width: '100%', padding: 12, background: '#1e1e2e', border: 'none', borderRadius: 12, color: '#a5b4fc', cursor: 'pointer', fontSize: 13, marginBottom: 12 }}>
+              <button onClick={() => setLimit(l => l + 60)} style={{ width: '100%', padding: 12, background: 'var(--card)', border: 'none', borderRadius: 12, color: 'var(--accent-text)', cursor: 'pointer', fontSize: 13, marginBottom: 12 }}>
                 Afficher plus ({filtered.length - limit} restants)
               </button>
             )}

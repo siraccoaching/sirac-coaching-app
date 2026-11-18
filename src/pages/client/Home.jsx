@@ -4,6 +4,7 @@ import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { PageLayout } from '../../components/Layout'
 import { Play, CheckCircle, Dumbbell, Ruler, ClipboardList, TrendingUp, MessageCircle, Trophy, Calendar, Zap, Apple, User } from 'lucide-react'
+import { IosList } from '../../components/IosList'
 
 export default function ClientHome() {
   const { profile } = useAuth()
@@ -76,117 +77,90 @@ export default function ClientHome() {
     return "il y a " + d + " j"
   }
 
+  const firstName = profile?.name?.split(' ')[0] || ''
   return (
-    <PageLayout title={"Bonjour \u{1F44B} " + (profile?.name?.split(' ')[0] || '')} subtitle="Ton espace entraînement">
-      <div style={{ padding:'16px 16px 24px', display:'flex', flexDirection:'column', gap:12 }}>
+    <PageLayout title={'Bonjour ' + firstName + ' \u{1F44B}'} subtitle={new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}>
+      <div style={{ padding: '16px 16px 28px', display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 640, margin: '0 auto' }}>
 
         {profile && !profile.onboarding_done && (
-          <button onClick={() => navigate('/client/onboarding')}
-            style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.35)', borderRadius:14, padding:'12px 14px', textAlign:'left', cursor:'pointer' }}>
-            <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#fbbf24' }}>Complète ton profil sportif</p>
-            <p style={{ margin:'2px 0 0', fontSize:11, color:'rgba(255,255,255,0.5)' }}>Objectifs, niveau, blessures : ton coach adapte ton programme.</p>
+          <button onClick={() => navigate('/client/onboarding')} className="ios-group"
+            style={{ border: 'none', padding: '14px 16px', textAlign: 'left', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}>
+            <span style={{ width: 34, height: 34, borderRadius: 9, background: '#ff9500', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><User size={18} color="white" /></span>
+            <span>
+              <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>Complète ton profil sportif</span>
+              <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)' }}>Objectifs, niveau, blessures : ton coach adapte ton programme.</span>
+            </span>
           </button>
         )}
 
-        {/* Stats bar */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-          <div style={{ background:'rgba(99,102,241,0.12)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
-            <p style={{ margin:0, fontSize:24, fontWeight:800, color:'#818cf8' }}>{totalSessions}</p>
-            <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.38)', marginTop:2 }}>séances</p>
-          </div>
-          <div style={{ background:'rgba(251,146,60,0.1)', border:'1px solid rgba(251,146,60,0.2)', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
-            <p style={{ margin:0, fontSize:24, fontWeight:800, color:'#fb923c' }}>{streak} {'\u{1F525}'}</p>
-            <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.38)', marginTop:2 }}>jours streak</p>
-          </div>
-          <div style={{ background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
-            <p style={{ margin:0, fontSize:24, fontWeight:800, color:'#fbbf24' }}>{topPRs.length}</p>
-            <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.38)', marginTop:2 }}>records</p>
-          </div>
+        {/* Statistiques */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+          {[[totalSessions, 'Séances', 'var(--accent-text)'], [streak + ' \u{1F525}', 'Jours d\u2019affilée', 'var(--orange-text)'], [topPRs.length, 'Records', 'var(--yellow-text)']].map(([v, l, c]) => (
+            <div key={l} className="ios-group" style={{ padding: '14px 8px', textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: 26, fontWeight: 700, color: c, letterSpacing: '-0.02em' }}>{v}</p>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--label2)' }}>{l}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Next session CTA */}
+        {/* Prochaine séance */}
         {nextSession ? (
-          <div style={{ background:'linear-gradient(135deg,#6366f1,#8b5cf6)', borderRadius:18, padding:'18px 20px', cursor:'pointer' }}
-            onClick={() => navigate('/client/session-log/' + nextSession.id)}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div>
-                <p style={{ margin:'0 0 4px', fontSize:11, color:'rgba(255,255,255,0.65)', textTransform:'uppercase', letterSpacing:'0.06em' }}>Prochaine séance</p>
-                <p style={{ margin:'0 0 3px', fontSize:18, fontWeight:700, color:'white' }}>{nextSession.name}</p>
-                <p style={{ margin:0, fontSize:12, color:'rgba(255,255,255,0.55)' }}>{nextSession.programName} · {nextSession.program_exercises?.length || 0} exercices</p>
-              </div>
-              <div style={{ width:46, height:46, borderRadius:'50%', background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <Play size={20} color="white" fill="white"/>
-              </div>
+          <button onClick={() => navigate('/client/session-log/' + nextSession.id)} data-testid="next-session"
+            style={{ border: 'none', textAlign: 'left', background: 'linear-gradient(135deg,#5e5ce6,#8b5cf6)', borderRadius: 20, padding: '18px 20px', cursor: 'pointer', boxShadow: '0 10px 30px rgba(94,92,230,0.35)', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: '0 0 4px', fontSize: 12, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Prochaine séance</p>
+              <p style={{ margin: '0 0 3px', fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '-0.02em' }}>{nextSession.name}</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{nextSession.programName} · {nextSession.program_exercises?.length || 0} exercices</p>
             </div>
-          </div>
+            <span style={{ width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Play size={22} color="white" fill="white" />
+            </span>
+          </button>
         ) : (
-          <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'18px 20px', textAlign:'center', cursor:'pointer' }}
-            onClick={() => navigate('/client/program')}>
-            <p style={{ margin:'0 0 4px', fontSize:15, color:'rgba(255,255,255,0.38)' }}>Aucun programme actif</p>
-            <p style={{ margin:0, fontSize:12, color:'#818cf8' }}>Voir mes programmes →</p>
-          </div>
+          <button onClick={() => navigate('/client/program')} className="ios-group" style={{ border: 'none', padding: '18px 20px', textAlign: 'center', cursor: 'pointer' }}>
+            <p style={{ margin: '0 0 4px', fontSize: 15, color: 'var(--label2)' }}>Aucun programme actif</p>
+            <p style={{ margin: 0, fontSize: 14, color: 'var(--accent)' }}>Voir mes programmes →</p>
+          </button>
         )}
 
-        {/* Last workout */}
         {lastCompletion && (
-          <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'12px 16px', display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:'rgba(74,222,128,0.12)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <CheckCircle size={18} color="#4ade80"/>
-            </div>
-            <div style={{ flex:1 }}>
-              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>{lastCompletion.program_sessions?.name || 'Séance libre'}</p>
-              <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.35)', marginTop:1 }}>Dernière séance · {timeAgo(lastCompletion.created_at)}</p>
+          <div className="ios-group" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ width: 34, height: 34, borderRadius: 9, background: '#34c759', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CheckCircle size={18} color="white" /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>{lastCompletion.program_sessions?.name || 'Séance libre'}</p>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--label2)' }}>Dernière séance · {timeAgo(lastCompletion.created_at)}</p>
             </div>
           </div>
         )}
 
-        {/* Top PRs */}
         {topPRs.length > 0 && (
           <div>
-            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
-              <Trophy size={13} color="#f59e0b"/>
-              <p style={{ margin:0, fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:'0.07em' }}>Tes records</p>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            <p className="ios-section-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Trophy size={13} color="#ff9f0a" /> Tes records</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {topPRs.map(([name, load]) => (
-                <div key={name} style={{ background:'#15152a', border:'1px solid rgba(245,158,11,0.15)', borderRadius:12, padding:'10px 14px' }}>
-                  <p style={{ margin:'0 0 2px', fontSize:11, color:'rgba(255,255,255,0.38)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</p>
-                  <p style={{ margin:0, fontSize:18, fontWeight:800, color:'#fbbf24' }}>{load} <span style={{ fontSize:12, fontWeight:400 }}>kg</span></p>
+                <div key={name} className="ios-group" style={{ padding: '12px 14px' }}>
+                  <p style={{ margin: '0 0 2px', fontSize: 13, color: 'var(--label2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</p>
+                  <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'var(--label)', letterSpacing: '-0.02em' }}>{load} <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label2)' }}>kg</span></p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Quick actions */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-          {[
-            { icon: <Dumbbell size={16}/>, label: 'Mon programme', sub: 'Voir mes séances', path: '/client/program', color: '#818cf8', bg: 'linear-gradient(135deg,#312e81aa,#4c1d95aa)', border: '#6366f133' },
-            { icon: <Zap size={16}/>, label: 'Séance libre', sub: 'Entraîn. libre', path: '/client/free-session', color: '#34d399', bg: 'linear-gradient(135deg,#064e3baa,#065f46aa)', border: '#10b98133' },
-            { icon: <Apple size={16}/>, label: 'Nutrition', sub: 'Mon suivi', path: '/client/nutrition', color: '#22c55e', bg: 'linear-gradient(135deg,#14532daa,#166534aa)', border: '#16a34a33' },
-            { icon: <MessageCircle size={16}/>, label: 'Mon coach', sub: 'Messages', path: '/client/messages', color: '#4ade80', bg: 'linear-gradient(135deg,#14532daa,#15803daa)', border: '#22c55e33', badge: unreadCount },
-            { icon: <TrendingUp size={16}/>, label: 'Progression', sub: 'Courbes & records', path: '/client/progress', color: '#fbbf24', bg: 'linear-gradient(135deg,#78350faa,#92400eaa)', border: '#f59e0b33' },
-            { icon: <Ruler size={16}/>, label: 'Mensurations', sub: 'Suivi du corps', path: '/client/measurements', color: '#2dd4bf', bg: 'linear-gradient(135deg,#134e4aaa,#115e59aa)', border: '#14b8a633' },
-            { icon: <Calendar size={16}/>, label: 'Réserver', sub: 'Prendre RDV', path: '/client/book', color: '#a78bfa', bg: 'linear-gradient(135deg,#4c1d95aa,#5b21b6aa)', border: '#7c3aed33' },
-            { icon: <ClipboardList size={16}/>, label: 'Bilan semaine', sub: 'Ton ressenti', path: '/client/checkin', color: '#fb923c', bg: 'linear-gradient(135deg,#7c2d12aa,#9a3412aa)', border: '#f9731633' },
-            { icon: <User size={16}/>, label: 'Mon profil', sub: 'Taille · poids · kcal', path: '/client/profile', color: '#e879f9', bg: 'linear-gradient(135deg,#701a75aa,#86198faa)', border: '#a21caf33' },
-          ].map(item => (
-            <button key={item.path} onClick={() => navigate(item.path)}
-              style={{ position:'relative', background: item.bg, border:'1px solid '+item.border, borderRadius:16, padding:'14px 14px', display:'flex', flexDirection:'column', gap:8, cursor:'pointer', textAlign:'left' }}>
-              {item.badge > 0 && (
-                <span style={{ position:'absolute', top:8, right:8, background:'#ef4444', borderRadius:'50%', width:18, height:18, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'white' }}>{item.badge}</span>
-              )}
-              <div style={{ width:32, height:32, background:item.color+'22', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', color:item.color }}>
-                {item.icon}
-              </div>
-              <div>
-                <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>{item.label}</p>
-                <p style={{ margin:0, fontSize:11, color:item.color }}>{item.sub}</p>
-              </div>
-            </button>
-          ))}
-        </div>
+        <IosList title="Entraînement" items={[
+          { icon: Dumbbell, color: '#5e5ce6', label: 'Mon programme', detail: 'Mes séances', onClick: () => navigate('/client/program') },
+          { icon: Zap, color: '#34c759', label: 'Séance libre', onClick: () => navigate('/client/free-session') },
+          { icon: TrendingUp, color: '#ff9500', label: 'Progression', detail: 'Courbes et records', onClick: () => navigate('/client/progress') },
+          { icon: Ruler, color: '#30b0c7', label: 'Mensurations', onClick: () => navigate('/client/measurements') },
+        ]} />
 
+        <IosList title="Suivi" items={[
+          { icon: Apple, color: '#34c759', label: 'Nutrition', detail: 'Calories du jour', onClick: () => navigate('/client/nutrition') },
+          { icon: ClipboardList, color: '#ff9f0a', label: 'Bilan de la semaine', onClick: () => navigate('/client/checkin') },
+          { icon: MessageCircle, color: '#007aff', label: 'Mon coach', badge: unreadCount, onClick: () => navigate('/client/messages') },
+          { icon: Calendar, color: '#af52de', label: 'Réserver un créneau', onClick: () => navigate('/client/book') },
+          { icon: User, color: '#8e8e93', label: 'Mon profil et apparence', onClick: () => navigate('/client/profile') },
+        ]} />
       </div>
     </PageLayout>
   )

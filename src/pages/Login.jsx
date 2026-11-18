@@ -41,18 +41,18 @@ export default function Login() {
                           <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>Plateforme de suivi athlètes</p>
                 </div>
 
-                <div style={{ width: '100%', maxWidth: 360, background: 'var(--bg-card)', borderRadius: 24, border: '1px solid rgba(255,255,255,0.08)', padding: 24 }}>
+                <div style={{ width: '100%', maxWidth: 360, background: 'var(--bg-card)', borderRadius: 24, border: '1px solid rgba(var(--contrast),0.08)', padding: 24 }}>
                           <h2 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', marginBottom: 20 }}>
                             {mode === 'login' ? 'Connexion à ton espace' : 'Réinitialiser le mot de passe'}
                           </h2>
 
                   {error && (
-                    <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, color: '#f87171', fontSize: 13 }}>
+                    <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, color: 'var(--red-text)', fontSize: 13 }}>
                       {error}
                     </div>
                   )}
                   {success && (
-                    <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, color: '#4ade80', fontSize: 13 }}>
+                    <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, color: 'var(--green-text)', fontSize: 13 }}>
                       {success}
                     </div>
                   )}
@@ -98,7 +98,7 @@ export default function Login() {
                                     <button
                                                   type="submit"
                                                   disabled={loading}
-                                                  style={{ width: '100%', background: loading ? 'rgba(99,102,241,0.5)' : 'var(--accent)', border: 'none', borderRadius: 14, padding: '14px', color: '#fff', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
+                                                  style={{ width: '100%', background: loading ? 'rgba(99,102,241,0.5)' : 'var(--accent)', border: 'none', borderRadius: 14, padding: '14px', color: 'white', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
                                                 >
                                       {loading ? (mode === 'reset' ? 'Envoi...' : 'Connexion...') : (mode === 'reset' ? 'Envoyer le lien' : 'Se connecter')}
                                     </button>

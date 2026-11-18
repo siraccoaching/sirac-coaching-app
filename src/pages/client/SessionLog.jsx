@@ -101,16 +101,16 @@ export default function SessionLog() {
               className="w-full flex items-center gap-3 p-4 text-left"
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors ${
-                (log.weight_kg || log.reps_done) ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-500'
+                (log.weight_kg || log.reps_done) ? 'bg-green-500/20 text-green-400' : 'bg-contrast/10 text-gray-500'
               }`}>
                 {(log.weight_kg || log.reps_done) ? '✓' : index + 1}
               </div>
-              <p className="flex-1 text-white text-sm font-medium text-left">{log.exercise_name}</p>
+              <p className="flex-1 text-label text-sm font-medium text-left">{log.exercise_name}</p>
               {expanded === index ? <ChevronUp size={15} className="text-gray-500 flex-shrink-0"/> : <ChevronDown size={15} className="text-gray-500 flex-shrink-0"/>}
             </button>
 
             {expanded === index && (
-              <div className="border-t border-white/10 p-4 space-y-3">
+              <div className="border-t border-contrast/10 p-4 space-y-3">
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: 'Séries', key: 'sets_done', placeholder: '4', type: 'number' },
@@ -124,7 +124,7 @@ export default function SessionLog() {
                         value={log[key] || ''}
                         onChange={e => updateLog(index, key, e.target.value)}
                         placeholder={placeholder}
-                        className="w-full bg-dark-900 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm text-center focus:outline-none focus:border-brand-500"
+                        className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-3 py-2.5 text-label text-sm text-center focus:outline-none focus:border-brand-500"
                       />
                     </div>
                   ))}
@@ -137,7 +137,7 @@ export default function SessionLog() {
                       <button key={rpe} type="button"
                         onClick={() => updateLog(index, 'rpe_actual', rpe)}
                         className={`flex-1 min-w-0 py-2 rounded-xl text-sm font-medium transition-colors ${
-                          log.rpe_actual === rpe ? 'bg-brand-600 text-white' : 'bg-dark-900 border border-white/10 text-gray-400'
+                          log.rpe_actual === rpe ? 'bg-brand-600 text-white' : 'bg-dark-900 border border-contrast/10 text-gray-400'
                         }`}>
                         {rpe}
                       </button>
@@ -152,7 +152,7 @@ export default function SessionLog() {
                     value={log.comment || ''}
                     onChange={e => updateLog(index, 'comment', e.target.value)}
                     placeholder="Notes, sensations…"
-                    className="w-full bg-dark-900 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-brand-500"
+                    className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-3 py-2.5 text-label text-sm focus:outline-none focus:border-brand-500"
                   />
                 </div>
               </div>
@@ -168,17 +168,17 @@ export default function SessionLog() {
             onChange={e => setNotes(e.target.value)}
             rows={3}
             placeholder="Comment s'est passée la séance ? Fatigue, motivation, douleurs…"
-            className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
+            className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label text-sm placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
           />
         </Card>
       </div>
 
       {/* Fixed bottom button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-dark-900/95 backdrop-blur-md border-t border-white/10 safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-dark-900/95 backdrop-blur-md border-t border-contrast/10 safe-bottom">
         <button onClick={saveAndComplete} disabled={completing}
           className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-base transition-colors">
           {completing ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-contrast border-t-transparent rounded-full animate-spin" />
           ) : (
             <CheckCircle size={20} />
           )}

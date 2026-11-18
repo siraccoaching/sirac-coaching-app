@@ -302,16 +302,16 @@ export default function ProgramBuilder() {
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Programme</h3>
           <input value={prog.name} onChange={e => setField('name', e.target.value)}
             placeholder="Nom du programme (ex: Prépa Hors-Saison 8 semaines)"
-            className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm" />
+            className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm" />
           <input value={prog.description} onChange={e => setField('description', e.target.value)}
             placeholder="Description (optionnel)"
-            className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm" />
+            className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm" />
 
           <div className="flex gap-2">
             {[['block', 'Blocs (athlètes)'], ['simple', 'Simple (fitness)']].map(([val, label]) => (
               <button key={val} type="button" onClick={() => setField('type', val)}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-                  prog.type === val ? 'bg-brand-600 border-brand-600 text-white' : 'bg-transparent border-white/15 text-gray-400'
+                  prog.type === val ? 'bg-brand-600 border-brand-600 text-white' : 'bg-transparent border-contrast/15 text-gray-400'
                 }`}>
                 {label}
               </button>
@@ -325,7 +325,7 @@ export default function ProgramBuilder() {
               const isFitness = client?.sport && fitnessKw.some(k => client.sport.toLowerCase().includes(k))
               setProg(p => ({ ...p, client_id: clientId, ...(clientId ? { type: isFitness ? 'simple' : 'block' } : {}) }))
             }}
-            className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500 text-sm">
+            className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label focus:outline-none focus:border-brand-500 text-sm">
             <option value="">— Assigner à un client (optionnel) —</option>
             {clients.map(c => <option key={c.id} value={c.id}>{c.name} {c.sport ? `· ${c.sport}` : ''}</option>)}
           </select>
@@ -335,7 +335,7 @@ export default function ProgramBuilder() {
           <div className="space-y-3">
             {prog.blocks.map((block, bi) => (
               <Card key={block._id} className="overflow-hidden">
-                <div className="flex items-center gap-2 p-3 bg-brand-600/10 border-b border-white/5">
+                <div className="flex items-center gap-2 p-3 bg-brand-600/10 border-b border-contrast/5">
                   <button onClick={() => setOpenBlocks(ob => ({ ...ob, [bi]: !ob[bi] }))}
                     className="flex-1 flex items-center gap-2 text-left">
                     {openBlocks[bi] ? <ChevronUp size={15} className="text-brand-400" /> : <ChevronDown size={15} className="text-brand-400" />}
@@ -352,11 +352,11 @@ export default function ProgramBuilder() {
                     <div className="flex gap-2">
                       <input value={block.name} onChange={e => updateBlock(bi, 'name', e.target.value)}
                         placeholder="Nom du bloc (ex: Accumulation)"
-                        className="flex-1 bg-dark-900 border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm" />
-                      <div className="flex items-center gap-1.5 bg-dark-900 border border-white/10 rounded-xl px-3">
+                        className="flex-1 bg-dark-900 border border-contrast/10 rounded-xl px-3 py-2.5 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm" />
+                      <div className="flex items-center gap-1.5 bg-dark-900 border border-contrast/10 rounded-xl px-3">
                         <input type="number" inputMode="numeric" min="1" max="16" value={block.duration_weeks}
                           onChange={e => updateBlock(bi, 'duration_weeks', e.target.value)}
-                          className="w-8 bg-transparent text-white text-sm text-center focus:outline-none" />
+                          className="w-8 bg-transparent text-label text-sm text-center focus:outline-none" />
                         <span className="text-gray-500 text-xs">sem</span>
                       </div>
                     </div>
@@ -377,7 +377,7 @@ export default function ProgramBuilder() {
                       ))}
                     </div>
                     <button onClick={() => addSession(bi)}
-                      className="w-full py-2 border border-dashed border-white/15 rounded-xl text-gray-500 text-xs hover:border-brand-500/50 hover:text-brand-400 transition-colors flex items-center justify-center gap-1.5">
+                      className="w-full py-2 border border-dashed border-contrast/15 rounded-xl text-gray-500 text-xs hover:border-brand-500/50 hover:text-brand-400 transition-colors flex items-center justify-center gap-1.5">
                       <Plus size={12} /> Ajouter une séance
                     </button>
                   </div>
@@ -411,7 +411,7 @@ export default function ProgramBuilder() {
               </Card>
             ))}
             <button onClick={() => addSession(0, true)}
-              className="w-full py-3 border border-dashed border-white/15 rounded-2xl text-gray-500 text-sm hover:border-brand-500/50 hover:text-brand-400 transition-colors flex items-center justify-center gap-2">
+              className="w-full py-3 border border-dashed border-contrast/15 rounded-2xl text-gray-500 text-sm hover:border-brand-500/50 hover:text-brand-400 transition-colors flex items-center justify-center gap-2">
               <Plus size={14} /> Ajouter une séance
             </button>
           </div>
@@ -435,11 +435,11 @@ export default function ProgramBuilder() {
 
 function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, onUpdateExercise, onAddExercise, onRemoveExercise, onOpenLibrary }) {
   return (
-    <div className="border border-white/8 rounded-xl overflow-hidden">
+    <div className="border border-contrast/8 rounded-xl overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 bg-dark-800">
         <button onClick={onToggle} className="flex-1 flex items-center gap-2 text-left min-w-0">
           {open ? <ChevronUp size={13} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={13} className="text-gray-500 flex-shrink-0" />}
-          <span className="text-white text-sm truncate">{sess.name || `Séance ${si + 1}`}</span>
+          <span className="text-label text-sm truncate">{sess.name || `Séance ${si + 1}`}</span>
           {sess.exercises.filter(e => e.name).length > 0 && (
             <span className="text-gray-600 text-xs flex-shrink-0">{sess.exercises.filter(e => e.name).length} exo{sess.exercises.filter(e => e.name).length > 1 ? 's' : ''}</span>
           )}
@@ -454,10 +454,10 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
         <div className="p-3 space-y-3 bg-dark-900/50">
           <input value={sess.name} onChange={e => onUpdate('name', e.target.value)}
             placeholder="Nom de la séance (ex: Jour 1 — Squat)"
-            className="w-full bg-dark-800 border border-white/8 rounded-lg px-3 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
+            className="w-full bg-dark-800 border border-contrast/8 rounded-lg px-3 py-2 text-label placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
           <input value={sess.notes} onChange={e => onUpdate('notes', e.target.value)}
             placeholder="Notes de séance (optionnel)"
-            className="w-full bg-dark-800 border border-white/8 rounded-lg px-3 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
+            className="w-full bg-dark-800 border border-contrast/8 rounded-lg px-3 py-2 text-label placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
           <div className="space-y-2">
             {sess.exercises.map((ex, ei) => (
               <ExerciseRow key={ex._id} ex={ex} ei={ei}
@@ -469,7 +469,7 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
           </div>
           <div style={{display:'flex',gap:6}}>
             <button onClick={onAddExercise}
-              className="flex-1 py-2 border border-dashed border-white/10 rounded-lg text-gray-600 text-xs hover:border-brand-500/40 hover:text-brand-400 transition-colors flex items-center justify-center gap-1">
+              className="flex-1 py-2 border border-dashed border-contrast/10 rounded-lg text-gray-600 text-xs hover:border-brand-500/40 hover:text-brand-400 transition-colors flex items-center justify-center gap-1">
               <Plus size={11} /> Exercice libre
             </button>
             {onOpenLibrary && (
@@ -488,12 +488,12 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
 function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
   const inp = 'bg-dark-700 border border-white/8 rounded-lg text-white text-xs focus:outline-none focus:border-brand-500 text-center'
   return (
-    <div className="bg-dark-800 border border-white/5 rounded-lg p-2.5 space-y-2">
+    <div className="bg-dark-800 border border-contrast/5 rounded-lg p-2.5 space-y-2">
       <div className="flex items-center gap-2">
         {ex.images?.length ? <ExerciseThumb exercise={ex} size={28} /> : <Dumbbell size={12} className="text-gray-600 flex-shrink-0" />}
         <input value={ex.name} onChange={e => onUpdate('name', e.target.value)}
           placeholder={`Exercice ${ei + 1} (ex: Back Squat)`}
-          className="flex-1 bg-transparent text-white text-sm placeholder-gray-600 focus:outline-none" />
+          className="flex-1 bg-transparent text-label text-sm placeholder-gray-600 focus:outline-none" />
         {canRemove && (
           <button onClick={onRemove} className="text-gray-700 hover:text-red-400 transition-colors">
             <Trash2 size={11} />
@@ -524,12 +524,12 @@ function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
       </div>
       <input value={ex.notes} onChange={e => onUpdate('notes', e.target.value)}
         placeholder="Notes (ex: tempo 30X1, grip serré...)"
-        className="w-full bg-dark-700 border border-white/8 rounded-lg px-2.5 py-1.5 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
+        className="w-full bg-dark-700 border border-contrast/8 rounded-lg px-2.5 py-1.5 text-label placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
       <div className="flex items-center gap-2">
         <Link size={10} className="text-gray-600 flex-shrink-0" />
         <input value={ex.video_url} onChange={e => onUpdate('video_url', e.target.value)}
           placeholder="Lien vidéo YouTube / Vimeo (optionnel)"
-          className="flex-1 bg-dark-700 border border-white/8 rounded-lg px-2.5 py-1.5 text-white placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
+          className="flex-1 bg-dark-700 border border-contrast/8 rounded-lg px-2.5 py-1.5 text-label placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
       </div>
     </div>
   )

@@ -92,12 +92,12 @@ export default function AddClient() {
                                   <div className="w-16 h-16 bg-green-500/15 rounded-full flex items-center justify-center mb-4">
                                               <CheckCircle size={32} className="text-green-400" />
                                   </div>
-                                  <h2 className="text-white font-bold text-lg mb-2">Invitation envoyée !</h2>
+                                  <h2 className="text-label font-bold text-lg mb-2">Invitation envoyée !</h2>
                                   <p className="text-gray-400 text-sm mb-6 max-w-xs">{success}</p>
                                   <div className="flex gap-3">
                                               <button
                                                               onClick={() => setSuccess('')}
-                                                              className="px-4 py-2.5 bg-dark-800 border border-white/10 text-white text-sm font-medium rounded-xl"
+                                                              className="px-4 py-2.5 bg-dark-800 border border-contrast/10 text-label text-sm font-medium rounded-xl"
                                                             >
                                                             Ajouter un autre client
                                               </button>
@@ -137,7 +137,7 @@ export default function AddClient() {
                                                                                     onChange={e => update(key, e.target.value)}
                                                                                     required
                                                                                     placeholder={placeholder}
-                                                                                    className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors"
+                                                                                    className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors"
                                                                                   />
                                                 </div>
                                               ))}
@@ -150,7 +150,7 @@ export default function AddClient() {
                                                                     <select
                                                                                       value={form.sport}
                                                                                       onChange={e => update('sport', e.target.value)}
-                                                                                      className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500"
+                                                                                      className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label focus:outline-none focus:border-brand-500"
                                                                                     >
                                                                       {SPORTS.map(s => <option key={s}>{s}</option>)}
                                                                     </select>
@@ -165,7 +165,7 @@ export default function AddClient() {
                                                                                 key={p}
                                                                                 type="button"
                                                                                 onClick={() => update('position', p)}
-                                                                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${form.position === p ? 'bg-brand-600 border-brand-600 text-white' : 'bg-dark-900 border-white/10 text-gray-400'}`}
+                                                                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${form.position === p ? 'bg-brand-600 border-brand-600 text-white' : 'bg-dark-900 border-contrast/10 text-gray-400'}`}
                                                                               >
                                                           {p}
                                                         </button>
@@ -181,7 +181,7 @@ export default function AddClient() {
                                                                                       value={form.phase}
                                                                                       onChange={e => update('phase', e.target.value)}
                                                                                       placeholder="Ex: Pré-saison, Compétition..."
-                                                                                      className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors"
+                                                                                      className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors"
                                                                                     />
                                                       </div>
                                           </Card>
@@ -205,14 +205,14 @@ export default function AddClient() {
                                                         value={searchQuery}
                                                         onChange={e => searchClients(e.target.value)}
                                                         placeholder="Rechercher par nom ou email..."
-                                                        className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm"
+                                                        className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-colors text-sm"
                                                       />
                                   {relinkMsg && <p className="text-green-400 text-xs">{relinkMsg}</p>}
                                   {searching && <p className="text-gray-500 text-xs">Recherche...</p>}
                                   {searchResults.map(r => (
                                 <div key={r.id} className="flex items-center justify-between bg-dark-900 rounded-xl px-3 py-2.5">
                                               <div>
-                                                              <p className="text-white text-sm font-medium">{r.name}</p>
+                                                              <p className="text-label text-sm font-medium">{r.name}</p>
                                                               <p className="text-gray-500 text-xs">{r.email}</p>
                                               </div>
                                               <button

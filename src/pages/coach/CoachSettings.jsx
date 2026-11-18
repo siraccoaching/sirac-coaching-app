@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
+import ThemePicker from '../../components/ThemePicker'
 import { Calendar, Save, CheckCircle, ExternalLink, Link, Copy, RefreshCw } from 'lucide-react'
 
 const inputStyle = {
-  WebkitTextFillColor: 'white',
-  WebkitBoxShadow: '0 0 0px 1000px #0f0f1a inset',
+  WebkitTextFillColor: 'var(--label)',
+  WebkitBoxShadow: '0 0 0px 1000px var(--bg) inset',
   colorScheme: 'dark',
 }
 
@@ -67,8 +68,9 @@ export default function CoachSettings() {
 
 
   return (
-    <PageLayout title="Paramètres" back="/coach">
+    <PageLayout title="Réglages">
       <div className="p-4 pb-10 space-y-4">
+        <ThemePicker />
 
         <Card className="p-4 space-y-4">
           <div className="flex items-center gap-3">
@@ -76,7 +78,7 @@ export default function CoachSettings() {
               <Calendar size={18} className="text-brand-400" />
             </div>
             <div>
-              <h3 className="text-white text-sm font-semibold">Lien Calendly</h3>
+              <h3 className="text-label text-sm font-semibold">Lien Calendly</h3>
               <p className="text-gray-500 text-xs">Tes clients pourront réserver directement depuis l'app</p>
             </div>
           </div>
@@ -88,7 +90,7 @@ export default function CoachSettings() {
               onChange={e => setCalendlyUrl(e.target.value)}
               placeholder="https://calendly.com/ton-nom"
               style={inputStyle}
-              className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm transition-colors"
+              className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm transition-colors"
             />
             <p className="text-gray-600 text-xs">
               Colle l'URL de ton profil Calendly ou d'un type d'événement spécifique.
@@ -114,7 +116,7 @@ export default function CoachSettings() {
         </Card>
 
         <Card className="p-4">
-          <h3 className="text-white text-sm font-semibold mb-2">Comment ça marche ?</h3>
+          <h3 className="text-label text-sm font-semibold mb-2">Comment ça marche ?</h3>
           <div className="space-y-2 text-gray-400 text-sm">
             <p>1. Crée un compte Calendly sur <span className="text-brand-400">calendly.com</span></p>
             <p>2. Configure tes types d'événements et disponibilités</p>
@@ -126,16 +128,16 @@ export default function CoachSettings() {
         <Card className="p-4 space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <Link size={16} className="text-purple-400" />
-            <p className="text-sm font-semibold text-white">Lien d'invitation client</p>
+            <p className="text-sm font-semibold text-label">Lien d'invitation client</p>
           </div>
           <p className="text-xs text-gray-400">Partagez ce lien pour que vos clients rejoignent votre espace directement.</p>
 
           {inviteCode ? (
-            <div style={{background:'#ffffff0d', borderRadius:10, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, border:'1px solid #ffffff15'}}>
-              <span style={{flex:1, fontSize:12, color:'#a78bfa', wordBreak:'break-all', fontFamily:'monospace'}}>
+            <div style={{background:'rgba(var(--contrast),0.05)', borderRadius:10, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, border:'1px solid rgba(var(--contrast),0.08)'}}>
+              <span style={{flex:1, fontSize:12, color:'var(--accent-text)', wordBreak:'break-all', fontFamily:'monospace'}}>
                 {window.location.origin}/join?code={inviteCode}
               </span>
-              <button onClick={copyInviteLink} style={{flexShrink:0, background: copied ? '#22c55e22' : '#7c3aed33', border:'1px solid ' + (copied ? '#22c55e44' : '#7c3aed44'), borderRadius:8, padding:'6px 10px', color: copied ? '#22c55e' : '#a78bfa', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:4}}>
+              <button onClick={copyInviteLink} style={{flexShrink:0, background: copied ? '#22c55e22' : '#7c3aed33', border:'1px solid ' + (copied ? '#22c55e44' : '#7c3aed44'), borderRadius:8, padding:'6px 10px', color: copied ? 'var(--green-text)' : 'var(--accent-text)', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:4}}>
                 {copied ? <CheckCircle size={13}/> : <Copy size={13}/>}
                 {copied ? 'Copié !' : 'Copier'}
               </button>
@@ -147,7 +149,7 @@ export default function CoachSettings() {
           <button
             onClick={generateInviteCode}
             disabled={generatingCode}
-            className="flex items-center gap-2 bg-dark-700 border border-white/10 hover:bg-dark-600 text-white text-xs font-medium px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 bg-dark-700 border border-contrast/10 hover:bg-dark-600 text-label text-xs font-medium px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
           >
             <RefreshCw size={13} className={generatingCode ? 'animate-spin' : ''} />
             {inviteCode ? 'Régénérer le lien' : 'Générer un lien'}

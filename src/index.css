@@ -3,21 +3,97 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #0d0d1a;
-  --bg-card: #1e1e2e;
-  --bg-input: #2a2a3e;
-  --border: rgba(255,255,255,0.12);
-  --accent: #6366f1;
-  --text: #ffffff;
-  --text-2: #cbd5e1;
-  --text-3: #94a3b8;
+/* ── Palette inspirée des couleurs système d'iOS ─────────────────────────────
+   Les composants utilisent ces variables : le thème clair / sombre change tout d'un coup.
+   Thème appliqué via <html data-theme="light|dark"> (voir src/lib/theme.js). */
+:root, :root[data-theme="light"] {
+  --bg-rgb: 242 242 247;          /* systemGroupedBackground */
+  --card-rgb: 255 255 255;        /* secondarySystemGroupedBackground */
+  --fill-rgb: 238 238 243;
+  --fill2-rgb: 229 229 234;
+  --label-rgb: 0 0 0;
+  --contrast: 0, 0, 0;
+  --gray300-rgb: 60 60 67;
+  --gray400-rgb: 99 99 104;
+  --gray500-rgb: 128 128 133;
+  --gray600-rgb: 160 160 166;
+  --gray700-rgb: 199 199 204;
+
+  --bg: rgb(var(--bg-rgb));
+  --card: rgb(var(--card-rgb));
+  --fill: rgb(var(--fill-rgb));
+  --fill2: rgb(var(--fill2-rgb));
+  --separator: rgba(60, 60, 67, 0.16);
+  --label: #000000;
+  --label1b: rgba(0, 0, 0, 0.82);
+  --label2: rgba(60, 60, 67, 0.66);
+  --label3: rgba(60, 60, 67, 0.46);
+  --accent: #5856d6;              /* systemIndigo */
+  --accent-text: #4f46e5;
+  --accent-soft: rgba(88, 86, 214, 0.12);
+  --green-text: #15803d;
+  --red-text: #dc2626;
+  --yellow-text: #b45309;
+  --orange-text: #c2410c;
+  --segment: #ffffff;
+  --bar-bg: rgba(249, 249, 249, 0.82);
+  --bar-border: rgba(0, 0, 0, 0.14);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05);
+  --overlay: rgba(0, 0, 0, 0.35);
+
+  /* alias historiques (page de connexion) */
+  --bg-card: var(--card);
+  --bg-input: var(--fill);
+  --border: var(--separator);
+  --text: var(--label);
+  --text-2: var(--label2);
+  --text-3: var(--label3);
+}
+
+:root[data-theme="dark"] {
+  --bg-rgb: 0 0 0;
+  --card-rgb: 28 28 30;           /* #1C1C1E */
+  --fill-rgb: 44 44 46;           /* #2C2C2E */
+  --fill2-rgb: 58 58 60;
+  --label-rgb: 255 255 255;
+  --contrast: 255, 255, 255;
+  --gray300-rgb: 209 209 214;
+  --gray400-rgb: 174 174 178;
+  --gray500-rgb: 142 142 147;
+  --gray600-rgb: 110 110 115;
+  --gray700-rgb: 72 72 74;
+
+  --separator: rgba(84, 84, 88, 0.6);
+  --label: #ffffff;
+  --label1b: rgba(255, 255, 255, 0.86);
+  --label2: rgba(235, 235, 245, 0.62);
+  --label3: rgba(235, 235, 245, 0.4);
+  --accent: #5e5ce6;
+  --accent-text: #a5b4fc;
+  --accent-soft: rgba(94, 92, 230, 0.28);
+  --green-text: #4ade80;
+  --red-text: #f87171;
+  --yellow-text: #fbbf24;
+  --orange-text: #fb923c;
+  --segment: #636366;
+  --bar-bg: rgba(22, 22, 24, 0.82);
+  --bar-border: rgba(255, 255, 255, 0.12);
+  --card-shadow: none;
+  --overlay: rgba(0, 0, 0, 0.6);
 }
 
 @layer base {
-  html { @apply h-full; }
-  body { @apply h-full bg-dark-900 text-white antialiased; }
+  html { @apply h-full; background: var(--bg); transition: background-color .3s ease; }
+  body {
+    @apply h-full antialiased;
+    background: var(--bg);
+    color: var(--label);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Inter, system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
   #root { @apply h-full; }
+  input, textarea, select { color: var(--label); }
+  ::placeholder { color: var(--label3); opacity: 1; }
 }
 
 @layer utilities {
@@ -27,42 +103,52 @@
   .scrollbar-hide::-webkit-scrollbar { display: none; }
 }
 
-/* ── iOS Mobile Fixes ──────────────────────────────────────────── */
+/* Carte « groupée » façon Réglages iOS */
+.ios-group { background: var(--card); border-radius: 14px; box-shadow: var(--card-shadow); }
+.ios-section-title { margin: 0 0 6px 16px; font-size: 13px; color: var(--label2); text-transform: uppercase; letter-spacing: .02em; }
 
-/* 1. Prevent iOS Safari auto-zoom on input focus (requires font-size >= 16px) */
+/* Les cartes Tailwind de l'app prennent l'ombre douce en mode clair */
+.bg-dark-800.rounded-2xl { box-shadow: var(--card-shadow); }
+
+/* ── Fluidité ─────────────────────────────────────────────────────────── */
+button { transition: transform .12s ease, opacity .12s ease, background-color .2s ease; }
+button:active:not(:disabled) { transform: scale(0.97); opacity: .85; }
+
+@keyframes ios-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes ios-sheet { from { transform: translateY(40px); opacity: .4 } to { transform: none; opacity: 1 } }
+@keyframes ios-page { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+/* Fenêtres modales (fond + feuille qui monte) */
+div[style*="position: fixed"][style*="inset: 0"],
+.fixed.inset-0 { animation: ios-fade .2s ease-out; }
+div[style*="position: fixed"][style*="inset: 0"] > div:first-child,
+.fixed.inset-0 > div:first-child { animation: ios-sheet .32s cubic-bezier(.2,.9,.3,1); }
+.ios-page { animation: ios-page .28s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ── iOS ─────────────────────────────────────────────────────────────── */
+/* 1. Pas de zoom automatique de Safari au focus (police >= 16px) */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="search"],
-  input[type="url"],
-  textarea,
-  select {
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"],
+  input[type="tel"], input[type="search"], input[type="url"], textarea, select {
     font-size: 16px !important;
   }
 }
 
-/* 2. iOS autofill background fix (prevents white flash on dark inputs) */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px #0d0d1a inset !important;
-  -webkit-text-fill-color: #ffffff !important;
-  caret-color: #ffffff;
+/* 2. Fond des champs auto-remplis */
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus,
+textarea:-webkit-autofill, select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--fill) inset !important;
+  -webkit-text-fill-color: var(--label) !important;
+  caret-color: var(--label);
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* 3. Remove tap highlight flash on iOS (blue/grey flash on button tap) */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
+/* 3. Pas de flash au toucher */
+* { -webkit-tap-highlight-color: transparent; }
 
-/* 4. Prevent text selection on buttons (accidental double-tap select) */
-button {
-  -webkit-user-select: none;
-  user-select: none;
-}
+/* 4. Pas de sélection de texte accidentelle sur les boutons */
+button { -webkit-user-select: none; user-select: none; }

@@ -6,8 +6,8 @@ import { PageLayout, Card } from '../../components/Layout'
 import { CheckCircle } from 'lucide-react'
 
 const inputStyle = {
-  WebkitTextFillColor: 'white',
-  WebkitBoxShadow: '0 0 0px 1000px #1e1e2e inset',
+  WebkitTextFillColor: 'var(--label)',
+  WebkitBoxShadow: '0 0 0px 1000px var(--card) inset',
   colorScheme: 'dark',
 }
 
@@ -72,19 +72,19 @@ export default function WeeklyCheckin() {
     <PageLayout title="Bilan hebdomadaire" back="/client">
       <div className="p-4 pb-10 space-y-4">
         <Card className="p-4 space-y-4">
-          <div className="flex items-center justify-between"><h3 className="text-white text-sm font-semibold">Cette semaine</h3><span className="text-gray-500 text-xs">{weekLabel(weekStart)}</span></div>
+          <div className="flex items-center justify-between"><h3 className="text-label text-sm font-semibold">Cette semaine</h3><span className="text-gray-500 text-xs">{weekLabel(weekStart)}</span></div>
           {thisWeek && (<div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2"><CheckCircle size={14} className="text-green-400" /><p className="text-green-400 text-xs">Bilan déjà soumis — tu peux modifier</p></div>)}
           {RATINGS.map(r => (
             <div key={r.key} className="space-y-2">
-              <p className="text-white text-sm">{r.label}</p>
-              <div className="flex gap-1.5">{[1,2,3,4,5].map(n => (<button key={n} type="button" onClick={() => setForm(f => ({...f, [r.key]: n}))} className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all border ${form[r.key]===n?'bg-brand-600 border-brand-600 text-white':'bg-dark-900 border-white/10 text-gray-500'}`}>{n}</button>))}</div>
+              <p className="text-label text-sm">{r.label}</p>
+              <div className="flex gap-1.5">{[1,2,3,4,5].map(n => (<button key={n} type="button" onClick={() => setForm(f => ({...f, [r.key]: n}))} className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all border ${form[r.key]===n?'bg-brand-600 border-brand-600 text-white':'bg-dark-900 border-contrast/10 text-gray-500'}`}>{n}</button>))}</div>
               {form[r.key] > 0 && <p className="text-brand-400 text-xs text-center">{r.desc[form[r.key]-1]}</p>}
             </div>
           ))}
-          <textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))} placeholder="Commentaires libres..." rows={3} style={inputStyle} className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500 resize-none" />
+          <textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))} placeholder="Commentaires libres..." rows={3} style={inputStyle} className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500 resize-none" />
           <button onClick={handleSave} disabled={saving} className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2"><CheckCircle size={17} />{saving ? 'Enregistrement...' : thisWeek ? 'Mettre à jour' : 'Soumettre le bilan'}</button>
         </Card>
-        {history.filter(c => c.week_start !== weekStart).length > 0 && (<div className="space-y-2"><h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1">Historique</h3>{history.filter(c => c.week_start !== weekStart).map(c => (<Card key={c.id} className="p-3"><div className="flex items-center justify-between"><span className="text-white text-sm font-medium">{weekLabel(c.week_start)}</span>{avgScore(c) && <span className="bg-brand-600/20 border border-brand-500/30 text-brand-300 text-xs px-2 py-0.5 rounded-full">{avgScore(c)} / 5</span>}</div><div className="flex flex-wrap gap-1.5 mt-2">{RATINGS.map(r => c[r.key] ? (<span key={r.key} className="bg-dark-900 px-2 py-0.5 rounded-lg text-xs text-gray-400">{r.label.split(' ').slice(1).join(' ')}: <span className="text-white">{c[r.key]}/5</span></span>) : null)}</div>{c.notes && <p className="text-gray-500 text-xs mt-2 italic">"{c.notes}"</p>}</Card>))}</div>)}
+        {history.filter(c => c.week_start !== weekStart).length > 0 && (<div className="space-y-2"><h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1">Historique</h3>{history.filter(c => c.week_start !== weekStart).map(c => (<Card key={c.id} className="p-3"><div className="flex items-center justify-between"><span className="text-label text-sm font-medium">{weekLabel(c.week_start)}</span>{avgScore(c) && <span className="bg-brand-600/20 border border-brand-500/30 text-brand-300 text-xs px-2 py-0.5 rounded-full">{avgScore(c)} / 5</span>}</div><div className="flex flex-wrap gap-1.5 mt-2">{RATINGS.map(r => c[r.key] ? (<span key={r.key} className="bg-dark-900 px-2 py-0.5 rounded-lg text-xs text-gray-400">{r.label.split(' ').slice(1).join(' ')}: <span className="text-label">{c[r.key]}/5</span></span>) : null)}</div>{c.notes && <p className="text-gray-500 text-xs mt-2 italic">"{c.notes}"</p>}</Card>))}</div>)}
       </div>
     </PageLayout>
   )

@@ -65,22 +65,22 @@ export default function CoachCalendar() {
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]))
 
   return (
-    <div style={{minHeight:'100vh', background:'#0f0f1a', color:'white', paddingBottom:40}}>
-      <div style={{background:'#1e1e2e', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
-        <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'white', cursor:'pointer'}}><ArrowLeft size={20}/></button>
+    <div style={{minHeight:'100vh', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
+      <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
+        <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer'}}><ArrowLeft size={20}/></button>
         <h2 style={{margin:0, flex:1, fontSize:18}}>Calendrier</h2>
-        <span style={{fontSize:13, color:'#888'}}>{completions.length} séance{completions.length>1?'s':''} ce mois</span>
+        <span style={{fontSize:13, color:'var(--label2)'}}>{completions.length} séance{completions.length>1?'s':''} ce mois</span>
       </div>
 
-      <div style={{background:'#1e1e2e', margin:'12px 16px', borderRadius:16, padding:16}}>
+      <div style={{background:'var(--card)', margin:'12px 16px', borderRadius:16, padding:16}}>
         <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
-          <button onClick={prevMonth} style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:6}}><ChevronLeft size={20}/></button>
+          <button onClick={prevMonth} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:6}}><ChevronLeft size={20}/></button>
           <p style={{margin:0, fontWeight:700, fontSize:16}}>{MONTHS[month]} {year}</p>
-          <button onClick={nextMonth} style={{background:'none', border:'none', color:'white', cursor:'pointer', padding:6}}><ChevronRight size={20}/></button>
+          <button onClick={nextMonth} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:6}}><ChevronRight size={20}/></button>
         </div>
 
         <div style={{display:'grid', gridTemplateColumns:'repeat(7, 1fr)', gap:4, marginBottom:6}}>
-          {DAYS.map(d => <div key={d} style={{textAlign:'center', fontSize:11, color:'#666', fontWeight:600, padding:'2px 0'}}>{d}</div>)}
+          {DAYS.map(d => <div key={d} style={{textAlign:'center', fontSize:11, color:'var(--label3)', fontWeight:600, padding:'2px 0'}}>{d}</div>)}
         </div>
 
         <div style={{display:'grid', gridTemplateColumns:'repeat(7, 1fr)', gap:4}}>
@@ -96,7 +96,7 @@ export default function CoachCalendar() {
                   borderRadius:10, border: todayFlag ? '2px solid #6366f1' : '2px solid transparent',
                   background: selected ? '#6366f133' : count > 0 ? '#1a2a3a' : 'transparent',
                   cursor:'pointer', position:'relative'}}>
-                <span style={{fontSize:13, fontWeight: todayFlag ? 700 : 400, color: todayFlag ? '#6366f1' : count > 0 ? 'white' : '#555'}}>{day}</span>
+                <span style={{fontSize:13, fontWeight: todayFlag ? 700 : 400, color: todayFlag ? '#6366f1' : count > 0 ? 'white' : 'var(--label3)'}}>{day}</span>
                 {count > 0 && (
                   <div style={{display:'flex', gap:2, marginTop:2}}>
                     {Array.from({length: Math.min(count, 3)}).map((_, j) => (
@@ -113,18 +113,18 @@ export default function CoachCalendar() {
 
       {selectedDay && (
         <div style={{padding:'0 16px'}}>
-          <p style={{margin:'0 0 10px', color:'#888', fontSize:13}}>{selectedComps.length > 0 ? selectedComps.length + ' séance' + (selectedComps.length>1?'s':'') + ' le ' + selectedDay + ' ' + MONTHS[month] : 'Aucune séance ce jour'}</p>
+          <p style={{margin:'0 0 10px', color:'var(--label2)', fontSize:13}}>{selectedComps.length > 0 ? selectedComps.length + ' séance' + (selectedComps.length>1?'s':'') + ' le ' + selectedDay + ' ' + MONTHS[month] : 'Aucune séance ce jour'}</p>
           {selectedComps.map(comp => {
             const cl = clientMap[comp.client_id]
             return (
               <div key={comp.id} onClick={() => navigate('/coach/clients/' + comp.client_id)}
-                style={{background:'#1e1e2e', borderRadius:12, padding:'12px 14px', marginBottom:10, cursor:'pointer', display:'flex', gap:10, alignItems:'center'}}>
+                style={{background:'var(--card)', borderRadius:12, padding:'12px 14px', marginBottom:10, cursor:'pointer', display:'flex', gap:10, alignItems:'center'}}>
                 <div style={{width:36, height:36, borderRadius:'50%', background:'#6366f133', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
                   <span style={{color:'#6366f1', fontWeight:700}}>{cl?.name?.[0] || '?'}</span>
                 </div>
                 <div style={{flex:1}}>
                   <p style={{margin:0, fontWeight:600, fontSize:14}}>{cl?.name || 'Client'}</p>
-                  <p style={{margin:0, fontSize:12, color:'#888'}}>{comp.program_sessions?.name || 'Séance libre'} {comp.rpe_session ? '· RPE ' + comp.rpe_session : ''}</p>
+                  <p style={{margin:0, fontSize:12, color:'var(--label2)'}}>{comp.program_sessions?.name || 'Séance libre'} {comp.rpe_session ? '· RPE ' + comp.rpe_session : ''}</p>
                 </div>
               </div>
             )
@@ -135,14 +135,14 @@ export default function CoachCalendar() {
       {!selectedDay && (
         <div style={{padding:'0 16px'}}>
           <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:10}}>
-            <Users size={14} color="#888"/>
-            <p style={{margin:0, fontSize:13, color:'#888'}}>Activité de tous les clients ce mois</p>
+            <Users size={14} color="var(--label2)"/>
+            <p style={{margin:0, fontSize:13, color:'var(--label2)'}}>Activité de tous les clients ce mois</p>
           </div>
           {clients.filter(c => completions.some(cp => cp.client_id === c.id)).map(c => {
             const count = completions.filter(cp => cp.client_id === c.id).length
             return (
               <div key={c.id} onClick={() => navigate('/coach/clients/' + c.id)}
-                style={{background:'#1e1e2e', borderRadius:12, padding:'10px 14px', marginBottom:8, display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}>
+                style={{background:'var(--card)', borderRadius:12, padding:'10px 14px', marginBottom:8, display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}>
                 <div style={{width:32, height:32, borderRadius:'50%', background:'#6366f133', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
                   <span style={{color:'#6366f1', fontWeight:700, fontSize:13}}>{c.name[0]}</span>
                 </div>

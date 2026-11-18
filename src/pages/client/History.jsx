@@ -22,7 +22,7 @@ export default function SessionHistory() {
       <div className="p-4 space-y-6">
         {sessions.map(s => (
           <Card key={s.id} className="p-4">
-            <p className="text-white">{s.day_title || 'Séance'}</p>
+            <p className="text-label">{s.day_title || 'Séance'}</p>
             <p className="text-gray-500">{s.session_date}</p>
           </Card>
         ))}

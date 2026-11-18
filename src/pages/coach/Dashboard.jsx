@@ -68,7 +68,7 @@ export default function CoachDashboard() {
     return 'inactive'
   }
 
-  const statusAccent = { 'done-today': '#4ade80', 'inactive': '#fb923c', 'done': '#818cf8', 'no-session': '#2a2a3e' }
+  const statusAccent = { 'done-today': '#4ade80', 'inactive': '#fb923c', 'done': '#818cf8', 'no-session': 'var(--fill)' }
   const dayStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
   const firstName = profile?.name?.split(' ')[0] || ''
 
@@ -87,9 +87,9 @@ export default function CoachDashboard() {
       <div style={{ padding:'16px 16px 24px', display:'flex', flexDirection:'column', gap:12 }}>
 
         {/* Greeting */}
-        <div style={{ background:'linear-gradient(135deg,#1a1a35,#1e1a3a)', borderRadius:18, padding:'16px 18px' }}>
-          <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.38)', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.07em' }}>{dayStr}</p>
-          <p style={{ margin:'5px 0 0', fontSize:20, fontWeight:700, color:'white' }}>Bonjour {firstName} {'\u{1F44B}'}</p>
+        <div>
+          <p style={{ margin:0, fontSize:13, color:'var(--label2)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.04em' }}>{dayStr}</p>
+          <p style={{ margin:'2px 0 0', fontSize:24, fontWeight:700, letterSpacing:'-0.02em', color:'var(--label)' }}>Bonjour {firstName} {'\u{1F44B}'}</p>
         </div>
 
         <CoachAlerts clients={clients} />
@@ -99,14 +99,14 @@ export default function CoachDashboard() {
             style={{ width:'100%', display:'flex', alignItems:'center', gap:12, background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', borderRadius:16, padding:'14px 16px', cursor:'pointer', textAlign:'left' }}>
             <Bell size={18} color="#818cf8" style={{ flexShrink:0 }} />
             <div>
-              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>Activer les notifications push</p>
-              <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.38)', marginTop:2 }}>Sois averti dès qu'un athlète termine sa séance</p>
+              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--label)' }}>Activer les notifications push</p>
+              <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.38)', marginTop:2 }}>Sois averti dès qu'un athlète termine sa séance</p>
             </div>
           </button>
         )}
 
         {pushEnabled && (
-          <div style={{ display:'flex', alignItems:'center', gap:8, color:'#4ade80', fontSize:12, paddingLeft:2 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8, color:'var(--green-text)', fontSize:12, paddingLeft:2 }}>
             <BellOff size={14} />
             <span>Notifications push activées</span>
           </div>
@@ -122,27 +122,27 @@ export default function CoachDashboard() {
             <div key={label} style={{ background: bg, border:'1px solid '+color+'25', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
               <Icon size={16} color={color} style={{ marginBottom:4 }} />
               <p style={{ margin:0, fontSize:22, fontWeight:800, color }}>{value}</p>
-              <p style={{ margin:0, fontSize:10, color:'rgba(255,255,255,0.38)', lineHeight:1.3, marginTop:2 }}>{label}</p>
+              <p style={{ margin:0, fontSize:10, color:'rgba(var(--contrast),0.38)', lineHeight:1.3, marginTop:2 }}>{label}</p>
             </div>
           ))}
         </div>
 
         {recentActivity.length > 0 && (
-          <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden' }}>
+          <div style={{ background:'var(--card)', border:'1px solid rgba(var(--contrast),0.07)', borderRadius:16, overflow:'hidden' }}>
             <div style={{ padding:'12px 16px 8px', display:'flex', alignItems:'center', gap:8 }}>
               <Activity size={14} color="#818cf8" />
-              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white' }}>Activité récente</p>
+              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--label)' }}>Activité récente</p>
             </div>
             {recentActivity.slice(0, 4).map((s, i) => (
-              <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 16px', borderTop: i===0 ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
+              <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 16px', borderTop: i===0 ? 'none' : '1px solid rgba(var(--contrast),0.05)' }}>
                 <div style={{ width:30, height:30, background:'rgba(74,222,128,0.12)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <CheckCircle size={14} color="#4ade80" />
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.client?.name}</p>
-                  <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.program_sessions?.name || 'S\u00e9ance libre'}{s.rpe_session ? ' \u00b7 RPE ' + s.rpe_session : ''}</p>
+                  <p style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--label)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.client?.name}</p>
+                  <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.program_sessions?.name || 'S\u00e9ance libre'}{s.rpe_session ? ' \u00b7 RPE ' + s.rpe_session : ''}</p>
                 </div>
-                <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.28)', flexShrink:0 }}>{formatTime(s.created_at)}</p>
+                <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.28)', flexShrink:0 }}>{formatTime(s.created_at)}</p>
               </div>
             ))}
           </div>
@@ -153,8 +153,8 @@ export default function CoachDashboard() {
             {sports.map(s => (
               <button key={s} onClick={() => setFilter(s)}
                 style={{ flexShrink:0, padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', transition:'all 0.15s',
-                  background: filter === s ? '#6366f1' : 'rgba(255,255,255,0.07)',
-                  color: filter === s ? 'white' : 'rgba(255,255,255,0.42)',
+                  background: filter === s ? '#6366f1' : 'rgba(var(--contrast),0.07)',
+                  color: filter === s ? 'white' : 'rgba(var(--contrast),0.42)',
                 }}>
                 {s === 'all' ? 'Tous' : s}
               </button>
@@ -163,18 +163,18 @@ export default function CoachDashboard() {
         )}
 
         <div>
-          <p style={{ margin:'0 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>
+          <p style={{ margin:'0 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(var(--contrast),0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>
             Mes clients ({filtered.length})
           </p>
 
           {loading ? (
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {[1,2,3].map(i => <div key={i} style={{ height:68, background:'rgba(255,255,255,0.04)', borderRadius:16 }} />)}
+              {[1,2,3].map(i => <div key={i} style={{ height:68, background:'rgba(var(--contrast),0.04)', borderRadius:16 }} />)}
             </div>
           ) : filtered.length === 0 ? (
-            <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:32, textAlign:'center' }}>
-              <p style={{ margin:'0 0 8px', fontSize:13, color:'rgba(255,255,255,0.38)' }}>Aucun client pour l'instant.</p>
-              <button onClick={() => navigate('/coach/add-client')} style={{ background:'none', border:'none', cursor:'pointer', color:'#818cf8', fontSize:13, fontWeight:600 }}>
+            <div style={{ background:'var(--card)', border:'1px solid rgba(var(--contrast),0.07)', borderRadius:16, padding:32, textAlign:'center' }}>
+              <p style={{ margin:'0 0 8px', fontSize:13, color:'rgba(var(--contrast),0.38)' }}>Aucun client pour l'instant.</p>
+              <button onClick={() => navigate('/coach/add-client')} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--accent-text)', fontSize:13, fontWeight:600 }}>
                 + Ajouter un premier client
               </button>
             </div>
@@ -184,7 +184,7 @@ export default function CoachDashboard() {
                 const status = getClientStatus(client)
                 return (
                   <button key={client.id} onClick={() => navigate(`/coach/client/${client.id}`)}
-                    style={{ width:'100%', display:'flex', alignItems:'stretch', background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left' }}>
+                    style={{ width:'100%', display:'flex', alignItems:'stretch', background:'var(--card)', border:'1px solid rgba(var(--contrast),0.07)', borderRadius:16, overflow:'hidden', cursor:'pointer', textAlign:'left' }}>
                     <div style={{ width:3, background: statusAccent[status], flexShrink:0 }} />
                     <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', flex:1 }}>
                       <div style={{ width:42, height:42, background:'rgba(99,102,241,0.1)', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
@@ -192,14 +192,14 @@ export default function CoachDashboard() {
                       </div>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
-                          <p style={{ margin:0, fontSize:14, fontWeight:600, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client.name}</p>
+                          <p style={{ margin:0, fontSize:14, fontWeight:600, color:'var(--label)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client.name}</p>
                           <StatusBadge status={status} />
                         </div>
-                        <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.32)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.32)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                           {[client.sport, client.position].filter(Boolean).join(' \u00b7 ')}
                         </p>
                       </div>
-                      <ChevronRight size={14} color="rgba(255,255,255,0.18)" style={{ flexShrink:0 }} />
+                      <ChevronRight size={14} color="rgba(var(--contrast),0.18)" style={{ flexShrink:0 }} />
                     </div>
                   </button>
                 )
@@ -210,7 +210,7 @@ export default function CoachDashboard() {
 
         {/* Quick tools */}
         <div>
-          <p style={{ margin:'4px 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>Outils</p>
+          <p style={{ margin:'4px 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(var(--contrast),0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>Outils</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             {[
               { icon: <BookOpen size={18}/>, label: 'Biblioth\u00e8que', path: '/coach/exercises', color: '#f59e0b' },
@@ -218,11 +218,11 @@ export default function CoachDashboard() {
               { icon: <Apple size={18}/>, label: 'Nutrition', path: '/coach/nutrition', color: '#22c55e' },
             ].map(tool => (
               <button key={tool.path} onClick={() => navigate(tool.path)}
-                style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', textAlign:'left' }}>
+                style={{ background:'var(--card)', border:'1px solid rgba(var(--contrast),0.07)', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', textAlign:'left' }}>
                 <div style={{ width:36, height:36, borderRadius:10, background:tool.color+'22', display:'flex', alignItems:'center', justifyContent:'center', color:tool.color, flexShrink:0 }}>
                   {tool.icon}
                 </div>
-                <span style={{ fontSize:13, fontWeight:600, color:'white' }}>{tool.label}</span>
+                <span style={{ fontSize:13, fontWeight:600, color:'var(--label)' }}>{tool.label}</span>
               </button>
             ))}
           </div>
