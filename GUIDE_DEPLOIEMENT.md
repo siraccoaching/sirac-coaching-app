@@ -1,121 +1,132 @@
 # 🚀 Guide de déploiement – Sirac Coaching App
 
 ## Ce que tu vas avoir
-Une application installable sur ton téléphone (comme une vraie app)
-avec notifications push en temps réel quand tes athlètes terminent leur séance.
+Une application installable sur téléphone (comme une vraie app) pour toi et tes clients :
+
+- **Coach** : clients, programmes (blocs ou simples), bibliothèque de **876 exercices avec démonstrations**
+  (dont 191 traduits en français avec consignes), modèles de programmes, plans nutritionnels, suivi
+  des séances / mensurations / bilans / **alimentation** de chaque client, messagerie, agenda.
+- **Client** : programme du jour, saisie des séances (charges, reps, RPE, minuteur de récup, records),
+  démo de chaque exercice, séance libre, **journal alimentaire avec compteur de calories**
+  (recherche d'aliments, **scan de code-barre**, aliments récents, plan du coach, « reprendre hier »),
+  mensurations + photos, bilan hebdo, messages.
 
 ---
 
-## Étape 1 – Créer ton compte Supabase (10 min)
+## Étape 1 – Créer ton projet Supabase (10 min)
 
-1. Va sur **https://supabase.com** → "Start for free"
-2. Crée un compte avec ton email
-3. Clique **"New Project"** → Nomme le "sirac-coaching"
-4. Choisis un mot de passe fort pour la BDD → **Garde-le précieusement**
-5. Région → Europe (West)
-6. Attends ~2 minutes que le projet se crée
+1. Va sur **https://supabase.com** → « Start for free », crée un compte.
+2. **New Project** → nom « sirac-coaching », mot de passe fort (garde-le), région **Europe (West)**.
+3. Attends ~2 minutes.
 
-### Configurer la base de données
-1. Dans Supabase → **SQL Editor** → **New Query**
-2. Copie tout le contenu du fichier `supabase/schema.sql`
-3. Colle-le et clique **Run**
+### Créer la base de données
+Dans Supabase → **SQL Editor** → **New query**, exécute **dans cet ordre** le contenu de ces 6 fichiers
+(ouvrir le fichier → tout copier → coller → **Run**, puis nouvelle requête pour le suivant) :
+
+1. `supabase/migrations/20261118000000_schema.sql` – tables, sécurité, stockage photos
+2. `supabase/migrations/20261118000100_seed_exercises_1.sql` – exercices (partie 1/3)
+3. `supabase/migrations/20261118000200_seed_exercises_2.sql` – exercices (partie 2/3)
+4. `supabase/migrations/20261118000300_seed_exercises_3.sql` – exercices (partie 3/3)
+5. `supabase/migrations/20261118000400_seed_foods.sql` – 120 aliments de base
+6. `supabase/migrations/20261118000500_hardening.sql` – durcissement de la sécurité
+
+> Alternative en ligne de commande (plus simple pour le gros fichier) :
+> ```bash
+> npx supabase login
+> npx supabase link --project-ref <ref-du-projet>
+> npx supabase db push
+> ```
 
 ### Récupérer tes clés API
-Dans Supabase → **Project Settings** → **API** :
-- Copie **Project URL** → c'est `VITE_SUPABASE_URL`
-- Copie **anon / public key** → c'est `VITE_SUPABASE_ANON_KEY`
+Supabase → **Project Settings** → **API** :
+- **Project URL** → `VITE_SUPABASE_URL`
+- **anon / public key** → `VITE_SUPABASE_ANON_KEY`
+- **service_role key** → `SUPABASE_SERVICE_ROLE_KEY` (secrète : uniquement sur Vercel, jamais dans le code)
+
+### Réglage de l'URL du site
+Supabase → **Authentication** → **URL Configuration** → **Site URL** : mets l'adresse Vercel de l'app
+(ex. `https://sirac-coaching.vercel.app`) pour que les liens des emails pointent au bon endroit.
 
 ---
 
 ## Étape 2 – Configurer l'application (5 min)
 
-1. Dans le dossier de l'app, copie le fichier d'exemple :
-   ```
-   cp .env.example .env
-   ```
-2. Ouvre `.env` et remplis avec tes clés Supabase :
-   ```
-   VITE_SUPABASE_URL=https://xxxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJhbGci...
-   ```
+```bash
+cp .env.example .env
+```
+Ouvre `.env` et remplis `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`.
 
 ---
 
 ## Étape 3 – Créer ton compte coach
 
-1. Dans Supabase → **Authentication** → **Users** → **Invite user**
-2. Entre ton email : sirac.coaching@gmail.com
-3. Tu recevras un email pour définir ton mot de passe
-4. Dans **SQL Editor**, execute :
+1. Supabase → **Authentication** → **Users** → **Add user** → ton email + un mot de passe
+   (coche « Auto Confirm User »).
+2. **SQL Editor** :
    ```sql
-   insert into public.profiles (id, name, email, role)
-   select id, 'Sirac', email, 'coach'
-   from auth.users
-   where email = 'sirac.coaching@gmail.com';
+   update public.profiles
+   set role = 'coach', name = 'Sirac', invite_code = 'SIRAC'
+   where email = 'TON_EMAIL_ICI';
    ```
+   (pour des raisons de sécurité, personne ne peut devenir coach depuis l'app : c'est la seule façon)
 
 ---
 
 ## Étape 4 – Déployer sur Vercel (gratuit, 5 min)
 
-### Installer Node.js (si pas déjà fait)
-Télécharge sur https://nodejs.org → version LTS
-
-### Déployer
 ```bash
-# Dans le dossier coaching-app :
 npm install
 npm run build
-
-# Installer Vercel CLI
 npm install -g vercel
-
-# Déployer (suit les instructions)
 vercel --prod
 ```
 
-Tu obtiendras une URL du type : `https://sirac-coaching.vercel.app`
+Dans Vercel → ton projet → **Settings** → **Environment Variables** :
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (sert à l'ajout de client par email depuis l'app)
 
-### Ajouter les variables d'environnement sur Vercel
-Dans le dashboard Vercel → ton projet → **Settings** → **Environment Variables** :
-- Ajoute `VITE_SUPABASE_URL`
-- Ajoute `VITE_SUPABASE_ANON_KEY`
-
----
-
-## Étape 5 – Activer les notifications push (optionnel mais recommandé)
-
-Les notifications push nécessitent des **clés VAPID**.
-
-1. Génère les clés sur https://vapidkeys.com
-2. Ajoute `VITE_VAPID_PUBLIC_KEY` dans ton `.env` et sur Vercel
-3. La clé privée sera utilisée dans une Supabase Edge Function (étape avancée)
-
-**Pour l'instant**, les notifications fonctionnent quand l'app est ouverte dans le navigateur.
+Redéploie après avoir ajouté les variables.
 
 ---
 
-## Étape 6 – Installer l'app sur ton téléphone
+## Étape 5 – Ajouter tes clients
 
-### iPhone (Safari)
-1. Ouvre ton URL sur Safari
-2. Icône **Partager** (carré avec flèche) → **"Sur l'écran d'accueil"**
+Deux possibilités :
 
-### Android (Chrome)
-1. Ouvre ton URL sur Chrome
-2. Menu **⋮** → **"Ajouter à l'écran d'accueil"**
+- **Lien d'invitation** (recommandé) : Réglages → génère ton code → copie le lien
+  `https://ton-app/join?code=XXXX` et envoie-le. Le client crée son compte et est rattaché automatiquement.
+- **Par email** : Tableau de bord → **Ajouter** → le client reçoit un email pour choisir son mot de passe.
 
 ---
 
-## Ajouter un client
+## Étape 6 – Installer l'app sur téléphone
 
-1. Connecte-toi avec ton compte coach
-2. Dashboard → **"Ajouter"** en haut à droite
-3. Remplis les infos du client (email + mot de passe temporaire)
-4. Le client se connecte avec ces identifiants sur la même URL
+- **iPhone (Safari)** : ouvre l'URL → **Partager** → « Sur l'écran d'accueil ».
+- **Android (Chrome)** : menu **⋮** → « Ajouter à l'écran d'accueil ».
+
+Le scan de code-barre utilise la caméra : il faut ouvrir l'app en **https** (c'est le cas sur Vercel).
 
 ---
 
-## Support
+## Bon à savoir
 
-Des questions ? Reviens vers moi dans Cowork et je t'aide à déployer étape par étape.
+- **Démos d'exercices** : photos début / fin du mouvement animées (base libre de droits *free-exercise-db*,
+  domaine public). Tu peux **personnaliser** n'importe quel exercice (bouton ✏️) pour mettre **ta propre
+  vidéo** YouTube / Vimeo / .mp4 et tes consignes : tes clients verront ta version.
+- **Calories** : aliments de base intégrés + produits du commerce via **Open Food Facts** (gratuit).
+  Si tu n'as pas fixé d'objectif dans un plan nutritionnel, l'app estime les besoins du client
+  à partir de son profil (taille, poids, âge, sexe, activité).
+- **Notifications push** (optionnel) : génère des clés sur https://vapidkeys.com et ajoute
+  `VITE_VAPID_PUBLIC_KEY`. Pour l'instant les alertes fonctionnent quand l'app est ouverte.
+
+## Développement local (optionnel)
+
+```bash
+npx supabase start          # base locale (Docker requis), applique les migrations
+cp .env.example .env.local  # puis URL http://127.0.0.1:54321 + clé anon affichée
+npm run dev
+```
+
+La base d'exercices est régénérable avec `python3 scripts/build_exercise_seed.py exercises.json`
+(fichier `dist/exercises.json` du dépôt free-exercise-db).

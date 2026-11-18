@@ -18,8 +18,8 @@ export default function CoachDashboard() {
     checkPushStatus()
     fetchRecentActivity()
     const channel = supabase.channel('coach-notifications')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `status=eq.completed` }, payload => {
-        triggerNotification(payload.new)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'session_completions' }, () => {
+        triggerNotification()
         fetchRecentActivity()
       })
       .subscribe()
@@ -38,18 +38,17 @@ export default function CoachDashboard() {
 
   async function fetchRecentActivity() {
     const { data } = await supabase
-      .from('sessions')
-      .select('*, profiles!sessions_client_id_fkey(name, sport, position)')
-      .eq('status', 'completed')
-      .order('completed_at', { ascending: false })
+      .from('session_completions')
+      .select('id, created_at, rpe_session, client:profiles!session_completions_client_id_fkey(name, sport, position), program_sessions(name)')
+      .order('created_at', { ascending: false })
       .limit(10)
     setRecentActivity(data || [])
   }
 
-  function triggerNotification(session) {
-    if (Notification.permission === 'granted') {
+  function triggerNotification() {
+    if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('S\u00e9ance compl\u00e9t\u00e9e !', {
-        body: `Un athl\u00e8te vient de terminer sa s\u00e9ance - ${session.day_title || 'Entra\u00eenement'}`,
+        body: 'Un de tes clients vient de terminer sa s\u00e9ance',
         icon: '/pwa-192x192.png', badge: '/pwa-192x192.png',
       })
     }
@@ -57,23 +56,19 @@ export default function CoachDashboard() {
 
   const sports = ['all', ...new Set(clients.map(c => c.sport).filter(Boolean))]
   const filtered = filter === 'all' ? clients : clients.filter(c => c.sport === filter)
-  const activeToday = clients.filter(c => c.sessions?.some(s => {
-    const today = new Date().toISOString().split('T')[0]
-    return s.session_date === today && s.status === 'completed'
-  })).length
+  const lastCompletion = c => (c.session_completions || []).reduce((m, s) => (!m || s.created_at > m ? s.created_at : m), null)
+  const activeToday = clients.filter(c => { const l = lastCompletion(c); return l && new Date(l).toDateString() === new Date().toDateString() }).length
 
   function getClientStatus(client) {
-    if (!client.sessions?.length) return 'no-session'
-    const last = [...client.sessions].sort((a,b) => new Date(b.created_at)-new Date(a.created_at))[0]
-    if (last.status === 'completed') {
-      const hours = (Date.now() - new Date(last.completed_at)) / 3600000
-      if (hours < 24) return 'done-today'
-      return 'done'
-    }
-    return 'in-progress'
+    const last = lastCompletion(client)
+    if (!last) return 'no-session'
+    const days = (Date.now() - new Date(last)) / 86400000
+    if (days < 1) return 'done-today'
+    if (days < 7) return 'done'
+    return 'inactive'
   }
 
-  const statusAccent = { 'done-today': '#4ade80', 'in-progress': '#fb923c', 'done': '#818cf8', 'no-session': '#2a2a3e' }
+  const statusAccent = { 'done-today': '#4ade80', 'inactive': '#fb923c', 'done': '#818cf8', 'no-session': '#2a2a3e' }
   const dayStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
   const firstName = profile?.name?.split(' ')[0] || ''
 
@@ -122,7 +117,7 @@ export default function CoachDashboard() {
           {[
             { icon: Users, label: 'Clients', value: clients.length, color: '#818cf8', bg: 'rgba(99,102,241,0.12)' },
             { icon: CheckCircle, label: 'Auj. \u2713', value: activeToday, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
-            { icon: Activity, label: 'En cours', value: clients.filter(c => getClientStatus(c) === 'in-progress').length, color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
+            { icon: Activity, label: 'Actifs 7 j', value: clients.filter(c => ['done-today', 'done'].includes(getClientStatus(c))).length, color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
           ].map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} style={{ background: bg, border:'1px solid '+color+'25', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
               <Icon size={16} color={color} style={{ marginBottom:4 }} />
@@ -144,10 +139,10 @@ export default function CoachDashboard() {
                   <CheckCircle size={14} color="#4ade80" />
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.profiles?.name}</p>
-                  <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.day_title || 'S\u00e9ance'}</p>
+                  <p style={{ margin:0, fontSize:13, fontWeight:600, color:'white', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.client?.name}</p>
+                  <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.program_sessions?.name || 'S\u00e9ance libre'}{s.rpe_session ? ' \u00b7 RPE ' + s.rpe_session : ''}</p>
                 </div>
-                <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.28)', flexShrink:0 }}>{formatTime(s.completed_at)}</p>
+                <p style={{ margin:0, fontSize:11, color:'rgba(255,255,255,0.28)', flexShrink:0 }}>{formatTime(s.created_at)}</p>
               </div>
             ))}
           </div>
@@ -241,8 +236,8 @@ export default function CoachDashboard() {
 function StatusBadge({ status }) {
   const map = {
     'done-today': { color: 'green', label: "Aujourd'hui" },
-    'in-progress': { color: 'orange', label: 'En cours' },
-    'done': { color: 'blue', label: 'Compl\u00e9t\u00e9' },
+    'inactive': { color: 'orange', label: 'Inactif +7 j' },
+    'done': { color: 'blue', label: 'Actif' },
     'no-session': { color: 'gray', label: 'En attente' },
   }
   const { color, label } = map[status] || map['no-session']

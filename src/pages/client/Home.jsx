@@ -39,7 +39,7 @@ export default function ClientHome() {
 
   async function loadCompletions() {
     const { data: comps } = await supabase.from('session_completions')
-      .select('id, created_at, program_sessions(name), exercise_logs(exercise_id, set_data, exercise:program_exercises(name))')
+      .select('id, created_at, program_sessions(name), exercise_logs(exercise_id, exercise_name, set_data, exercise:program_exercises(name))')
       .eq('client_id', profile.id).order('created_at', { ascending: false })
     if (!comps?.length) return
     setTotalSessions(comps.length)
@@ -51,7 +51,7 @@ export default function ClientHome() {
     const exMaxes = {}
     for (const comp of [...comps].reverse()) {
       for (const log of comp.exercise_logs || []) {
-        const name = log.exercise?.name
+        const name = log.exercise?.name || log.exercise_name
         if (!name) continue
         const sets = (log.set_data || []).filter(s => parseFloat(s.load) > 0)
         if (!sets.length) continue
@@ -79,6 +79,14 @@ export default function ClientHome() {
   return (
     <PageLayout title={"Bonjour \u{1F44B} " + (profile?.name?.split(' ')[0] || '')} subtitle="Ton espace entraînement">
       <div style={{ padding:'16px 16px 24px', display:'flex', flexDirection:'column', gap:12 }}>
+
+        {profile && !profile.onboarding_done && (
+          <button onClick={() => navigate('/client/onboarding')}
+            style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.35)', borderRadius:14, padding:'12px 14px', textAlign:'left', cursor:'pointer' }}>
+            <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#fbbf24' }}>Complète ton profil sportif</p>
+            <p style={{ margin:'2px 0 0', fontSize:11, color:'rgba(255,255,255,0.5)' }}>Objectifs, niveau, blessures : ton coach adapte ton programme.</p>
+          </button>
+        )}
 
         {/* Stats bar */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
@@ -115,7 +123,7 @@ export default function ClientHome() {
           <div style={{ background:'#15152a', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'18px 20px', textAlign:'center', cursor:'pointer' }}
             onClick={() => navigate('/client/program')}>
             <p style={{ margin:'0 0 4px', fontSize:15, color:'rgba(255,255,255,0.38)' }}>Aucun programme actif</p>
-            <p style={{ margin:0, fontSize:12, color:'#818cf8' }}>Voir mes programmes â</p>
+            <p style={{ margin:0, fontSize:12, color:'#818cf8' }}>Voir mes programmes →</p>
           </div>
         )}
 

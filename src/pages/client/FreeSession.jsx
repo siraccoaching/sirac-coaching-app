@@ -3,35 +3,22 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout } from '../../components/Layout'
-import { Plus, Trash2, Check, Search } from 'lucide-react'
+import { Plus, Trash2, Check, Info } from 'lucide-react'
+import { ExercisePicker, ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
 
 export default function FreeSession() {
   const { profile } = useAuth()
   const navigate = useNavigate()
-  const [exercises, setExercises] = useState([])
-  const [search, setSearch] = useState('')
   const [selectedExercises, setSelectedExercises] = useState([])
   const [showPicker, setShowPicker] = useState(false)
   const [saving, setSaving] = useState(false)
   const [sessionNotes, setSessionNotes] = useState('')
   const [done, setDone] = useState(false)
-
-  useEffect(() => {
-    loadExercises()
-  }, [profile])
-
-  async function loadExercises() {
-    const { data } = await supabase
-      .from('exercises')
-      .select('id, name, category, muscles')
-      .order('name')
-    setExercises(data || [])
-  }
+  const [demo, setDemo] = useState(null)
 
   function addExercise(ex) {
-    setSelectedExercises(prev => [...prev, { id: ex.id, name: ex.name, sets: [{ reps: '', load: '', rpe: '' }] }])
+    setSelectedExercises(prev => [...prev, { id: ex.id, name: ex.name, images: ex.images, video_url: ex.video_url, sets: [{ reps: '', load: '', rpe: '' }] }])
     setShowPicker(false)
-    setSearch('')
   }
 
   function removeExercise(idx) {
@@ -77,17 +64,13 @@ export default function FreeSession() {
     const logs = selectedExercises.map(ex => ({
       completion_id: comp.id,
       exercise_name: ex.name,
+      library_exercise_id: ex.id || null,
       set_data: ex.sets.map(s => ({ reps: s.reps, load: s.load, rpe: s.rpe, _done: true }))
     }))
     await supabase.from('exercise_logs').insert(logs)
     setDone(true)
     setTimeout(() => navigate('/client'), 1500)
   }
-
-  const filtered = exercises.filter(e =>
-    e.name.toLowerCase().includes(search.toLowerCase()) ||
-    (e.category || '').toLowerCase().includes(search.toLowerCase())
-  )
 
   if (done) return (
     <div style={{ minHeight: '100vh', background: '#0f0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
@@ -111,7 +94,11 @@ export default function FreeSession() {
           selectedExercises.map((ex, exIdx) => (
             <div key={exIdx} style={{ background: '#1e1e2e', borderRadius: 16, overflow: 'hidden' }}>
               <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a3e' }}>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#a78bfa' }}>{ex.name}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  {ex.images?.length > 0 && <ExerciseThumb exercise={ex} size={36} />}
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#a78bfa' }}>{ex.name}</p>
+                  {ex.id && <button onClick={() => setDemo(ex)} aria-label="Voir la démo" style={{ background: 'none', border: 'none', color: '#818cf8', cursor: 'pointer', padding: 2, display: 'flex' }}><Info size={15} /></button>}
+                </div>
                 <button onClick={() => removeExercise(exIdx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}>
                   <Trash2 size={15} />
                 </button>
@@ -163,47 +150,8 @@ export default function FreeSession() {
       </div>
     </PageLayout>
 
-    {showPicker && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }}
-          onClick={() => setShowPicker(false)}>
-          <div style={{ width: '100%', background: '#1e1e2e', borderRadius: '20px 20px 0 0', maxHeight: '70vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #2a2a3e' }}>
-              <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 16, color: 'white' }}>Choisir un exercice</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#12121f', borderRadius: 10, padding: '8px 12px' }}>
-                <Search size={15} color="#555" />
-                <input value={search} onChange={e => setSearch(e.target.value)}
-                  placeholder="Rechercher..."
-                  style={{ background: 'none', border: 'none', color: 'white', fontSize: 14, outline: 'none', flex: 1 }} />
-              </div>
-            </div>
-            <div style={{ overflowY: 'auto', padding: '8px 12px 24px' }}>
-              {filtered.length === 0 ? (
-                search.trim() ? (
-                  <button onClick={() => addExercise({ id: null, name: search.trim() })}
-                    style={{ width: '100%', background: 'none', border: '1px dashed #6366f1', borderRadius: 10, padding: '12px 16px', color: '#6366f1', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 8 }}>
-                    <Plus size={16} />
-                    Ajouter "{search.trim()}"
-                  </button>
-                ) : (
-                  <p style={{ color: '#555', textAlign: 'center', padding: '24px 0', fontSize: 14 }}>Tapez le nom d'un exercice</p>
-                )
-              ) : (
-                filtered.map(ex => (
-                  <button key={ex.id} onClick={() => addExercise(ex)}
-                    style={{ width: '100%', background: 'none', border: 'none', padding: '11px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', borderBottom: '1px solid #2a2a3e' }}>
-                    <div style={{ textAlign: 'left' }}>
-                      <p style={{ margin: 0, color: 'white', fontSize: 14, fontWeight: 500 }}>{ex.name}</p>
-                      {ex.category && <p style={{ margin: 0, fontSize: 11, color: '#555' }}>{ex.category}</p>}
-                    </div>
-                    <Plus size={16} color="#6366f1" />
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+    {showPicker && <ExercisePicker onPick={addExercise} onClose={() => setShowPicker(false)} />}
+    {demo && <ExerciseDetailModal exercise={demo} onClose={() => setDemo(null)} />}
     </>
   )
 }

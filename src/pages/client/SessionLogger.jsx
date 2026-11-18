@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card } from '../../components/Layout'
-import { Dumbbell, Clock, Plus, Trash2, CheckCircle, ChevronDown, ChevronUp, ExternalLink, X, History } from 'lucide-react'
+import { Dumbbell, Clock, Plus, Trash2, CheckCircle, ChevronDown, ChevronUp, X, History, Info } from 'lucide-react'
+import { ExerciseMedia, ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
 
 const inputStyle = {
   WebkitTextFillColor: 'white',
@@ -33,6 +34,7 @@ export default function SessionLogger() {
   const [rpeFeeling, setRpeFeeling] = useState(null)
   const [historicalPRs, setHistoricalPRs] = useState({})
   const [sessionPRs, setSessionPRs] = useState([])
+  const [demo, setDemo] = useState(null)
 
   useEffect(() => { if (profile?.id) loadSession() }, [sessionId, profile?.id])
 
@@ -46,7 +48,7 @@ export default function SessionLogger() {
   async function loadSession() {
     const { data } = await supabase
       .from('program_sessions')
-      .select('*, program_exercises(*)')
+      .select('*, program_exercises(*, exercise:exercises(*))')
       .eq('id', sessionId)
       .single()
     setSess(data)
@@ -54,7 +56,7 @@ export default function SessionLogger() {
     if (data?.program_exercises) {
       const { data: lastComp } = await supabase
         .from('session_completions')
-        .select('id, created_at, exercise_logs(exercise_id, set_data, notes)')
+        .select('id, created_at, exercise_logs(exercise_id, exercise_name, set_data, notes)')
         .eq('program_session_id', sessionId)
         .eq('client_id', profile.id)
         .order('created_at', { ascending: false })
@@ -66,12 +68,13 @@ export default function SessionLogger() {
         setHasHistory(true)
         for (const log of lastComp.exercise_logs) {
           prevLogs[log.exercise_id] = { sets: log.set_data, notes: log.notes }
+          if (log.exercise_name) prevLogs['name:' + log.exercise_name] = prevLogs[log.exercise_id]
         }
       }
 
       const initial = {}
       for (const ex of data.program_exercises.sort((a,b) => a.order_index - b.order_index)) {
-        const prev = prevLogs[ex.id]
+        const prev = prevLogs[ex.id] || prevLogs['name:' + ex.name]
         initial[ex.id] = {
           sets: prev?.sets
             ? prev.sets.map(s => ({ reps: s.reps || '', load: s.load || '', rpe: s.rpe || '', _done: false }))
@@ -83,20 +86,22 @@ export default function SessionLogger() {
       setLogs(initial)
       // Fetch historical max per exercise for PR detection
       if (data.program_exercises?.length > 0) {
-        const exIds = data.program_exercises.map(e => e.id)
+        const names = data.program_exercises.map(e => e.name)
         const { data: pastComps } = await supabase
           .from('session_completions').select('id').eq('client_id', profile.id)
         const pastIds = (pastComps || []).map(s => s.id)
         if (pastIds.length > 0) {
           const { data: pastLogs } = await supabase
-            .from('exercise_logs').select('exercise_id, set_data')
-            .in('completion_id', pastIds).in('exercise_id', exIds)
+            .from('exercise_logs').select('exercise_name, set_data, exercise:program_exercises(name)')
+            .in('completion_id', pastIds)
           const maxMap = {}
           for (const log of pastLogs || []) {
+            const name = log.exercise?.name || log.exercise_name
+            if (!names.includes(name)) continue
             const sets = (log.set_data || []).filter(s => parseFloat(s.load) > 0)
             if (sets.length === 0) continue
             const m = Math.max(...sets.map(s => parseFloat(s.load) || 0))
-            if (!maxMap[log.exercise_id] || m > maxMap[log.exercise_id]) maxMap[log.exercise_id] = m
+            if (!maxMap[name] || m > maxMap[name]) maxMap[name] = m
           }
           setHistoricalPRs(maxMap)
         }
@@ -133,7 +138,7 @@ export default function SessionLogger() {
     const exercises = sess.program_exercises.sort((a,b) => a.order_index - b.order_index)
     const logsToInsert = exercises
       .filter(ex => logs[ex.id]?.sets?.length > 0)
-      .map(ex => ({ completion_id: comp.id, exercise_id: ex.id, set_data: logs[ex.id].sets, notes: logs[ex.id].notes || '' }))
+      .map(ex => ({ completion_id: comp.id, exercise_id: ex.id, library_exercise_id: ex.exercise_id || null, exercise_name: ex.name, set_data: logs[ex.id].sets, notes: logs[ex.id].notes || '' }))
 
     if (logsToInsert.length > 0) {
       const { error: logErr } = await supabase.from('exercise_logs').insert(logsToInsert)
@@ -145,9 +150,9 @@ export default function SessionLogger() {
       const doneSets = (log.set_data || []).filter(s => s._done !== false && parseFloat(s.load) > 0)
       if (doneSets.length === 0) continue
       const maxLoad = Math.max(...doneSets.map(s => parseFloat(s.load) || 0))
-      const prevMax = historicalPRs[log.exercise_id] || 0
+      const prevMax = historicalPRs[log.exercise_name] || 0
       if (maxLoad > prevMax) {
-        const exName = sess?.program_exercises?.find(e => e.id === log.exercise_id)?.name || 'Exercice'
+        const exName = log.exercise_name || 'Exercice'
         newPRs.push({ name: exName, load: maxLoad, prev: prevMax })
       }
     }
@@ -223,11 +228,12 @@ export default function SessionLogger() {
           const embedUrl = getYoutubeEmbedUrl(ex.video_url)
           return (
             <Card key={ex.id} className="overflow-hidden">
-              <button onClick={() => setOpenExercises(oe => ({ ...oe, [ex.id]: !oe[ex.id] }))}
-                className="w-full flex items-center gap-2 p-3 text-left">
+              <div role="button" tabIndex={0} onClick={() => setOpenExercises(oe => ({ ...oe, [ex.id]: !oe[ex.id] }))}
+                className="w-full flex items-center gap-2 p-3 text-left cursor-pointer">
+                {ex.exercise?.images?.length ? <ExerciseThumb exercise={ex.exercise} size={36} /> : (
                 <div className="w-7 h-7 bg-brand-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Dumbbell size={13} className="text-brand-400" />
-                </div>
+                </div>)}
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-semibold truncate">{ex.name}</p>
                   <p className="text-gray-500 text-xs">
@@ -237,12 +243,11 @@ export default function SessionLogger() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {ex.video_url && (
-                    <a href={ex.video_url} target="_blank" rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
+                  {(ex.video_url || ex.exercise) && (
+                    <span role="button" tabIndex={0} onClick={e => { e.stopPropagation(); setDemo({ ...(ex.exercise || {}), name: ex.exercise?.name || ex.name, video_url: ex.video_url || ex.exercise?.video_url }) }}
                       className="flex items-center gap-1 text-brand-400 text-xs px-2 py-1 rounded-lg border border-brand-500/30 hover:border-brand-500 transition-colors">
-                      <ExternalLink size={10} />Vidéo
-                    </a>
+                      <Info size={10} />Démo
+                    </span>
                   )}
                   {ex.rest_seconds > 0 && (
                     <button onClick={e => { e.stopPropagation(); startTimer(ex.rest_seconds) }}
@@ -252,16 +257,13 @@ export default function SessionLogger() {
                   )}
                   {isOpen ? <ChevronUp size={14} className="text-gray-600" /> : <ChevronDown size={14} className="text-gray-600" />}
                 </div>
-              </button>
+              </div>
 
               {isOpen && (
                 <div className="px-3 pb-3 space-y-3">
                   {ex.notes && <p className="text-gray-500 text-xs italic">{ex.notes}</p>}
-                  {embedUrl && (
-                    <div className="rounded-xl overflow-hidden aspect-video">
-                      <iframe src={embedUrl} className="w-full h-full" frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                    </div>
+                  {(embedUrl || ex.exercise?.images?.length > 0) && (
+                    <ExerciseMedia exercise={{ ...(ex.exercise || {}), name: ex.name, video_url: ex.video_url || ex.exercise?.video_url }} height={180} />
                   )}
                   <div className="grid grid-cols-4 gap-1 px-1">
                     {['Série', 'Reps', 'Charge', 'RPE'].map(h => (
@@ -382,6 +384,8 @@ export default function SessionLogger() {
           </div>
         </div>
       )}
+
+{demo && <ExerciseDetailModal exercise={demo} onClose={() => setDemo(null)} />}
 
 {showQuitConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">

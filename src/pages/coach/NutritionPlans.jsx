@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp, Check, Pencil, Apple } from 'lucide-react'
+import { scaleFood } from '../../lib/nutrition'
 
 const S = {
   input: { width:'100%', background:'#2a2a3e', border:'1px solid #3a3a4e', borderRadius:10, padding:'10px 14px', color:'white', fontSize:14, boxSizing:'border-box', WebkitTextFillColor:'white', WebkitBoxShadow:'0 0 0px 1000px #2a2a3e inset' },
@@ -235,10 +236,11 @@ export default function NutritionPlans() {
         )}
         {foodForm && (
           <BottomModal onClose={() => setFoodForm(null)} title={foodForm.id ? "Modifier l'aliment" : 'Ajouter un aliment'}>
-            <input value={foodForm.name} onChange={e => setFoodForm(f => ({ ...f, name: e.target.value }))}
+            {!foodForm.id && <FoodBaseSearch onPick={food => setFoodForm(f => ({ ...f, name: food.name, unit: 'g', _per100: food, quantity: food.portion_g || f.quantity || 100, ...scaleFood(food, food.portion_g || f.quantity || 100) }))} />}
+            <input value={foodForm.name} onChange={e => setFoodForm(f => ({ ...f, name: e.target.value, _per100: null }))}
               placeholder="Nom de l'aliment" style={{ ...S.input, marginBottom:10 }}/>
             <div style={{display:'grid', gridTemplateColumns:'2fr 1fr', gap:8, marginBottom:10}}>
-              <input value={foodForm.quantity} onChange={e => setFoodForm(f => ({ ...f, quantity: e.target.value }))}
+              <input value={foodForm.quantity} onChange={e => setFoodForm(f => ({ ...f, quantity: e.target.value, ...(f._per100 ? scaleFood(f._per100, e.target.value) : {}) }))}
                 placeholder="Quantité" type="number" style={S.numInput}/>
               <select value={foodForm.unit} onChange={e => setFoodForm(f => ({ ...f, unit: e.target.value }))}
                 style={{ ...S.numInput, padding:'10px 8px' }}>
@@ -400,6 +402,34 @@ function SaveCancelButtons({ onCancel, onSave, disabled }) {
         style={{flex:2, padding:'11px 0', background: disabled ? '#3a3a4e' : '#6366f1', border:'none', borderRadius:10, color:'white', cursor: disabled ? 'default' : 'pointer', fontSize:14, fontWeight:600}}>
         Enregistrer
       </button>
+    </div>
+  )
+}
+
+// Recherche dans la table d'aliments de base pour pré-remplir les macros.
+function FoodBaseSearch({ onPick }) {
+  const [q, setQ] = useState('')
+  const [res, setRes] = useState([])
+  useEffect(() => {
+    if (q.trim().length < 2) { setRes([]); return }
+    let alive = true
+    supabase.from('food_items').select('*').ilike('name', `%${q.trim()}%`).order('name').limit(8)
+      .then(({ data }) => { if (alive) setRes(data || []) })
+    return () => { alive = false }
+  }, [q])
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder="🔎 Chercher dans la base (riz, poulet, skyr…)" style={S.input} />
+      {res.length > 0 && (
+        <div style={{ background: '#252537', borderRadius: 10, marginTop: 6, maxHeight: 180, overflowY: 'auto' }}>
+          {res.map(f => (
+            <button key={f.id} onClick={() => { onPick(f); setQ(''); setRes([]) }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #2f2f45', padding: '8px 12px', color: 'white', fontSize: 13, cursor: 'pointer' }}>
+              {f.name} <span style={{ color: '#888', fontSize: 11 }}>{f.calories} kcal/100 g</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

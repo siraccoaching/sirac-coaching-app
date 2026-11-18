@@ -10,7 +10,7 @@ const TEMPLATES = [
     name: 'Force & Puissance - Avants',
     position: 'avants',
     type: 'block',
-    description: 'Developpement de la force maximale et puissance pour les avants. 3 blocs progressifs.',
+    description: 'Développement de la force maximale et puissance pour les avants. 3 blocs progressifs.',
     blocks: [
       {
         name: 'Bloc 1 - Fondations (4 semaines)',
@@ -23,12 +23,12 @@ const TEMPLATES = [
             { name: 'Hip Thrust', sets: 3, reps: '12', rest_seconds: 90 }
           ]},
           { name: 'Force Haut du corps', exercises: [
-            { name: 'Developpe couche', sets: 4, reps: '6', rest_seconds: 180 },
+            { name: 'Développé couché', sets: 4, reps: '6', rest_seconds: 180 },
             { name: 'Rowing barre', sets: 4, reps: '8', rest_seconds: 150 },
-            { name: 'Developpe militaire', sets: 3, reps: '8', rest_seconds: 120 },
+            { name: 'Développé militaire', sets: 3, reps: '8', rest_seconds: 120 },
             { name: 'Tractions', sets: 3, reps: '8', rest_seconds: 120 }
           ]},
-          { name: 'Puissance & Athletisme', exercises: [
+          { name: 'Puissance & Athlétisme', exercises: [
             { name: 'Power Clean', sets: 5, reps: '3', rest_seconds: 180 },
             { name: 'Box Jump', sets: 4, reps: '5', rest_seconds: 120 },
             { name: 'Sprint 20m', sets: 6, reps: '1', rest_seconds: 90 }
@@ -45,9 +45,9 @@ const TEMPLATES = [
             { name: 'Fentes bulgares', sets: 3, reps: '6', rest_seconds: 150 }
           ]},
           { name: 'Force Max Buste', exercises: [
-            { name: 'Developpe couche', sets: 5, reps: '4', rest_seconds: 210 },
+            { name: 'Développé couché', sets: 5, reps: '4', rest_seconds: 210 },
             { name: 'Rowing Yates', sets: 5, reps: '5', rest_seconds: 180 },
-            { name: 'Developpe incline', sets: 3, reps: '6', rest_seconds: 150 }
+            { name: 'Développé incliné', sets: 3, reps: '6', rest_seconds: 150 }
           ]},
           { name: 'Puissance Explosive', exercises: [
             { name: 'Power Snatch', sets: 5, reps: '3', rest_seconds: 180 },
@@ -65,10 +65,10 @@ const TEMPLATES = [
             { name: 'Deadlift', sets: 3, reps: '2', rest_seconds: 240 }
           ]},
           { name: 'Peaking Haut du corps', exercises: [
-            { name: 'Developpe couche', sets: 3, reps: '2', rest_seconds: 240 },
+            { name: 'Développé couché', sets: 3, reps: '2', rest_seconds: 240 },
             { name: 'Rowing barre', sets: 3, reps: '3', rest_seconds: 210 }
           ]},
-          { name: 'Vitesse & Explosivite', exercises: [
+          { name: 'Vitesse & Explosivité', exercises: [
             { name: 'Sprint 10m', sets: 8, reps: '1', rest_seconds: 60 },
             { name: 'Jump Squat', sets: 4, reps: '4', rest_seconds: 120 }
           ]}
@@ -82,19 +82,19 @@ const TEMPLATES = [
     icon: '🔥',
     name: 'Perte de poids & Remise en forme',
     type: 'simple',
-    description: 'Programme complet 3 seances par semaine pour la perte de poids et le renforcement musculaire.',
+    description: 'Programme complet 3 séances par semaine pour la perte de poids et le renforcement musculaire.',
     sessions: [
       { name: 'Full Body A', exercises: [
         { name: 'Squat goblet', sets: 3, reps: '15', rest_seconds: 60 },
         { name: 'Pompes', sets: 3, reps: '12', rest_seconds: 60 },
-        { name: 'Rowing haltere', sets: 3, reps: '12', rest_seconds: 60 },
-        { name: 'Fentes marchees', sets: 3, reps: '10', rest_seconds: 60 },
+        { name: 'Rowing haltère', sets: 3, reps: '12', rest_seconds: 60 },
+        { name: 'Fentes marchées', sets: 3, reps: '10', rest_seconds: 60 },
         { name: 'Planche', sets: 3, reps: '30s', rest_seconds: 45 }
       ]},
       { name: 'Full Body B', exercises: [
         { name: 'Deadlift roumain', sets: 3, reps: '12', rest_seconds: 75 },
-        { name: 'Developpe halteres', sets: 3, reps: '12', rest_seconds: 60 },
-        { name: 'Tractions assistees', sets: 3, reps: '10', rest_seconds: 75 },
+        { name: 'Développé haltères', sets: 3, reps: '12', rest_seconds: 60 },
+        { name: 'Tractions assistées', sets: 3, reps: '10', rest_seconds: 75 },
         { name: 'Hip Thrust', sets: 3, reps: '15', rest_seconds: 60 },
         { name: 'Crunchs', sets: 3, reps: '20', rest_seconds: 45 }
       ]},
@@ -112,30 +112,30 @@ const TEMPLATES = [
     icon: '⚽',
     name: 'Vitesse & Endurance - Football',
     type: 'simple',
-    description: 'Programme athletique pour footballeurs. Priorite vitesse, explosivite et endurance specifique.',
+    description: 'Programme athlétique pour footballeurs. Priorité vitesse, explosivité et endurance spécifique.',
     sessions: [
       { name: 'Vitesse & Sprint', exercises: [
-        { name: 'Sprint 10m depart arrete', sets: 8, reps: '1', rest_seconds: 60 },
+        { name: 'Sprint 10m départ arrêté', sets: 8, reps: '1', rest_seconds: 60 },
         { name: 'Sprint 30m', sets: 6, reps: '1', rest_seconds: 90 },
         { name: 'Navettes 5-10-5', sets: 5, reps: '1', rest_seconds: 90 },
         { name: 'Sauts horizontaux', sets: 4, reps: '5', rest_seconds: 60 }
       ]},
-      { name: 'Force - Membres inferieurs', exercises: [
+      { name: 'Force - Membres inférieurs', exercises: [
         { name: 'Squat', sets: 4, reps: '6', rest_seconds: 150 },
         { name: 'Fentes bulgares', sets: 3, reps: '8', rest_seconds: 120 },
         { name: 'Nordic Curl', sets: 3, reps: '6', rest_seconds: 120 },
         { name: 'Calf raises', sets: 4, reps: '15', rest_seconds: 60 }
       ]},
-      { name: 'Endurance specifique', exercises: [
-        { name: 'Fractionne 30/30', sets: 10, reps: '1', rest_seconds: 30 },
-        { name: 'Carre 40m', sets: 6, reps: '1', rest_seconds: 60 },
-        { name: 'Jeu de jambes echelle', sets: 5, reps: '1', rest_seconds: 45 }
+      { name: 'Endurance spécifique', exercises: [
+        { name: 'Fractionné 30/30', sets: 10, reps: '1', rest_seconds: 30 },
+        { name: 'Carré 40 m', sets: 6, reps: '1', rest_seconds: 60 },
+        { name: 'Jeu de jambes échelle', sets: 5, reps: '1', rest_seconds: 45 }
       ]},
-      { name: 'Prevention & Gainage', exercises: [
+      { name: 'Prévention & Gainage', exercises: [
         { name: 'Planche', sets: 3, reps: '45s', rest_seconds: 45 },
         { name: 'Pont fessier', sets: 3, reps: '15', rest_seconds: 45 },
         { name: 'Copenhagen plank', sets: 3, reps: '20s', rest_seconds: 45 },
-        { name: 'Rotation epaules', sets: 2, reps: '15', rest_seconds: 30 }
+        { name: 'Rotation épaules', sets: 2, reps: '15', rest_seconds: 30 }
       ]}
     ]
   }
@@ -171,8 +171,8 @@ export default function ProgramTemplates() {
                           <p className="text-sm font-semibold text-white">{tpl.name}</p>
                           <p style={{fontSize:11, color:'#888', marginTop:2}}>
                             {tpl.type === 'block'
-                              ? tpl.blocks?.length + ' blocs - ' + tpl.blocks?.reduce((a, b) => a + (b.sessions?.length || 0), 0) + ' seances'
-                              : tpl.sessions?.length + ' seances'}
+                              ? tpl.blocks?.length + ' blocs - ' + tpl.blocks?.reduce((a, b) => a + (b.sessions?.length || 0), 0) + ' séances'
+                              : tpl.sessions?.length + ' séances'}
                           </p>
                         </div>
                       </div>

@@ -27,7 +27,7 @@ export default function CoachAlerts() {
 
     // Last completion per client
     const { data: recent } = await supabase.from('session_completions')
-      .select('client_id, created_at, rpe_session, exercise_logs(exercise_id, set_data, exercise:program_exercises(name))')
+      .select('client_id, created_at, rpe_session, exercise_logs(exercise_id, exercise_name, set_data, exercise:program_exercises(name))')
       .in('client_id', clientIds).gte('created_at', sevenDaysAgo).order('created_at', { ascending: false })
 
     // Clients who haven't trained in 7+ days
@@ -53,7 +53,7 @@ export default function CoachAlerts() {
 
       // Detect recent PRs (from last 3 days)
       const { data: recentComps } = await supabase.from('session_completions')
-        .select('id, created_at, exercise_logs(exercise_id, set_data, exercise:program_exercises(name))')
+        .select('id, created_at, exercise_logs(exercise_id, exercise_name, set_data, exercise:program_exercises(name))')
         .eq('client_id', client.id).gte('created_at', threeDaysAgo)
       if (!recentComps?.length) continue
 
@@ -63,26 +63,28 @@ export default function CoachAlerts() {
       if (!pastComps?.length) continue
       const pastIds = pastComps.map(c => c.id)
       const { data: pastLogs } = await supabase.from('exercise_logs')
-        .select('exercise_id, set_data').in('completion_id', pastIds)
+        .select('exercise_id, exercise_name, set_data, exercise:program_exercises(name)').in('completion_id', pastIds)
       const histMax = {}
       for (const log of pastLogs || []) {
         const sets = (log.set_data || []).filter(s => parseFloat(s.load) > 0)
         if (!sets.length) continue
         const m = Math.max(...sets.map(s => parseFloat(s.load) || 0))
-        if (!histMax[log.exercise_id] || m > histMax[log.exercise_id]) histMax[log.exercise_id] = m
+        const key = log.exercise?.name || log.exercise_name
+        if (!key) continue
+        if (!histMax[key] || m > histMax[key]) histMax[key] = m
       }
 
       // Check recent sessions for PRs
       for (const comp of recentComps) {
         for (const log of comp.exercise_logs || []) {
-          const name = log.exercise?.name
+          const name = log.exercise?.name || log.exercise_name
           if (!name) continue
           const sets = (log.set_data || []).filter(s => s._done !== false && parseFloat(s.load) > 0)
           if (!sets.length) continue
           const m = Math.max(...sets.map(s => parseFloat(s.load) || 0))
-          const prev = histMax[log.exercise_id]
+          const prev = histMax[name]
           if (prev && m > prev) {
-            newAlerts.push({ id: 'pr_' + client.id + '_' + log.exercise_id, type: 'pr', clientId: client.id, clientName: client.name, exercise: name, load: m, prev, ts: comp.created_at })
+            newAlerts.push({ id: 'pr_' + client.id + '_' + name + '_' + comp.id, type: 'pr', clientId: client.id, clientName: client.name, exercise: name, load: m, prev, ts: comp.created_at })
           }
         }
       }

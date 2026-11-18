@@ -16,9 +16,9 @@ export default function JoinCoach() {
 
   useEffect(() => {
     if (!code) { setLoading(false); return }
-    supabase.from('profiles').select('id,name').eq('invite_code', code).single()
+    supabase.rpc('get_coach_by_invite', { code })
       .then(({ data, error }) => {
-        if (!error && data) setCoach(data)
+        if (!error && data?.length) setCoach(data[0])
         setLoading(false)
       })
   }, [code])
@@ -31,21 +31,14 @@ export default function JoinCoach() {
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { data: { name: form.name } }
+        // Le profil (et le rattachement au coach via le code) est créé côté base par un trigger.
+        options: {
+          data: { name: form.name, sport: form.sport, position: form.position, invite_code: code || undefined },
+          emailRedirectTo: window.location.origin + '/login',
+        }
       })
       if (signUpError) throw signUpError
-      const userId = authData.user?.id
-      if (!userId) throw new Error('Erreur lors de la creation du compte')
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: userId,
-        name: form.name,
-        email: form.email,
-        role: 'client',
-        sport: form.sport,
-        position: form.position,
-        coach_id: coach?.id || null,
-      })
-      if (profileError) throw profileError
+      if (!authData.user?.id) throw new Error('Erreur lors de la création du compte')
       setSuccess(true)
     } catch (err) {
       setError(err.message || 'Une erreur est survenue')
@@ -71,7 +64,7 @@ export default function JoinCoach() {
       <div style={{ textAlign: 'center', maxWidth: 320 }}>
         <p style={{ fontSize: 40, marginBottom: 16 }}>❌</p>
         <p style={{ color: 'white', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Lien invalide</p>
-        <p style={{ color: '#888', fontSize: 14 }}>Ce lien invitation est invalide ou a expire.</p>
+        <p style={{ color: '#888', fontSize: 14 }}>Ce lien d'invitation est invalide ou a expiré.</p>
       </div>
     </div>
   )
@@ -80,9 +73,9 @@ export default function JoinCoach() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a14', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 340 }}>
         <p style={{ fontSize: 48, marginBottom: 16 }}>✅</p>
-        <p style={{ color: 'white', fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Compte cree !</p>
-        <p style={{ color: '#a78bfa', fontSize: 14, marginBottom: 8 }}>Bienvenue dans l'equipe de {coach.name}.</p>
-        <p style={{ color: '#888', fontSize: 13 }}>Verifie ta boite mail pour confirmer ton adresse, puis connecte-toi.</p>
+        <p style={{ color: 'white', fontSize: 20, fontWeight: 700, marginBottom: 10 }}>Compte créé !</p>
+        <p style={{ color: '#a78bfa', fontSize: 14, marginBottom: 8 }}>Bienvenue dans l'équipe de {coach.name}.</p>
+        <p style={{ color: '#888', fontSize: 13 }}>Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.</p>
         <button onClick={() => navigate('/login')} style={{ marginTop: 24, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: 'white', border: 'none', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
           Se connecter
         </button>
@@ -98,7 +91,7 @@ export default function JoinCoach() {
             💪
           </div>
           <p style={{ color: 'white', fontSize: 20, fontWeight: 700, margin: '0 0 6px' }}>Rejoindre {coach.name}</p>
-          <p style={{ color: '#888', fontSize: 13, margin: 0 }}>Cree ton compte athlete pour acceder a ton programme</p>
+          <p style={{ color: '#888', fontSize: 13, margin: 0 }}>Crée ton compte athlète pour accéder à ton programme</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
