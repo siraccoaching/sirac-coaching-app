@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/hooks'
 import { PageLayout } from '../../components/Layout'
 import ThemePicker from '../../components/ThemePicker'
 import NotificationSettings from '../../components/NotificationSettings'
+import MyData from '../../components/MyData'
 import { Save, Zap } from 'lucide-react'
 
 const ACTIVITY_LEVELS = [
@@ -171,6 +172,7 @@ export default function Profile() {
           {saving ? 'Enregistrement...' : saved ? 'Enregistre !' : 'Sauvegarder'}
         </button>
 
+        {profile?.id && <MyData userId={profile.id} />}
       </div>
     </PageLayout>
   )

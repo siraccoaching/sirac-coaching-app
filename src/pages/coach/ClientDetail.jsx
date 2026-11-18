@@ -4,6 +4,7 @@ import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { ArrowLeft, Trash2, TrendingUp, ChevronDown, ChevronUp, Check, Pencil, X } from 'lucide-react'
 import ClientNutritionTab from '../../components/ClientNutritionTab'
+import PrivatePhoto from '../../components/PrivatePhoto'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
@@ -392,6 +393,16 @@ export default function ClientDetail() {
                 ))}
               </div>
               {m.notes && <p style={{margin:'10px 0 0', fontSize:12, color:'var(--label2)', fontStyle:'italic'}}>{m.notes}</p>}
+              {(m.photo_before_url || m.photo_after_url) && (
+                <div style={{display:'flex', gap:8, marginTop:10}}>
+                  {[['Avant', m.photo_before_url], ['Après', m.photo_after_url]].filter(([, v]) => v).map(([l, v]) => (
+                    <div key={l} style={{flex:1}}>
+                      <p style={{margin:'0 0 4px', fontSize:11, color:'var(--label2)'}}>{l}</p>
+                      <PrivatePhoto value={v} alt={l} style={{width:'100%', aspectRatio:'3/4', objectFit:'cover', borderRadius:10}} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
