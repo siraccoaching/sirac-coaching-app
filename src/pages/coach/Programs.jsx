@@ -120,7 +120,6 @@ export default function Programs() {
   return (
         <PageLayout
                 title="Programmes"
-                back="/coach"
                 action={
                           <button
                                       onClick={() => navigate('/coach/programs/new')}

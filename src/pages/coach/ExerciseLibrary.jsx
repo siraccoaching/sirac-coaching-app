@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
-import { ArrowLeft, Plus, Pencil, Trash2, Search, X, Play, Star } from 'lucide-react'
+import { PageLayout } from '../../components/Layout'
+import { Plus, Pencil, Trash2, Search, X, Play, Star } from 'lucide-react'
 import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
 import { CATEGORIES, MUSCLES, EQUIPMENT, CAT_COLORS, loadExerciseList, matchesSearch } from '../../lib/exercises'
 
@@ -116,18 +117,11 @@ export default function ExerciseLibrary() {
   const mineCount = exercises.filter(e => e.coach_id).length
 
   return (
-    <div style={{ minHeight: 'calc(100dvh - var(--sat))', background: 'var(--bg)', color: 'var(--label)', paddingBottom: 80 }}>
-      <div style={{ background: 'var(--card)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, position:'sticky', top:'var(--sat)', zIndex: 10 }}>
-        <button onClick={() => navigate('/coach/programs')} aria-label="Retour" style={{ background: 'none', border: 'none', color: 'var(--label)', cursor: 'pointer', padding: 4 }}>
-          <ArrowLeft size={20} />
-        </button>
-        <h2 style={{ margin: 0, flex: 1, fontSize: 18 }}>Bibliothèque d'exercices</h2>
-        <button onClick={() => { setEditing(null); setShowForm(true) }}
-          style={{ background: '#6366f1', border: 'none', borderRadius: 10, padding: '8px 14px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14 }}>
-          <Plus size={16} /> Ajouter
-        </button>
-      </div>
-
+    <PageLayout title="Bibliothèque" subtitle={`${exercises.length} exercices avec démo`}
+      action={<button onClick={() => { setEditing(null); setShowForm(true) }}
+        style={{ background: 'var(--accent)', border: 'none', borderRadius: 18, padding: '7px 14px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 14 }}>
+        <Plus size={16} /> Ajouter
+      </button>}>
       <div style={{ padding: '12px 16px 0', maxWidth: 720, margin: '0 auto' }}>
         {(showForm || editing) && (
           <ExerciseForm key={editing?.id || 'new'} initial={editing} saving={saving} onSave={saveExercise} onCancel={() => { setShowForm(false); setEditing(null) }} />
@@ -218,6 +212,6 @@ export default function ExerciseLibrary() {
       </div>
 
       {detail && <ExerciseDetailModal exercise={detail} onClose={() => setDetail(null)} />}
-    </div>
+    </PageLayout>
   )
 }

@@ -5,6 +5,8 @@ import { supabase } from '../../lib/supabase'
 import { PageLayout } from '../../components/Layout'
 import { Play, CheckCircle, Dumbbell, Ruler, ClipboardList, TrendingUp, MessageCircle, Trophy, Calendar, Zap, Apple, User } from 'lucide-react'
 import { IosList } from '../../components/IosList'
+import ActivityRings from '../../components/ActivityRings'
+import { localDateStr, estimateTargets } from '../../lib/nutrition'
 
 export default function ClientHome() {
   const { profile } = useAuth()
@@ -16,12 +18,13 @@ export default function ClientHome() {
   const [streak, setStreak] = useState(0)
   const [totalSessions, setTotalSessions] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [rings, setRings] = useState(null)
 
   useEffect(() => { if (profile?.id) loadDashboard() }, [profile?.id])
 
   async function loadDashboard() {
     setLoading(true)
-    await Promise.all([loadNextSession(), loadCompletions(), loadMessages()])
+    await Promise.all([loadNextSession(), loadCompletions(), loadMessages(), loadRings()])
     setLoading(false)
   }
 
@@ -63,6 +66,26 @@ export default function ClientHome() {
     setTopPRs(Object.entries(exMaxes).sort((a,b) => b[1]-a[1]).slice(0, 4))
   }
 
+  // Anneaux : séances de la semaine, calories du jour, jours actifs de la semaine
+  async function loadRings() {
+    const now = new Date(); const monday = new Date(now); monday.setHours(0, 0, 0, 0); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+    const [{ data: comps }, { data: logs }, { data: plan }] = await Promise.all([
+      supabase.from('session_completions').select('created_at').eq('client_id', profile.id).gte('created_at', monday.toISOString()),
+      supabase.from('nutrition_logs').select('date, calories').eq('client_id', profile.id).gte('date', localDateStr(monday)),
+      supabase.from('nutrition_plans').select('calories_target').eq('client_id', profile.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    ])
+    const freq = parseInt(String(profile.training_frequency || '').match(/\d+/)?.[0] || '3', 10)
+    const today = localDateStr()
+    const kcal = (logs || []).filter(l => l.date === today).reduce((s, l) => s + (+l.calories || 0), 0)
+    const target = plan?.calories_target || estimateTargets(profile)?.calories_target || 2000
+    const days = new Set([...(comps || []).map(c => localDateStr(new Date(c.created_at))), ...(logs || []).map(l => l.date)])
+    setRings([
+      { label: 'Séances cette semaine', value: (comps || []).length, goal: freq, unit: '', color: '#ff375f', track: 'rgba(255,55,95,0.18)' },
+      { label: 'Calories aujourd\u2019hui', value: kcal, goal: target, unit: 'kcal', color: '#30d158', track: 'rgba(48,209,88,0.18)' },
+      { label: 'Jours actifs', value: days.size, goal: 7, unit: 'j', color: '#64d2ff', track: 'rgba(100,210,255,0.18)' },
+    ])
+  }
+
   async function loadMessages() {
     if (!profile?.coach_id) return
     const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true })
@@ -92,6 +115,8 @@ export default function ClientHome() {
             </span>
           </button>
         )}
+
+        {rings && <ActivityRings rings={rings} />}
 
         {/* Statistiques */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>

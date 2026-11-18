@@ -4,6 +4,7 @@ import { useAuth, useClients } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
 import { useNotifState, enableNotifications } from '../../lib/notify'
 import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
+import { CalendarDays } from 'lucide-react'
 import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, BookOpen, LayoutTemplate, ChevronRight, Apple } from 'lucide-react'
 import CoachAlerts from './CoachAlerts'
 
@@ -190,7 +191,7 @@ export default function CoachDashboard() {
           <p style={{ margin:'4px 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(var(--contrast),0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>Outils</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             {[
-              { icon: <BookOpen size={18}/>, label: 'Biblioth\u00e8que', path: '/coach/exercises', color: '#f59e0b' },
+              { icon: <CalendarDays size={18}/>, label: 'Agenda', path: '/coach/calendar', color: '#ff375f' },
               { icon: <LayoutTemplate size={18}/>, label: 'Templates', path: '/coach/templates', color: '#ec4899' },
               { icon: <Apple size={18}/>, label: 'Nutrition', path: '/coach/nutrition', color: '#22c55e' },
             ].map(tool => (

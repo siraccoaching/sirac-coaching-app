@@ -1,6 +1,15 @@
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { LogOut, ChevronLeft, Home, Users, Dumbbell, MessageCircle, TrendingUp, Calendar, Settings, User } from 'lucide-react'
+import { LogOut, ChevronLeft, Home, UsersRound, Dumbbell, LineChart, Settings, ClipboardList, LibraryBig, MessagesSquare, MessageCircleHeart, CircleUserRound } from 'lucide-react'
+
+let lastPath = null
+function navClass(path) {
+  const depth = p => (p || '').split('/').filter(Boolean).length
+  const prev = lastPath; lastPath = path
+  if (!prev || prev === path) return 'ios-page'
+  return depth(path) > depth(prev) ? 'nav-push' : depth(path) < depth(prev) ? 'nav-back' : 'ios-page'
+}
 
 export function PageLayout({ children, title, subtitle, back, action }) {
   const navigate = useNavigate()
@@ -15,19 +24,19 @@ export function PageLayout({ children, title, subtitle, back, action }) {
   const isClient = location.pathname.startsWith('/client')
 
   const coachNav = [
-    { icon: Users, label: 'Clients', path: '/coach' },
-    { icon: Dumbbell, label: 'Programmes', path: '/coach/programs' },
-    { icon: Calendar, label: 'Agenda', path: '/coach/calendar' },
-    { icon: MessageCircle, label: 'Messages', path: '/coach/messages' },
-    { icon: Settings, label: 'R\u00e9glages', path: '/coach/settings' },
+    { icon: UsersRound, emoji: '👥', color: '#007aff', label: 'Clients', path: '/coach' },
+    { icon: ClipboardList, emoji: '📋', color: '#5e5ce6', label: 'Programmes', path: '/coach/programs' },
+    { icon: LibraryBig, emoji: '📚', color: '#ff9500', label: 'Biblioth\u00e8que', path: '/coach/exercises' },
+    { icon: MessagesSquare, emoji: '💬', color: '#34c759', label: 'Messages', path: '/coach/messages' },
+    { icon: Settings, emoji: '⚙️', color: '#8e8e93', label: 'R\u00e9glages', path: '/coach/settings' },
   ]
 
   const clientNav = [
-    { icon: Home, label: 'Accueil', path: '/client' },
-    { icon: Dumbbell, label: 'Programme', path: '/client/program' },
-    { icon: TrendingUp, label: 'Progr\u00e8s', path: '/client/progress' },
-    { icon: MessageCircle, label: 'Coach', path: '/client/messages' },
-    { icon: User, label: 'Profil', path: '/client/profile' },
+    { icon: Home, emoji: '🏠', color: '#007aff', label: 'Accueil', path: '/client' },
+    { icon: Dumbbell, emoji: '🏋️', color: '#5e5ce6', label: 'Programme', path: '/client/program' },
+    { icon: LineChart, emoji: '📈', color: '#ff9500', label: 'Progr\u00e8s', path: '/client/progress' },
+    { icon: MessageCircleHeart, emoji: '💬', color: '#34c759', label: 'Coach', path: '/client/messages' },
+    { icon: CircleUserRound, emoji: '👤', color: '#8e8e93', label: 'Profil', path: '/client/profile' },
   ]
 
   const navItems = isCoach ? coachNav : isClient ? clientNav : null
@@ -38,6 +47,7 @@ export function PageLayout({ children, title, subtitle, back, action }) {
   }
 
   const showLogout = !back
+  const [anim] = useState(() => navClass(location.pathname))
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg)', overflow: 'hidden' }}>
       {/* Barre de navigation translucide façon iOS */}
@@ -63,7 +73,7 @@ export function PageLayout({ children, title, subtitle, back, action }) {
         </div>
       </header>
 
-      <main key={location.pathname} className="scrollbar-hide ios-page" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', paddingBottom: navItems ? 'calc(72px + var(--sab))' : 'var(--sab)' }}>
+      <main key={location.pathname} className={'scrollbar-hide ' + anim} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', paddingBottom: navItems ? 'calc(72px + var(--sab))' : 'var(--sab)' }}>
         {children}
       </main>
 
@@ -74,20 +84,43 @@ export function PageLayout({ children, title, subtitle, back, action }) {
           background: 'var(--bar-bg)', backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)',
           borderTop: '0.5px solid var(--bar-border)', display: 'flex', zIndex: 100,
         }}>
-          {navItems.map(({ icon: Icon, label, path }) => {
-            const active = isActive(path)
-            return (
-              <button key={path} onClick={() => navigate(path)} aria-current={active ? 'page' : undefined}
-                style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: active ? 'var(--accent)' : 'var(--label3)', transition: 'color 0.2s' }}>
-                <Icon size={23} strokeWidth={active ? 2.3 : 1.8} />
-                <span style={{ fontSize: 10, fontWeight: 500, lineHeight: 1 }}>{label}</span>
-              </button>
-            )
-          })}
+          {navItems.map(item => <TabItem key={item.path} item={item} active={isActive(item.path)} onClick={() => navigate(item.path)} />)}
         </nav>
       )}
     </div>
+  )
+}
+
+// Style des icônes de la barre du bas : 'apple' (contour + pastille), 'color' (carrés colorés), 'emoji'
+function tabStyle() { try { return localStorage.getItem('sirac-tabstyle') || 'apple' } catch { return 'apple' } }
+
+function TabItem({ item, active, onClick }) {
+  const { icon: Icon, emoji, color, label } = item
+  const style = tabStyle()
+  let glyph
+  if (style === 'emoji') {
+    glyph = <span style={{ fontSize: 23, lineHeight: 1, filter: active ? 'none' : 'grayscale(.9) opacity(.55)', transform: active ? 'scale(1.15)' : 'none', transition: 'transform .25s cubic-bezier(.2,1.4,.4,1), filter .2s' }}>{emoji}</span>
+  } else if (style === 'color') {
+    glyph = (
+      <span style={{ width: 30, height: 30, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? color : 'var(--fill)',
+        boxShadow: active ? `0 4px 12px ${color}55` : 'none', transform: active ? 'translateY(-1px) scale(1.06)' : 'none', transition: 'all .25s cubic-bezier(.2,1.4,.4,1)' }}>
+        <Icon size={17} strokeWidth={2.2} color={active ? 'white' : 'var(--label3)'} />
+      </span>
+    )
+  } else {
+    glyph = (
+      <span style={{ width: 56, height: 30, borderRadius: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? 'var(--accent-soft)' : 'transparent', transition: 'background .25s' }}>
+        <Icon size={23} strokeWidth={active ? 2.4 : 1.8} />
+      </span>
+    )
+  }
+  return (
+    <button onClick={onClick} aria-current={active ? 'page' : undefined} aria-label={label}
+      style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, background: 'transparent', border: 'none', cursor: 'pointer',
+        color: active ? (style === 'apple' ? 'var(--accent)' : 'var(--label)') : 'var(--label3)', transition: 'color 0.2s' }}>
+      {glyph}
+      <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, lineHeight: 1 }}>{label}</span>
+    </button>
   )
 }
 

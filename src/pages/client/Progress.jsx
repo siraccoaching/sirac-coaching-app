@@ -1,61 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { ArrowLeft, TrendingUp, BarChart3 } from 'lucide-react'
-
-function LineChart({ data, label }) {
-  if (!data || data.length < 2) return <p style={{color:'var(--label2)',fontSize:12,margin:'4px 0 8px'}}>Pas encore assez de données</p>
-  const values = data.map(d => d.value)
-  const min = Math.min(...values), max = Math.max(...values)
-  const range = max - min || 1
-  const W = 260, H = 72, PX = 8, PY = 8
-  const pts = data.map((d,i) => ({ x: PX+(i/(data.length-1))*(W-2*PX), y: PY+(1-(d.value-min)/range)*(H-2*PY), ...d }))
-  const poly = pts.map(p=>p.x+','+p.y).join(' ')
-  const diff = values[values.length-1] - values[0]
-  const color = diff >= 0 ? '#22c55e' : '#ef4444'
-  const sid = label.replace(/[^a-zA-Z0-9]/g,'_')
-  return (
-    <div style={{marginBottom:4}}>
-      <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-        <span style={{fontSize:13,fontWeight:600,color:'var(--label1b)'}}>{label}</span>
-        <span style={{fontSize:12,color,fontWeight:600}}>{diff>=0?'+':''}{diff%1===0?diff:diff.toFixed(1)} kg</span>
-      </div>
-      <svg width={W} height={H} style={{display:'block',overflow:'visible'}}>
-        <defs><linearGradient id={'g'+sid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity={0.25}/><stop offset="100%" stopColor={color} stopOpacity={0}/></linearGradient></defs>
-        <polygon points={pts.map(p=>p.x+','+p.y).join(' ')+' '+pts[pts.length-1].x+','+H+' '+pts[0].x+','+H} fill={'url(#g'+sid+')'}/>
-        <polyline points={poly} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round"/>
-        {pts.map((p,i) => <circle key={i} cx={p.x} cy={p.y} r={3} fill={color} stroke="var(--card)" strokeWidth={1.5}/>)}
-      </svg>
-      <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--label3)',marginTop:3}}>
-        <span>{data[0].date}</span><span style={{color:'var(--label2)'}}>{values[0]} → {values[values.length-1]} kg</span><span>{data[data.length-1].date}</span>
-      </div>
-    </div>
-  )
-}
-
-function BarChartVol({ data }) {
-  if (!data || data.length < 2) return <p style={{color:'var(--label2)',fontSize:12,margin:'4px 0 8px'}}>Pas encore assez de données</p>
-  const values = data.map(d => d.value)
-  const max = Math.max(...values) || 1
-  const W = 260, H = 72
-  const bw = Math.floor((W - (data.length-1)*4) / data.length)
-  return (
-    <div>
-      <svg width={W} height={H} style={{display:'block'}}>
-        {data.map((d,i) => {
-          const h = Math.max(4, (d.value/max)*(H-10))
-          const x = i*(bw+4)
-          return <rect key={i} x={x} y={H-h} width={bw} height={h} rx={3} fill={i===data.length-1?'#6366f1':'#2a2a4e'}/>
-        })}
-      </svg>
-      <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--label3)',marginTop:3}}>
-        <span>{data[0].date}</span>
-        <span style={{color:'var(--label2)'}}>Tonnage hebdo (kg)</span>
-        <span>{data[data.length-1].date}</span>
-      </div>
-    </div>
-  )
-}
+import { TrendingUp, BarChart3 } from 'lucide-react'
+import { PageLayout } from '../../components/Layout'
+import { SmoothChart, GrowBars } from '../../components/SmoothChart'
 
 export default function Progress() {
   const navigate = useNavigate()
@@ -129,62 +77,67 @@ export default function Progress() {
 
   const loadEntries = Object.entries(loadData).filter(([,d])=>d.length>=2)
 
-  if (loading) return <div style={{color:'var(--label)',padding:20}}>Chargement...</div>
+  const COLORS = ['#5e5ce6', '#34c759', '#ff9f0a', '#ff375f', '#64d2ff', '#bf5af2']
+  const bestGain = loadEntries.map(([n, d]) => [n, d[d.length - 1].value - d[0].value]).sort((a, b) => b[1] - a[1])[0]
+
   return (
-    <div style={{minHeight:'calc(100dvh - var(--sat))',background:'var(--bg)',color:'var(--label)',paddingBottom:80}}>
-      <div style={{background:'var(--card)',padding:'16px 20px',display:'flex',alignItems:'center',gap:12}}>
-        <button onClick={()=>navigate(-1)} style={{background:'none',border:'none',color:'var(--label)',cursor:'pointer'}}><ArrowLeft size={20}/></button>
-        <div>
-          <h2 style={{margin:0,fontSize:18}}>Ma progression</h2>
-          <p style={{margin:0,fontSize:12,color:'var(--label2)'}}>{totalSessions} séance{totalSessions>1?'s':''} enregistrée{totalSessions>1?'s':''}</p>
-        </div>
-      </div>
-
-      <div style={{display:'flex',margin:'12px 16px 8px',background:'var(--card)',borderRadius:10,padding:4}}>
-        {[['load','📈 Charges max'],['tonnage','📊 Tonnage hebdo']].map(([k,l])=>(
-          <button key={k} onClick={()=>setActiveTab(k)} style={{flex:1,padding:'8px 0',border:'none',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:600,
-            background:activeTab===k?'#6366f1':'transparent',color:activeTab===k?'white':'var(--label2)'}}>{l}</button>
-        ))}
-      </div>
-
-      <div style={{padding:'0 16px'}}>
-        {activeTab === 'load' && (
-          loadEntries.length === 0 ? (
-            <div style={{textAlign:'center',marginTop:50,color:'var(--label2)'}}>
-              <TrendingUp size={44} style={{margin:'0 auto 14px',display:'block',opacity:0.3}}/>
-              <p>Complète au moins 2 séances avec des charges.</p>
-            </div>
-          ) : loadEntries.map(([name,data])=>(
-            <div key={name} style={{background:'var(--card)',borderRadius:12,padding:'14px 16px',marginBottom:12}}>
-              <LineChart data={data} label={name}/>
-            </div>
-          ))
+    <PageLayout title="Progrès" subtitle={`${totalSessions} séance${totalSessions > 1 ? 's' : ''} enregistrée${totalSessions > 1 ? 's' : ''}`}>
+      <div style={{ padding: '16px 16px 28px', maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {loading ? <p style={{ color: 'var(--label2)', textAlign: 'center' }}>Chargement…</p> : <>
+        {bestGain && bestGain[1] > 0 && (
+          <div style={{ background: 'linear-gradient(135deg,#34c759,#30b0c7)', borderRadius: 18, padding: '14px 16px', color: 'white', boxShadow: '0 10px 26px rgba(52,199,89,.3)' }}>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', opacity: .85 }}>Meilleure progression</p>
+            <p style={{ margin: '2px 0 0', fontSize: 20, fontWeight: 700 }}>{bestGain[0]} <span style={{ opacity: .9 }}>+{bestGain[1] % 1 === 0 ? bestGain[1] : bestGain[1].toFixed(1)} kg</span></p>
+          </div>
         )}
-        {activeTab === 'tonnage' && (
-          tonnageData.length < 2 ? (
-            <div style={{textAlign:'center',marginTop:50,color:'var(--label2)'}}>
-              <BarChart3 size={44} style={{margin:'0 auto 14px',display:'block',opacity:0.3}}/>
-              <p>Pas encore assez de données de volume.</p>
-            </div>
-          ) : (
-            <div style={{background:'var(--card)',borderRadius:12,padding:'16px',marginBottom:12}}>
-              <p style={{margin:'0 0 4px',fontSize:13,fontWeight:600,color:'var(--label1b)'}}>Tonnage total par semaine</p>
-              <p style={{margin:'0 0 14px',fontSize:12,color:'var(--label2)'}}>Somme (séries × reps × charge)</p>
-              <BarChartVol data={tonnageData}/>
-              <div style={{marginTop:14,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-                <div style={{background:'var(--fill)',borderRadius:10,padding:'10px 12px',textAlign:'center'}}>
-                  <p style={{margin:0,fontSize:18,fontWeight:700,color:'#6366f1'}}>{Math.max(...tonnageData.map(d=>d.value)).toLocaleString()}</p>
-                  <p style={{margin:0,fontSize:11,color:'var(--label2)'}}>record hebdo (kg)</p>
-                </div>
-                <div style={{background:'var(--fill)',borderRadius:10,padding:'10px 12px',textAlign:'center'}}>
-                  <p style={{margin:0,fontSize:18,fontWeight:700,color:'#22c55e'}}>{Math.round(tonnageData.reduce((s,d)=>s+d.value,0)/tonnageData.length).toLocaleString()}</p>
-                  <p style={{margin:0,fontSize:11,color:'var(--label2)'}}>moyenne hebdo (kg)</p>
-                </div>
+        <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'var(--fill)', borderRadius: 10, padding: 2 }}>
+          {[['load', 'Charges max'], ['tonnage', 'Tonnage hebdo']].map(([k, l]) => (
+            <button key={k} role="tab" aria-selected={activeTab === k} onClick={() => setActiveTab(k)}
+              style={{ padding: '8px 0', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--label)',
+                background: activeTab === k ? 'var(--segment)' : 'transparent', boxShadow: activeTab === k ? '0 3px 8px rgba(0,0,0,.12)' : 'none', transition: 'background .2s' }}>{l}</button>
+          ))}
+        </div>
+        {activeTab === 'load' && (loadEntries.length === 0 ? (
+          <div style={{ textAlign: 'center', marginTop: 40, color: 'var(--label2)' }}>
+            <TrendingUp size={44} style={{ margin: '0 auto 14px', display: 'block', opacity: 0.3 }} />
+            <p>Complète au moins 2 séances avec des charges.</p>
+          </div>
+        ) : loadEntries.map(([name, data], i) => {
+          const diff = data[data.length - 1].value - data[0].value
+          return (
+            <div key={name} className="ios-group" style={{ padding: '14px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>{name}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: diff >= 0 ? 'var(--green-text)' : 'var(--red-text)' }}>{diff >= 0 ? '▲ +' : '▼ '}{diff % 1 === 0 ? diff : diff.toFixed(1)} kg</span>
               </div>
+              <SmoothChart data={data} color={COLORS[i % COLORS.length]} />
             </div>
           )
-        )}
+        }))}
+        {activeTab === 'tonnage' && (tonnageData.length < 2 ? (
+          <div style={{ textAlign: 'center', marginTop: 40, color: 'var(--label2)' }}>
+            <BarChart3 size={44} style={{ margin: '0 auto 14px', display: 'block', opacity: 0.3 }} />
+            <p>Pas encore assez de données de volume.</p>
+          </div>
+        ) : (
+          <>
+            <div className="ios-group" style={{ padding: 16 }}>
+              <p style={{ margin: '0 0 2px', fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>Tonnage par semaine</p>
+              <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--label2)' }}>Séries × répétitions × charge · touche une barre</p>
+              <GrowBars data={tonnageData} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {[[Math.max(...tonnageData.map(d => d.value)), 'Record hebdo', 'var(--accent-text)'], [Math.round(tonnageData.reduce((s, d) => s + d.value, 0) / tonnageData.length), 'Moyenne hebdo', 'var(--green-text)']].map(([v, l, c]) => (
+                <div key={l} className="ios-group" style={{ padding: '12px 14px' }}>
+                  <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: c }}>{v.toLocaleString('fr-FR')} <span style={{ fontSize: 13 }}>kg</span></p>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--label2)' }}>{l}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        ))}
+        </>}
       </div>
-    </div>
+    </PageLayout>
   )
 }
