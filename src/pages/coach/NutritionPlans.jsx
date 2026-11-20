@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
+import { PageLayout } from '../../components/Layout'
 import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp, Check, Pencil, Apple } from 'lucide-react'
 import { scaleFood } from '../../lib/nutrition'
+import { tone } from '../../lib/theme'
 
 const S = {
   input: { width:'100%', background:'var(--fill)', border:'1px solid var(--separator)', borderRadius:10, padding:'10px 14px', color:'var(--label)', fontSize:14, boxSizing:'border-box', WebkitTextFillColor:'var(--label)', WebkitBoxShadow:'0 0 0px 1000px var(--fill) inset' },
@@ -15,7 +17,7 @@ const MACRO_COLORS = { cal:'#f59e0b', prot:'#6366f1', gluc:'#22c55e', lip:'#ef44
 function MacroBar({ label, value, color }) {
   return (
     <div style={{textAlign:'center'}}>
-      <p style={{margin:'0 0 2px', fontSize:18, fontWeight:700, color}}>{value || 0}</p>
+      <p style={{margin:'0 0 2px', fontSize:18, fontWeight:700, color: tone(color)}}>{value || 0}</p>
       <p style={{margin:0, fontSize:10, color:'var(--label2)'}}>{label}</p>
     </div>
   )
@@ -158,16 +160,8 @@ export default function NutritionPlans() {
   if (view === 'detail' && activePlan) {
     const t = planTotals(activePlan)
     return (
-      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
-        <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:'var(--sat)', zIndex:10}}>
-          <button onClick={() => { setView('list'); setActivePlan(null) }} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
-            <ArrowLeft size={20}/>
-          </button>
-          <h2 style={{margin:0, flex:1, fontSize:18}}>{activePlan.name}</h2>
-          <button onClick={() => setPlanForm({ ...activePlan })} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4}}>
-            <Pencil size={16}/>
-          </button>
-        </div>
+      <PageLayout back={() => { setView('list'); setActivePlan(null) }} title={activePlan.name}
+        action={<button onClick={() => setPlanForm({ ...activePlan })} aria-label="Modifier le plan" style={{width:34, height:34, borderRadius:17, background:'var(--fill)', border:'none', color:'var(--label2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}><Pencil size={16}/></button>}>
         <div style={{margin:'12px 16px', background:'var(--card)', borderRadius:12, padding:'14px 16px'}}>
           <p style={{margin:'0 0 10px', fontSize:11, color:'var(--label2)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Objectifs journaliers</p>
           <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8}}>
@@ -194,7 +188,7 @@ export default function NutritionPlans() {
                     {expandedMeals[meal.id] ? <ChevronUp size={14} color="var(--label2)"/> : <ChevronDown size={14} color="var(--label2)"/>}
                   </button>
                   <button onClick={() => setMealForm({ ...meal })} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4}}><Pencil size={13}/></button>
-                  <button onClick={() => deleteMeal(meal.id)} style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}><Trash2 size={13}/></button>
+                  <button onClick={() => deleteMeal(meal.id)} style={{background:'none', border:'none', color:'var(--red-text)', cursor:'pointer', padding:4}}><Trash2 size={13}/></button>
                 </div>
                 {expandedMeals[meal.id] && (
                   <div style={{borderTop:'1px solid var(--fill)', padding:'8px 14px 12px'}}>
@@ -203,13 +197,13 @@ export default function NutritionPlans() {
                         <div style={{flex:1}}>
                           <span style={{fontSize:13, color:'var(--label)', fontWeight:500}}>{food.name}</span>
                           <span style={{fontSize:11, color:'var(--label2)', marginLeft:6}}>{food.quantity}{food.unit}</span>
-                          <span style={{fontSize:11, color:'#f59e0b', marginLeft:6}}>{food.calories}kcal</span>
-                          <span style={{fontSize:11, color:'#6366f1', marginLeft:4}}>P{food.protein}g</span>
-                          <span style={{fontSize:11, color:'#22c55e', marginLeft:4}}>G{food.carbs}g</span>
-                          <span style={{fontSize:11, color:'#ef4444', marginLeft:4}}>L{food.fat}g</span>
+                          <span style={{fontSize:11, color:'var(--yellow-text)', marginLeft:6}}>{food.calories}kcal</span>
+                          <span style={{fontSize:11, color:'var(--accent-text)', marginLeft:4}}>P{food.protein}g</span>
+                          <span style={{fontSize:11, color:'var(--green-text)', marginLeft:4}}>G{food.carbs}g</span>
+                          <span style={{fontSize:11, color:'var(--red-text)', marginLeft:4}}>L{food.fat}g</span>
                         </div>
                         <button onClick={() => setFoodForm({ ...food, meal_id: meal.id })} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:2}}><Pencil size={12}/></button>
-                        <button onClick={() => deleteFood(food.id)} style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:2}}><Trash2 size={12}/></button>
+                        <button onClick={() => deleteFood(food.id)} style={{background:'none', border:'none', color:'var(--red-text)', cursor:'pointer', padding:2}}><Trash2 size={12}/></button>
                       </div>
                     ))}
                     <button onClick={() => setFoodForm({ meal_id: meal.id, name:'', quantity:100, unit:'g', calories:0, protein:0, carbs:0, fat:0 })}
@@ -222,7 +216,7 @@ export default function NutritionPlans() {
             )
           })}
           <button onClick={() => setMealForm({ name: '' })}
-            style={{display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'12px 0', background:'var(--card)', border:'1px dashed var(--separator)', borderRadius:12, color:'#6366f1', cursor:'pointer', fontWeight:600, fontSize:14}}>
+            style={{display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'12px 0', background:'var(--card)', border:'1px dashed var(--separator)', borderRadius:12, color:'var(--accent-text)', cursor:'pointer', fontWeight:600, fontSize:14}}>
             <Plus size={16}/> Ajouter un repas
           </button>
         </div>
@@ -260,22 +254,16 @@ export default function NutritionPlans() {
             <SaveCancelButtons onCancel={() => setFoodForm(null)} onSave={() => saveFood(foodForm)} disabled={!foodForm.name.trim() || saving}/>
           </BottomModal>
         )}
-      </div>
+      </PageLayout>
     )
   }
 
   return (
-    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
-      <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:'var(--sat)', zIndex:10}}>
-        <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
-          <ArrowLeft size={20}/>
-        </button>
-        <h2 style={{margin:0, flex:1, fontSize:18}}>Plans nutritionnels</h2>
-        <button onClick={() => setPlanForm(emptyPlanForm)}
-          style={{background:'#6366f1', border:'none', borderRadius:10, padding:'8px 14px', color:'white', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:600, fontSize:14}}>
+    <PageLayout back="/coach" title="Nutrition"
+      action={<button onClick={() => setPlanForm(emptyPlanForm)}
+          style={{background:'var(--accent)', border:'none', borderRadius:17, padding:'7px 12px', color:'white', cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontWeight:600, fontSize:14}}>
           <Plus size={16}/> Nouveau
-        </button>
-      </div>
+        </button>}>
       <div style={{padding:'12px 16px'}}>
         {loading ? (
           [1,2].map(i => <div key={i} style={{height:100, background:'var(--card)', borderRadius:12, marginBottom:10, opacity: 0.5 + i*0.1}}/>)
@@ -306,7 +294,7 @@ export default function NutritionPlans() {
                   <div style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6}}>
                     {[['kcal', t.cal, MACRO_COLORS.cal],['P', t.prot, MACRO_COLORS.prot],['G', t.gluc, MACRO_COLORS.gluc],['L', t.lip, MACRO_COLORS.lip]].map(([l, v, c]) => (
                       <div key={l} style={{background:'var(--bg)', borderRadius:8, padding:'6px 4px', textAlign:'center'}}>
-                        <p style={{margin:0, fontSize:14, fontWeight:700, color:c}}>{v || 0}</p>
+                        <p style={{margin:0, fontSize:14, fontWeight:700, color:tone(c)}}>{v || 0}</p>
                         <p style={{margin:0, fontSize:10, color:'var(--label3)'}}>{l}</p>
                       </div>
                     ))}
@@ -318,7 +306,7 @@ export default function NutritionPlans() {
                     {plan.client ? '🔄 Changer' : '+ Assigner'}
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); deletePlan(plan.id) }}
-                    style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:'5px 8px'}}>
+                    style={{background:'none', border:'none', color:'var(--red-text)', cursor:'pointer', padding:'5px 8px'}}>
                     <Trash2 size={14}/>
                   </button>
                 </div>
@@ -332,7 +320,7 @@ export default function NutritionPlans() {
         <BottomModal onClose={() => setAssignModal(null)} title="Assigner à un client" subtitle={`Plan : ${assignModal.name}`}>
           {assignModal.client_id && (
             <button onClick={() => assignPlan(null)} disabled={saving}
-              style={{width:'100%', background:'rgba(255,59,48,0.10)', border:'1px solid #ef444433', borderRadius:10, padding:'12px 14px', marginBottom:8, cursor:'pointer', color:'#ef4444', fontSize:13, fontWeight:600, opacity: saving ? 0.6 : 1}}>
+              style={{width:'100%', background:'rgba(255,59,48,0.10)', border:'1px solid #ef444433', borderRadius:10, padding:'12px 14px', marginBottom:8, cursor:'pointer', color:'var(--red-text)', fontSize:13, fontWeight:600, opacity: saving ? 0.6 : 1}}>
               Retirer l'assignation
             </button>
           )}
@@ -350,7 +338,7 @@ export default function NutritionPlans() {
           ))}
         </BottomModal>
       )}
-    </div>
+    </PageLayout>
   )
 }
 

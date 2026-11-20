@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X, ExternalLink, Search, Plus, Star } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { tone } from '../lib/theme'
 import {
   exerciseImageUrl, getEmbedUrl, isDirectVideo, loadExerciseList, matchesSearch,
   MUSCLES, EQUIPMENT, CAT_COLORS,
@@ -33,7 +34,7 @@ export function ExerciseThumb({ exercise, size = 48 }) {
   const [failed, setFailed] = useState(false)
   if (!src || failed) {
     return (
-      <div style={{ width: size, height: size, borderRadius: 10, background: 'var(--fill)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', fontWeight: 700, fontSize: size / 2.6 }}>
+      <div style={{ width: size, height: size, borderRadius: 10, background: 'var(--fill)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-text)', fontWeight: 700, fontSize: size / 2.6 }}>
         {(exercise?.name || '?').slice(0, 1).toUpperCase()}
       </div>
     )
@@ -115,7 +116,7 @@ export function ExerciseDetailModal({ exercise, onClose, footer }) {
 }
 
 function Chip({ color, children }) {
-  return <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: color + '22', color, fontWeight: 600 }}>{children}</span>
+  return <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, background: color + '22', color: tone(color), fontWeight: 600 }}>{children}</span>
 }
 
 // Sélecteur d'exercice (base commune + exercices perso) avec recherche et filtres.

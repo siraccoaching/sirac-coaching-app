@@ -10,15 +10,19 @@ export default function ClientNutritionTab({ client }) {
   const [plan, setPlan] = useState(null)
   const [open, setOpen] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [ai, setAi] = useState(null)
+  const [aiOpen, setAiOpen] = useState(false)
 
   useEffect(() => { if (client?.id) load() }, [client?.id])
 
   async function load() {
     const from = new Date(); from.setDate(from.getDate() - 13)
-    const [{ data: logs }, { data: p }] = await Promise.all([
+    const [{ data: logs }, { data: p }, { data: aiPlan }] = await Promise.all([
       supabase.from('nutrition_logs').select('*').eq('client_id', client.id).gte('date', localDateStr(from)).order('created_at'),
       supabase.from('nutrition_plans').select('*').eq('client_id', client.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('ai_meal_plans').select('*').eq('client_id', client.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     ])
+    setAi(aiPlan || null)
     const byDay = {}
     for (const l of logs || []) (byDay[l.date] = byDay[l.date] || []).push(l)
     setDays(Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0])))
@@ -40,7 +44,7 @@ export default function ClientNutritionTab({ client }) {
           <p style={{ margin: '2px 0 0', fontSize: 14, color: 'var(--label)', fontWeight: 600 }}>
             Objectif : {target?.calories_target ? Math.round(target.calories_target) + ' kcal' : 'non défini'}{target?.estimated ? ' (estimé)' : ''}
           </p>
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--label2)' }}>Moyenne sur {days.length} jour{days.length > 1 ? 's' : ''} saisis : <b style={{ color: '#f59e0b' }}>{avg} kcal</b></p>
+          <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--label2)' }}>Moyenne sur {days.length} jour{days.length > 1 ? 's' : ''} saisis : <b style={{ color: 'var(--yellow-text)' }}>{avg} kcal</b></p>
         </div>
         <button onClick={() => navigate('/coach/nutrition')} style={{ background: '#6366f1', border: 'none', color: 'white', borderRadius: 8, padding: '7px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Plans</button>
       </div>
@@ -67,7 +71,7 @@ export default function ClientNutritionTab({ client }) {
                 {items.map(l => (
                   <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 12, padding: '5px 0', borderTop: '1px solid var(--fill)' }}>
                     <span style={{ color: 'var(--label1b)' }}><span style={{ color: 'var(--accent-text)' }}>{l.meal_name}</span> · {l.food_name} <span style={{ color: 'var(--label3)' }}>{l.quantity} {l.unit}</span></span>
-                    <span style={{ color: '#f59e0b', flexShrink: 0 }}>{Math.round(l.calories)} kcal · P{round1(l.protein)}</span>
+                    <span style={{ color: 'var(--yellow-text)', flexShrink: 0 }}>{Math.round(l.calories)} kcal · P{round1(l.protein)}</span>
                   </div>
                 ))}
               </div>
@@ -75,6 +79,23 @@ export default function ClientNutritionTab({ client }) {
           </div>
         )
       })}
+      {ai && (
+        <div data-testid="coach-ai-plan" style={{ background: 'var(--card)', borderRadius: 12, padding: '12px 14px', marginTop: 10 }}>
+          <button onClick={() => setAiOpen(o => !o)} style={{ width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: 'var(--label)' }}>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase' }}>✨ Dernier plan repas IA · {new Date(ai.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 14 }}>{ai.days} jour{ai.days > 1 ? 's' : ''} · {ai.target_kcal} kcal/jour{ai.preferences?.allergies?.length ? ' · allergies : ' + ai.preferences.allergies.join(', ') : ''}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--accent-text)' }}>{aiOpen ? 'Masquer' : 'Voir les repas'}</p>
+          </button>
+          {aiOpen && (ai.plan?.days || []).map((d, i) => (
+            <div key={i} style={{ marginTop: 10 }}>
+              <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 700, color: 'var(--label2)' }}>{d.day} · {d.totals?.kcal} kcal</p>
+              {d.meals.map((m, k) => (
+                <p key={k} style={{ margin: '0 0 3px', fontSize: 13, color: 'var(--label)' }}><b>{m.meal}</b> : {m.title} <span style={{ color: 'var(--label2)' }}>({m.macros?.kcal} kcal)</span></p>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

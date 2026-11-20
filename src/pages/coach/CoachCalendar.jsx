@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
-import { ArrowLeft, ChevronLeft, ChevronRight, Users } from 'lucide-react'
+import { PageLayout } from '../../components/Layout'
+import { ChevronLeft, ChevronRight, Users } from 'lucide-react'
 
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
@@ -65,14 +66,8 @@ export default function CoachCalendar() {
   const clientMap = Object.fromEntries(clients.map(c => [c.id, c]))
 
   return (
-    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
-      <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
-        <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer'}}><ArrowLeft size={20}/></button>
-        <h2 style={{margin:0, flex:1, fontSize:18}}>Calendrier</h2>
-        <span style={{fontSize:13, color:'var(--label2)'}}>{completions.length} séance{completions.length>1?'s':''} ce mois</span>
-      </div>
-
-      <div style={{background:'var(--card)', margin:'12px 16px', borderRadius:16, padding:16}}>
+    <PageLayout back="/coach" title="Agenda" subtitle={`${completions.length} séance${completions.length>1?'s':''} ce mois`}>
+      <div style={{background:'var(--card)', boxShadow:'var(--card-shadow)', margin:'12px 16px', borderRadius:16, padding:16}}>
         <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
           <button onClick={prevMonth} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:6}}><ChevronLeft size={20}/></button>
           <p style={{margin:0, fontWeight:700, fontSize:16}}>{MONTHS[month]} {year}</p>
@@ -94,9 +89,9 @@ export default function CoachCalendar() {
               <button key={day} onClick={() => setSelectedDay(selected ? null : day)}
                 style={{aspectRatio:'1', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
                   borderRadius:10, border: todayFlag ? '2px solid #6366f1' : '2px solid transparent',
-                  background: selected ? '#6366f133' : count > 0 ? '#1a2a3a' : 'transparent',
+                  background: selected ? 'var(--accent-soft)' : count > 0 ? 'rgba(52,199,89,0.14)' : 'transparent',
                   cursor:'pointer', position:'relative'}}>
-                <span style={{fontSize:13, fontWeight: todayFlag ? 700 : 400, color: todayFlag ? '#6366f1' : count > 0 ? 'white' : 'var(--label3)'}}>{day}</span>
+                <span style={{fontSize:13, fontWeight: todayFlag ? 700 : 400, color: todayFlag ? 'var(--accent-text)' : count > 0 ? 'var(--label)' : 'var(--label2)'}}>{day}</span>
                 {count > 0 && (
                   <div style={{display:'flex', gap:2, marginTop:2}}>
                     {Array.from({length: Math.min(count, 3)}).map((_, j) => (
@@ -117,10 +112,10 @@ export default function CoachCalendar() {
           {selectedComps.map(comp => {
             const cl = clientMap[comp.client_id]
             return (
-              <div key={comp.id} onClick={() => navigate('/coach/clients/' + comp.client_id)}
+              <div key={comp.id} onClick={() => navigate('/coach/client/' + comp.client_id)}
                 style={{background:'var(--card)', borderRadius:12, padding:'12px 14px', marginBottom:10, cursor:'pointer', display:'flex', gap:10, alignItems:'center'}}>
-                <div style={{width:36, height:36, borderRadius:'50%', background:'#6366f133', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
-                  <span style={{color:'#6366f1', fontWeight:700}}>{cl?.name?.[0] || '?'}</span>
+                <div style={{width:36, height:36, borderRadius:'50%', background:'var(--accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
+                  <span style={{color:'var(--accent-text)', fontWeight:700}}>{cl?.name?.[0] || '?'}</span>
                 </div>
                 <div style={{flex:1}}>
                   <p style={{margin:0, fontWeight:600, fontSize:14}}>{cl?.name || 'Client'}</p>
@@ -141,18 +136,18 @@ export default function CoachCalendar() {
           {clients.filter(c => completions.some(cp => cp.client_id === c.id)).map(c => {
             const count = completions.filter(cp => cp.client_id === c.id).length
             return (
-              <div key={c.id} onClick={() => navigate('/coach/clients/' + c.id)}
+              <div key={c.id} onClick={() => navigate('/coach/client/' + c.id)}
                 style={{background:'var(--card)', borderRadius:12, padding:'10px 14px', marginBottom:8, display:'flex', alignItems:'center', gap:10, cursor:'pointer'}}>
-                <div style={{width:32, height:32, borderRadius:'50%', background:'#6366f133', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
-                  <span style={{color:'#6366f1', fontWeight:700, fontSize:13}}>{c.name[0]}</span>
+                <div style={{width:32, height:32, borderRadius:'50%', background:'var(--accent-soft)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
+                  <span style={{color:'var(--accent-text)', fontWeight:700, fontSize:13}}>{c.name[0]}</span>
                 </div>
                 <p style={{margin:0, flex:1, fontWeight:500, fontSize:14}}>{c.name}</p>
-                <span style={{fontSize:13, color:'#22c55e', fontWeight:600}}>{count} séance{count>1?'s':''}</span>
+                <span style={{fontSize:13, color:'var(--green-text)', fontWeight:600}}>{count} séance{count>1?'s':''}</span>
               </div>
             )
           })}
         </div>
       )}
-    </div>
+    </PageLayout>
   )
 }

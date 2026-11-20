@@ -33,9 +33,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Sirac Coaching',
-        short_name: 'Coaching',
-        description: 'Plateforme de suivi athlètes – Sirac Coaching',
+        name: 'ARISE',
+        short_name: 'ARISE',
+        description: 'ARISE – coaching sportif par Sirac',
         theme_color: '#000000',
         background_color: '#000000',
         display: 'standalone',

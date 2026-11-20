@@ -9,8 +9,8 @@ self.addEventListener('notificationclick', event => {
 })
 self.addEventListener('push', event => {
   let d = {}
-  try { d = event.data ? event.data.json() : {} } catch (e) { d = { title: 'Sirac Coaching', body: event.data && event.data.text() } }
-  event.waitUntil(self.registration.showNotification(d.title || 'Sirac Coaching', {
+  try { d = event.data ? event.data.json() : {} } catch (e) { d = { title: 'ARISE', body: event.data && event.data.text() } }
+  event.waitUntil(self.registration.showNotification(d.title || 'ARISE', {
     body: d.body || '', icon: '/pwa-192x192.png', badge: '/pwa-192x192.png', data: { url: d.url || '/' },
   }))
 })

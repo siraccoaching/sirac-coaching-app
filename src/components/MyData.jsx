@@ -47,7 +47,7 @@ export default function MyData({ userId }) {
         <button onClick={exportData} disabled={!!busy} style={{ ...row, color: 'var(--accent)', borderBottom: '0.5px solid var(--separator)' }}>
           <Download size={18} /> {busy === 'export' ? 'Préparation…' : 'Télécharger mes données'}
         </button>
-        <button onClick={deleteAccount} disabled={!!busy} style={{ ...row, color: '#ff3b30' }}>
+        <button onClick={deleteAccount} disabled={!!busy} style={{ ...row, color: 'var(--red-text)' }}>
           <Trash2 size={18} /> {busy === 'delete' ? 'Suppression…' : 'Supprimer mon compte'}
         </button>
       </div>

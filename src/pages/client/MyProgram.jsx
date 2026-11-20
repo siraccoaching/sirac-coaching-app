@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card, Badge } from '../../components/Layout'
 import { Dumbbell, ChevronDown, ChevronUp, Clock, Play, CheckCircle, Layers } from 'lucide-react'
 import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
+import { formatTarget } from '../../lib/measure'
 
 const EX_SELECT = 'program_exercises(*, exercise:exercises(*))'
 
@@ -178,7 +179,7 @@ function SessionCard({ sess, done, open, onToggle, onStart, onDemo }) {
               <div className="flex-1 min-w-0">
                 <p className="text-label text-xs font-medium">{ex.name}</p>
                 <div className="flex flex-wrap gap-2 mt-0.5">
-                  <span className="text-gray-500 text-xs">{ex.sets}×{ex.reps}</span>
+                  <span className="text-gray-500 text-xs">{formatTarget(ex)}</span>
                   {ex.load && <span className="text-gray-500 text-xs">@ {ex.load}</span>}
                   {ex.rpe && <span className="text-gray-500 text-xs">RPE {ex.rpe}</span>}
                   {ex.rest_seconds > 0 && <span className="text-gray-500 text-xs flex items-center gap-0.5"><Clock size={9} />{ex.rest_seconds}s</span>}

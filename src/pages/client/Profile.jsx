@@ -109,7 +109,7 @@ export default function Profile() {
         </div>
 
         <div style={{background:'var(--card)', borderRadius:16, padding:16}}>
-          <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'#6366f1'}}>Mensurations</p>
+          <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'var(--accent-text)'}}>Mensurations</p>
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
             <div>
               <label style={lbl}>Taille (cm)</label>
@@ -123,7 +123,7 @@ export default function Profile() {
         </div>
 
         <div style={{background:'var(--card)', borderRadius:16, padding:16}}>
-          <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'#22c55e'}}>Niveau d\'activite</p>
+          <p style={{margin:'0 0 12px', fontWeight:700, fontSize:14, color:'var(--green-text)'}}>Niveau d’activité</p>
           <div style={{display:'flex', flexDirection:'column', gap:8}}>
             {ACTIVITY_LEVELS.map(a => (
               <button key={a.value} onClick={() => setForm(f => ({...f, activity_level: a.value}))}
@@ -132,7 +132,7 @@ export default function Profile() {
                   borderRadius:10, padding:'10px 14px', cursor:'pointer',
                   display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                 <div style={{textAlign:'left'}}>
-                  <p style={{margin:0, fontSize:13, fontWeight:600, color: form.activity_level === a.value ? '#22c55e' : 'white'}}>{a.label}</p>
+                  <p style={{margin:0, fontSize:13, fontWeight:600, color: form.activity_level === a.value ? 'var(--green-text)' : 'var(--label)'}}>{a.label}</p>
                   <p style={{margin:0, fontSize:11, color:'var(--label3)'}}>{a.desc}</p>
                 </div>
                 <p style={{margin:0, fontSize:11, color:'var(--label3)'}}>x{a.mult}</p>
@@ -155,7 +155,7 @@ export default function Profile() {
               </div>
               <div style={{background:'rgba(var(--contrast),0.06)', borderRadius:12, padding:12, textAlign:'center', border:'1px solid #6366f133'}}>
                 <p style={{margin:0, fontSize:11, color:'var(--label2)', marginBottom:4}}>Depense totale (TDEE)</p>
-                <p style={{margin:0, fontSize:22, fontWeight:800, color:'#6366f1'}}>{tdee}</p>
+                <p style={{margin:0, fontSize:22, fontWeight:800, color:'var(--accent-text)'}}>{tdee}</p>
                 <p style={{margin:0, fontSize:10, color:'var(--label3)'}}>kcal / jour</p>
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function Profile() {
           </div>
         ) : (
           <div style={{background:'var(--card)', borderRadius:12, padding:16, textAlign:'center', border:'1px dashed var(--fill)'}}>
-            <p style={{margin:0, fontSize:13, color:'var(--label3)'}}>Remplis taille, poids, date de naissance, sexe et niveau d\'activite pour voir tes besoins caloriques</p>
+            <p style={{margin:0, fontSize:13, color:'var(--label3)'}}>Remplis taille, poids, date de naissance, sexe et niveau d’activité pour voir tes besoins caloriques</p>
           </div>
         )}
 

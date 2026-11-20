@@ -8,12 +8,13 @@ import { ExerciseMedia, ExerciseThumb, ExerciseDetailModal } from '../../compone
 import FocusMode from '../../components/FocusMode'
 import { celebrate, haptic } from '../../lib/fx'
 import { Maximize2 } from 'lucide-react'
+import { MEASURES, measureOf, formatTarget, setHint, fillFromHints, emptySet } from '../../lib/measure'
 
 const inputStyle = {
   WebkitTextFillColor: 'var(--label)',
-  WebkitBoxShadow: '0 0 0px 1000px var(--card) inset',
-  colorScheme: 'dark',
 }
+// Série | valeur | charge | RPE | ✓ | supprimer : mêmes colonnes pour l'en-tête et les lignes
+const setGrid = { display: 'grid', gridTemplateColumns: '30px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 34px 22px', gap: 6, alignItems: 'center' }
 
 export default function SessionLogger() {
   const { sessionId } = useParams()
@@ -80,9 +81,10 @@ export default function SessionLogger() {
       for (const ex of data.program_exercises.sort((a,b) => a.order_index - b.order_index)) {
         const prev = prevLogs[ex.id] || prevLogs['name:' + ex.name]
         initial[ex.id] = {
-          sets: prev?.sets
-            ? prev.sets.map(s => ({ reps: s.reps || '', load: s.load || '', rpe: s.rpe || '', _done: false }))
-            : Array.from({ length: ex.sets }, () => ({ reps: ex.reps || '', load: ex.load || '', rpe: '', _done: false })),
+          // Cases vides par défaut : la dernière séance / l'objectif s'affichent en gris
+          sets: prev?.sets?.length
+            ? prev.sets.map(s => emptySet(s))
+            : Array.from({ length: ex.sets }, () => emptySet()),
           notes: prev?.notes || '',
         }
         if (ex.order_index === 0) setOpenExercises({ [ex.id]: true })
@@ -117,8 +119,16 @@ export default function SessionLogger() {
   function updateSet(exId, setIdx, field, value) {
     setLogs(l => ({ ...l, [exId]: { ...l[exId], sets: l[exId].sets.map((s, i) => i === setIdx ? { ...s, [field]: value } : s) } }))
   }
-  function addSet(exId, ex) {
-    setLogs(l => ({ ...l, [exId]: { ...l[exId], sets: [...l[exId].sets, { reps: ex.reps || '', load: ex.load || '', rpe: '', _done: false }] } }))
+  function completeSet(exId, setIdx) {
+    const ex = (sess?.program_exercises || []).find(e => e.id === exId)
+    setLogs(l => ({ ...l, [exId]: { ...l[exId], sets: l[exId].sets.map((s, i) => i === setIdx ? { ...fillFromHints(ex, s), _done: true } : s) } }))
+  }
+  function addSet(exId) {
+    setLogs(l => {
+      const sets = l[exId].sets
+      const last = sets[sets.length - 1]
+      return { ...l, [exId]: { ...l[exId], sets: [...sets, emptySet(last && (last.reps || last.load) ? last : last?._prev)] } }
+    })
   }
   function removeSet(exId, setIdx) {
     setLogs(l => ({ ...l, [exId]: { ...l[exId], sets: l[exId].sets.filter((_, i) => i !== setIdx) } }))
@@ -142,7 +152,7 @@ export default function SessionLogger() {
     const exercises = sess.program_exercises.sort((a,b) => a.order_index - b.order_index)
     const logsToInsert = exercises
       .filter(ex => logs[ex.id]?.sets?.length > 0)
-      .map(ex => ({ completion_id: comp.id, exercise_id: ex.id, library_exercise_id: ex.exercise_id || null, exercise_name: ex.name, set_data: logs[ex.id].sets, notes: logs[ex.id].notes || '' }))
+      .map(ex => ({ completion_id: comp.id, exercise_id: ex.id, library_exercise_id: ex.exercise_id || null, exercise_name: ex.name, set_data: logs[ex.id].sets.map(({ _prev, ...st }) => ({ ...st, measure: ex.measure || 'reps' })), notes: logs[ex.id].notes || '' }))
 
     if (logsToInsert.length > 0) {
       const { error: logErr } = await supabase.from('exercise_logs').insert(logsToInsert)
@@ -208,7 +218,7 @@ export default function SessionLogger() {
         {hasHistory && (
           <div className="flex items-center gap-2 bg-brand-600/10 border border-brand-500/20 rounded-2xl px-3 py-2.5">
             <History size={13} className="text-brand-400 flex-shrink-0" />
-            <p className="text-brand-300 text-xs">Charges pré-remplies depuis ta dernière séance</p>
+            <p className="text-brand-300 text-xs">En gris : tes valeurs de la dernière séance. Valide ✓ pour les reprendre.</p>
           </div>
         )}
 
@@ -240,34 +250,38 @@ export default function SessionLogger() {
           return (
             <Card key={ex.id} className="overflow-hidden">
               <div role="button" tabIndex={0} onClick={() => setOpenExercises(oe => ({ ...oe, [ex.id]: !oe[ex.id] }))}
-                className="w-full flex items-center gap-2 p-3 text-left cursor-pointer">
-                {ex.exercise?.images?.length ? <ExerciseThumb exercise={ex.exercise} size={36} /> : (
-                <div className="w-7 h-7 bg-brand-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Dumbbell size={13} className="text-brand-400" />
-                </div>)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-label text-sm font-semibold truncate">{ex.name}</p>
-                  <p className="text-gray-500 text-xs">
-                    {ex.sets}×{ex.reps}
-                    {ex.load ? ` @ ${ex.load}` : ''}
-                    {ex.rpe ? ` · RPE ${ex.rpe}` : ''}
-                  </p>
+                className="w-full p-3 text-left cursor-pointer" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  {ex.exercise?.images?.length ? <ExerciseThumb exercise={ex.exercise} size={40} /> : (
+                  <div className="w-9 h-9 bg-brand-600/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Dumbbell size={15} className="text-brand-400" />
+                  </div>)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p className="text-label font-semibold" style={{ fontSize: 15, lineHeight: 1.25, margin: 0 }}>{ex.name}</p>
+                    <p className="text-gray-500 text-xs" style={{ margin: '2px 0 0' }}>
+                      {formatTarget(ex)}
+                      {ex.load ? ` @ ${ex.load}` : ''}
+                      {ex.rpe ? ` · RPE ${ex.rpe}` : ''}
+                    </p>
+                  </div>
+                  {isOpen ? <ChevronUp size={16} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />}
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {(ex.video_url || ex.exercise) && (
-                    <span role="button" tabIndex={0} onClick={e => { e.stopPropagation(); setDemo({ ...(ex.exercise || {}), name: ex.exercise?.name || ex.name, video_url: ex.video_url || ex.exercise?.video_url }) }}
-                      className="flex items-center gap-1 text-brand-400 text-xs px-2 py-1 rounded-lg border border-brand-500/30 hover:border-brand-500 transition-colors">
-                      <Info size={10} />Démo
-                    </span>
-                  )}
-                  {ex.rest_seconds > 0 && (
-                    <button onClick={e => { e.stopPropagation(); startTimer(ex.rest_seconds) }}
-                      className="flex items-center gap-1 text-gray-500 text-xs px-2 py-1 rounded-lg border border-contrast/10 hover:border-brand-500/50 hover:text-brand-400 transition-colors">
-                      <Clock size={10} />{ex.rest_seconds}s
-                    </button>
-                  )}
-                  {isOpen ? <ChevronUp size={14} className="text-gray-600" /> : <ChevronDown size={14} className="text-gray-600" />}
-                </div>
+                {((ex.video_url || ex.exercise) || ex.rest_seconds > 0) && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {(ex.video_url || ex.exercise) && (
+                      <span role="button" tabIndex={0} onClick={e => { e.stopPropagation(); setDemo({ ...(ex.exercise || {}), name: ex.exercise?.name || ex.name, video_url: ex.video_url || ex.exercise?.video_url }) }}
+                        className="flex items-center gap-1 text-brand-400 text-xs px-2.5 py-1 rounded-full border border-brand-500/30">
+                        <Info size={11} />Démo
+                      </span>
+                    )}
+                    {ex.rest_seconds > 0 && (
+                      <button onClick={e => { e.stopPropagation(); startTimer(ex.rest_seconds) }}
+                        className="flex items-center gap-1 text-gray-500 text-xs px-2.5 py-1 rounded-full border border-contrast/10">
+                        <Clock size={11} />Récup {ex.rest_seconds}s
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {isOpen && (
@@ -276,39 +290,39 @@ export default function SessionLogger() {
                   {(embedUrl || ex.exercise?.images?.length > 0) && (
                     <ExerciseMedia exercise={{ ...(ex.exercise || {}), name: ex.name, video_url: ex.video_url || ex.exercise?.video_url }} height={180} />
                   )}
-                  <div className="grid grid-cols-4 gap-1 px-1">
-                    {['Série', 'Reps', 'Charge', 'RPE'].map(h => (
-                      <p key={h} className="text-gray-600 text-xs text-center">{h}</p>
+                  <div style={{ ...setGrid, padding: '0 2px' }}>
+                    {['Série', measureOf(ex).key === 'reps' ? 'Reps' : measureOf(ex).key === 'distance' ? 'Mètres' : 'Sec.', 'Kg', 'RPE', '', ''].map((h, hi) => (
+                      <p key={hi} className="text-gray-500 text-xs text-center" style={{ margin: 0 }}>{h}</p>
                     ))}
                   </div>
                   {exLog.sets.map((set, si) => (
-                    <div key={si} className="flex items-center gap-1.5">
-                      <div className="w-6 h-6 bg-dark-700 rounded-md flex items-center justify-center flex-shrink-0">
+                    <div key={si} style={setGrid}>
+                      <div className="h-8 bg-dark-700 rounded-md flex items-center justify-center">
                         <span className="text-gray-500 text-xs">{si + 1}</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-1 flex-1">
-                        {['reps', 'load', 'rpe'].map(field => (
-                          <input key={field}
-                            value={set[field]}
-                            onChange={e => updateSet(ex.id, si, field, e.target.value)}
-                            placeholder={field === 'reps' ? ex.reps : field === 'load' ? ex.load || '—' : '—'}
-                            style={inputStyle}
-                            className="bg-dark-700 border border-contrast/10 rounded-lg px-2 py-2 text-label text-xs text-center focus:outline-none focus:border-brand-500 placeholder-gray-600"
-                          />
-                        ))}
-                      </div>
-                      <button onClick={() => { haptic(12); updateSet(ex.id, si, '_done', true); if (ex.rest_seconds > 0) startTimer(ex.rest_seconds) }}
-                        className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-colors ${set._done ? 'bg-green-500/20 text-green-400' : 'bg-dark-700 text-gray-600 hover:text-green-400'}`}>
-                        <CheckCircle size={13} />
+                      {['reps', 'load', 'rpe'].map(field => (
+                        <input key={field}
+                          value={set[field]}
+                          onChange={e => updateSet(ex.id, si, field, e.target.value)}
+                          placeholder={setHint(ex, set, field) || '—'}
+                          inputMode="decimal"
+                          aria-label={(field === 'reps' ? measureOf(ex).long : field === 'load' ? 'Charge' : 'RPE') + ' série ' + (si + 1)}
+                          style={inputStyle}
+                          className="hint-input min-w-0 w-full bg-dark-700 border border-contrast/10 rounded-lg px-1 py-2 text-label text-sm text-center focus:outline-none focus:border-brand-500"
+                        />
+                      ))}
+                      <button onClick={() => { haptic(12); completeSet(ex.id, si); if (ex.rest_seconds > 0) startTimer(ex.rest_seconds) }} aria-label={'Valider la série ' + (si + 1)}
+                        className={`h-8 rounded-md flex items-center justify-center transition-colors ${set._done ? 'bg-green-500/20 text-green-400' : 'bg-dark-700 text-gray-500'}`}>
+                        <CheckCircle size={15} />
                       </button>
-                      {exLog.sets.length > 1 && (
-                        <button onClick={() => removeSet(ex.id, si)} className="w-6 h-6 flex items-center justify-center text-gray-700 hover:text-red-400 flex-shrink-0">
-                          <Trash2 size={11} />
+                      {exLog.sets.length > 1 ? (
+                        <button onClick={() => removeSet(ex.id, si)} aria-label={'Supprimer la série ' + (si + 1)} className="h-8 flex items-center justify-center text-gray-500 hover:text-red-400">
+                          <Trash2 size={13} />
                         </button>
-                      )}
+                      ) : <span />}
                     </div>
                   ))}
-                  <button onClick={() => addSet(ex.id, ex)}
+                  <button onClick={() => addSet(ex.id)}
                     className="w-full py-1.5 border border-dashed border-contrast/10 rounded-lg text-gray-600 text-xs hover:text-brand-400 hover:border-brand-500/30 transition-colors flex items-center justify-center gap-1">
                     <Plus size={11} /> Ajouter une série
                   </button>
@@ -353,7 +367,7 @@ export default function SessionLogger() {
                 {sessionPRs.map((pr, i) => (
                   <div key={i} className="ios-pop" style={{animationDelay: (0.25 + i * 0.15) + 's', display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:3}}>
                     <span style={{color:'var(--label1b)'}}>{pr.name}</span>
-                    <span style={{color:'#f59e0b', fontWeight:700}}>{pr.load} kg {pr.prev > 0 ? '(+' + (pr.load - pr.prev).toFixed(1) + ')' : '🆕'}</span>
+                    <span style={{color:'var(--yellow-text)', fontWeight:700}}>{pr.load} kg {pr.prev > 0 ? '(+' + (pr.load - pr.prev).toFixed(1) + ')' : '🆕'}</span>
                   </div>
                 ))}
               </div>
@@ -371,7 +385,7 @@ export default function SessionLogger() {
               ))}
             </div>
 
-            <p style={{margin:'0 0 8px', fontSize:13, color:'var(--label1b)', fontWeight:600}}>Difficulté perçue (RPE) : <span style={{color:'#6366f1'}}>{rpeValue}/10</span></p>
+            <p style={{margin:'0 0 8px', fontSize:13, color:'var(--label1b)', fontWeight:600}}>Difficulté perçue (RPE) : <span style={{color:'var(--accent-text)'}}>{rpeValue}/10</span></p>
             <input type="range" min={1} max={10} value={rpeValue} onChange={e => setRpeValue(Number(e.target.value))}
               style={{width:'100%', marginBottom:20, accentColor:'#6366f1'}}/>
 
@@ -396,7 +410,7 @@ export default function SessionLogger() {
         </div>
       )}
 
-{focus && <FocusMode exercises={exercises} logs={logs} onUpdateSet={updateSet} onClose={() => setFocus(false)} onFinish={handleComplete} />}
+{focus && <FocusMode exercises={exercises} logs={logs} onUpdateSet={updateSet} onCompleteSet={completeSet} onClose={() => setFocus(false)} onFinish={handleComplete} />}
 {demo && <ExerciseDetailModal exercise={demo} onClose={() => setDemo(null)} />}
 
 {showQuitConfirm && (

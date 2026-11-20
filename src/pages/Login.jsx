@@ -37,8 +37,8 @@ export default function Login() {
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100dvh - var(--sat))', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '24px' }}>
                 <div style={{ marginBottom: 32, textAlign: 'center' }}>
                           <div style={{ width: 72, height: 72, background: 'var(--accent)', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 32 }}>🏈</div>
-                          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Sirac Coaching</h1>
-                          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>Plateforme de suivi athlètes</p>
+                          <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: '.28em', margin: 0, background: 'linear-gradient(90deg,#5e5ce6,#bf5af2)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>ARISE</h1>
+                          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>Coaching sportif · Sirac</p>
                 </div>
 
                 <div style={{ width: '100%', maxWidth: 360, background: 'var(--bg-card)', borderRadius: 24, border: '1px solid rgba(var(--contrast),0.08)', padding: 24 }}>

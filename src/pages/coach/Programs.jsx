@@ -104,7 +104,7 @@ export default function Programs() {
         const exs = sess.program_exercises || []
         if (exs.length) {
           const { error: ee } = await supabase.from('program_exercises').insert(exs.map(ex => ({
-            session_id: ns.id, exercise_id: ex.exercise_id, name: ex.name, sets: ex.sets, reps: ex.reps, load: ex.load,
+            session_id: ns.id, exercise_id: ex.exercise_id, name: ex.name, sets: ex.sets, reps: ex.reps, measure: ex.measure || 'reps', load: ex.load,
             rpe: ex.rpe, rest_seconds: ex.rest_seconds, notes: ex.notes, video_url: ex.video_url, order_index: ex.order_index,
           })))
           if (ee) throw ee

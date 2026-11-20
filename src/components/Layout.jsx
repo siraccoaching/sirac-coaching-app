@@ -11,7 +11,7 @@ function navClass(path) {
   return depth(path) > depth(prev) ? 'nav-push' : depth(path) < depth(prev) ? 'nav-back' : 'ios-page'
 }
 
-export function PageLayout({ children, title, subtitle, back, action }) {
+export function PageLayout({ children, title, subtitle, back, action, fill = false, brand = false }) {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -54,12 +54,13 @@ export function PageLayout({ children, title, subtitle, back, action }) {
       <header style={{ flexShrink: 0, position: 'relative', zIndex: 20, background: 'var(--bar-bg)', backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)', borderBottom: '0.5px solid var(--bar-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: back ? '10px 12px 10px 6px' : '14px 16px 10px', minHeight: 44 }}>
           {back && (
-            <button onClick={() => navigate(back)} aria-label="Retour"
+            <button onClick={() => typeof back === 'function' ? back() : navigate(back)} aria-label="Retour"
               style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '4px 6px 4px 0', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: 17, flexShrink: 0 }}>
               <ChevronLeft size={28} strokeWidth={2.2} />
             </button>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
+            {brand && <BrandMark />}
             <h1 style={{ margin: 0, fontSize: back ? 19 : 30, fontWeight: 700, letterSpacing: back ? '-0.02em' : '-0.025em', color: 'var(--label)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.15 }}>{title}</h1>
             {subtitle && <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subtitle}</p>}
           </div>
@@ -73,7 +74,10 @@ export function PageLayout({ children, title, subtitle, back, action }) {
         </div>
       </header>
 
-      <main key={location.pathname} className={'scrollbar-hide ' + anim} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', paddingBottom: navItems ? 'calc(72px + var(--sab))' : 'var(--sab)' }}>
+      <main key={location.pathname} className={'scrollbar-hide ' + anim}
+        style={fill
+          ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingBottom: navItems ? 'calc(56px + var(--sab))' : 'var(--sab)' }
+          : { flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: navItems ? 'calc(72px + var(--sab))' : 'var(--sab)' }}>
         {children}
       </main>
 
@@ -88,6 +92,15 @@ export function PageLayout({ children, title, subtitle, back, action }) {
         </nav>
       )}
     </div>
+  )
+}
+
+// Nom de l'application, affiché au-dessus du titre de la page d'accueil
+export const APP_NAME = 'ARISE'
+export function BrandMark() {
+  return (
+    <span data-testid="brand" style={{ display: 'inline-block', fontSize: 13, fontWeight: 800, letterSpacing: '.32em', marginBottom: 2,
+      background: 'linear-gradient(90deg,#5e5ce6,#bf5af2)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>{APP_NAME}</span>
   )
 }
 

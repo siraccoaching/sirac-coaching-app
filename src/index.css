@@ -17,9 +17,9 @@
   --contrast: 0, 0, 0;
   --gray300-rgb: 60 60 67;
   --gray400-rgb: 99 99 104;
-  --gray500-rgb: 128 128 133;
-  --gray600-rgb: 160 160 166;
-  --gray700-rgb: 199 199 204;
+  --gray500-rgb: 110 110 115;
+  --gray600-rgb: 128 128 133;
+  --gray700-rgb: 174 174 178;
 
   --bg: rgb(var(--bg-rgb));
   --card: rgb(var(--card-rgb));
@@ -28,8 +28,8 @@
   --separator: rgba(60, 60, 67, 0.16);
   --label: #000000;
   --label1b: rgba(0, 0, 0, 0.82);
-  --label2: rgba(60, 60, 67, 0.66);
-  --label3: rgba(60, 60, 67, 0.46);
+  --label2: rgba(60, 60, 67, 0.8);
+  --label3: rgba(60, 60, 67, 0.64);
   --accent: #5856d6;              /* systemIndigo */
   --accent-text: #4f46e5;
   --accent-soft: rgba(88, 86, 214, 0.12);
@@ -37,6 +37,19 @@
   --red-text: #dc2626;
   --yellow-text: #b45309;
   --orange-text: #c2410c;
+  --cyan-text: #0e7490;
+  --blue-text: #0063cc;
+  --purple-text: #7e22ce;
+  --pink-text: #be185d;
+  /* couleurs Tailwind utilisées pour du texte : plus foncées en clair */
+  --brand300-rgb: 79 70 229;
+  --brand400-rgb: 79 70 229;
+  --green400-rgb: 21 128 61;
+  --red400-rgb: 220 38 38;
+  --red300-rgb: 220 38 38;
+  --purple400-rgb: 126 34 206;
+  --tone-p: 62%;
+  --tone-base: #000;
   --segment: #ffffff;
   --bar-bg: rgba(249, 249, 249, 0.82);
   --bar-border: rgba(0, 0, 0, 0.14);
@@ -61,15 +74,15 @@
   --contrast: 255, 255, 255;
   --gray300-rgb: 209 209 214;
   --gray400-rgb: 174 174 178;
-  --gray500-rgb: 142 142 147;
-  --gray600-rgb: 110 110 115;
-  --gray700-rgb: 72 72 74;
+  --gray500-rgb: 152 152 157;
+  --gray600-rgb: 130 130 135;
+  --gray700-rgb: 90 90 94;
 
   --separator: rgba(84, 84, 88, 0.6);
   --label: #ffffff;
   --label1b: rgba(255, 255, 255, 0.86);
-  --label2: rgba(235, 235, 245, 0.62);
-  --label3: rgba(235, 235, 245, 0.4);
+  --label2: rgba(235, 235, 245, 0.7);
+  --label3: rgba(235, 235, 245, 0.52);
   --accent: #5e5ce6;
   --accent-text: #a5b4fc;
   --accent-soft: rgba(94, 92, 230, 0.28);
@@ -77,6 +90,18 @@
   --red-text: #f87171;
   --yellow-text: #fbbf24;
   --orange-text: #fb923c;
+  --cyan-text: #67e8f9;
+  --blue-text: #64b5ff;
+  --purple-text: #d8b4fe;
+  --pink-text: #f9a8d4;
+  --brand300-rgb: 165 180 252;
+  --brand400-rgb: 165 180 252;
+  --green400-rgb: 74 222 128;
+  --red400-rgb: 248 113 113;
+  --red300-rgb: 252 165 165;
+  --purple400-rgb: 192 132 252;
+  --tone-p: 100%;
+  --tone-base: #fff;
   --segment: #636366;
   --bar-bg: rgba(22, 22, 24, 0.82);
   --bar-border: rgba(255, 255, 255, 0.12);
@@ -97,6 +122,12 @@
   /* En mode « écran d'accueil », iOS affiche l'app sous l'heure : on réserve cet espace partout. */
   #root { @apply h-full; box-sizing: border-box; padding-top: var(--sat); }
   input, textarea, select { color: var(--label); }
+  /* iPhone : les champs date/heure ont une largeur minimale native qui les fait déborder sur la case voisine */
+  input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"] {
+    -webkit-appearance: none; appearance: none; min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; display: block; text-align: left;
+  }
+  input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+  input, select, textarea { min-width: 0; }
   ::placeholder { color: var(--label3); opacity: 1; }
 }
 
@@ -156,7 +187,7 @@ div[style*="position: fixed"][style*="inset: 0"] > div:first-child,
 /* 1. Pas de zoom automatique de Safari au focus (police >= 16px) */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   input[type="text"], input[type="email"], input[type="password"], input[type="number"],
-  input[type="tel"], input[type="search"], input[type="url"], textarea, select {
+  input[type="tel"], input[type="search"], input[type="url"], input:not([type]), textarea, select {
     font-size: 16px !important;
   }
 }
@@ -175,3 +206,6 @@ textarea:-webkit-autofill, select:-webkit-autofill {
 
 /* 4. Pas de sélection de texte accidentelle sur les boutons */
 button { -webkit-user-select: none; user-select: none; }
+
+/* Cases de saisie vides : la valeur suggérée (objectif / dernière séance) apparaît en gris clair */
+.hint-input::placeholder { color: var(--label3); opacity: .5; font-weight: 500; }

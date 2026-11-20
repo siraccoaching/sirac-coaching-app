@@ -87,7 +87,7 @@ export default function FreeSession() {
       <div style={{ padding: '16px 16px 100px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {selectedExercises.length === 0 ? (
           <div style={{ background: 'var(--card)', border: '1px solid rgba(var(--contrast),0.07)', borderRadius: 16, padding: '32px 20px', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 4px', fontSize: 15, color: 'rgba(var(--contrast),0.4)' }}>Aucun exercice ajouté</p>
+            <p style={{ margin: '0 0 4px', fontSize: 15, color:'var(--label2)' }}>Aucun exercice ajouté</p>
             <p style={{ margin: 0, fontSize: 12, color: 'var(--accent-text)' }}>Ajoute des exercices ci-dessous</p>
           </div>
         ) : (
@@ -99,7 +99,7 @@ export default function FreeSession() {
                   <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: 'var(--accent-text)' }}>{ex.name}</p>
                   {ex.id && <button onClick={() => setDemo(ex)} aria-label="Voir la démo" style={{ background: 'none', border: 'none', color: 'var(--accent-text)', cursor: 'pointer', padding: 2, display: 'flex' }}><Info size={15} /></button>}
                 </div>
-                <button onClick={() => removeExercise(exIdx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}>
+                <button onClick={() => removeExercise(exIdx)} style={{ background: 'none', border: 'none', color: 'var(--red-text)', cursor: 'pointer', padding: 4 }}>
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -124,7 +124,7 @@ export default function FreeSession() {
                   </div>
                 ))}
                 <button onClick={() => addSet(exIdx)}
-                  style={{ background: 'none', border: '1px dashed var(--fill)', borderRadius: 8, color: '#6366f1', fontSize: 12, padding: '6px 0', width: '100%', cursor: 'pointer', marginTop: 4 }}>
+                  style={{ background: 'none', border: '1px dashed var(--fill)', borderRadius: 8, color: 'var(--accent-text)', fontSize: 12, padding: '6px 0', width: '100%', cursor: 'pointer', marginTop: 4 }}>
                   + Série
                 </button>
               </div>
