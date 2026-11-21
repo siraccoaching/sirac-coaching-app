@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/hooks'
 import { supabase } from '../../lib/supabase'
+import { PageLayout } from '../../components/Layout'
 import { ArrowLeft, Trash2, TrendingUp, ChevronDown, ChevronUp, Check, Pencil, X } from 'lucide-react'
 import ClientNutritionTab from '../../components/ClientNutritionTab'
 import PrivatePhoto from '../../components/PrivatePhoto'
+import { formatSetValue } from '../../lib/measure'
+import { tone } from '../../lib/theme'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
@@ -29,7 +32,7 @@ function ProgressChart({ data, label }) {
     <div style={{marginBottom: 4}}>
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
         <span style={{fontSize:13, fontWeight:600, color:'var(--label1b)'}}>{label}</span>
-        <span style={{fontSize:12, color, fontWeight:600}}>
+        <span style={{fontSize:12, color: tone(color), fontWeight:600}}>
           {diff >= 0 ? '+' : ''}{diff % 1 === 0 ? diff : diff.toFixed(1)} kg
         </span>
       </div>
@@ -174,8 +177,8 @@ export default function ClientDetail() {
   const [editForm, setEditForm] = useState({})
   const [editSaving, setEditSaving] = useState(false)
 
-  if (loading) return <div style={{color:'var(--label)',padding:20}}>Chargement...</div>
-  if (!client) return <div style={{color:'var(--label)',padding:20}}>Client introuvable</div>
+  if (loading) return <PageLayout back="/coach" title="Client"><div style={{color:'var(--label2)',padding:20}}>Chargement...</div></PageLayout>
+  if (!client) return <PageLayout back="/coach" title="Client"><div style={{color:'var(--label2)',padding:20}}>Client introuvable</div></PageLayout>
 
   const streak = calcStreak()
   const progressEntries = Object.entries(progressData).filter(([, d]) => d.length >= 2)
@@ -210,35 +213,24 @@ export default function ClientDetail() {
   }
 
   return (
-    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:40}}>
-      <div style={{background:'var(--card)', padding:'16px 20px', display:'flex', alignItems:'center', gap:12}}>
-        <button onClick={() => navigate(-1)} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
-          <ArrowLeft size={20}/>
-        </button>
-        <div style={{flex:1}}>
-          <h2 style={{margin:0, fontSize:18}}>{client.name}</h2>
-          {client.sport && <p style={{margin:0, fontSize:13, color:'var(--label2)'}}>{client.sport}{client.position ? ' · ' + client.position : ''}</p>}
-
-        <button onClick={openEdit} aria-label="Modifier le client" style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4, marginRight:4}}>
-          <Pencil size={16}/>
-        </button>
-        <button onClick={deleteClient} aria-label="Retirer ce client" style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:4}}>
-          <Trash2 size={18}/>
-        </button>
+    <PageLayout back="/coach" title={client.name} subtitle={client.sport ? client.sport + (client.position ? ' · ' + client.position : '') : undefined}
+      action={
+        <div style={{display:'flex', gap:6}}>
+          <button onClick={openEdit} aria-label="Modifier le client" style={iconBtn}><Pencil size={16}/></button>
+          <button onClick={deleteClient} aria-label="Retirer ce client" style={{...iconBtn, color:'var(--red-text)'}}><Trash2 size={17}/></button>
         </div>
-      </div>
-
+      }>
       <div style={{display:'flex', gap:10, padding:'12px 16px'}}>
         <div style={{flex:1, background:'var(--card)', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
-          <p style={{margin:0, fontSize:22, fontWeight:700, color:'#6366f1'}}>{completions.length}</p>
+          <p style={{margin:0, fontSize:22, fontWeight:700, color:'var(--accent-text)'}}>{completions.length}</p>
           <p style={{margin:0, fontSize:11, color:'var(--label2)'}}>séances</p>
         </div>
         <div style={{flex:1, background:'var(--card)', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
-          <p style={{margin:0, fontSize:22, fontWeight:700, color:'#f59e0b'}}>{streak} 🔥</p>
+          <p style={{margin:0, fontSize:22, fontWeight:700, color:'var(--yellow-text)'}}>{streak} 🔥</p>
           <p style={{margin:0, fontSize:11, color:'var(--label2)'}}>jours consec.</p>
         </div>
         <div style={{flex:1, background:'var(--card)', borderRadius:12, padding:'12px 10px', textAlign:'center'}}>
-          <p style={{margin:0, fontSize:22, fontWeight:700, color:'#22c55e'}}>{progressEntries.length}</p>
+          <p style={{margin:0, fontSize:22, fontWeight:700, color:'var(--green-text)'}}>{progressEntries.length}</p>
           <p style={{margin:0, fontSize:11, color:'var(--label2)'}}>exercices suivis</p>
         </div>
       </div>
@@ -247,7 +239,7 @@ export default function ClientDetail() {
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
           <div>
             <p style={{margin:'0 0 3px', fontSize:11, color:'var(--label2)', textTransform:'uppercase', letterSpacing:'0.5px'}}>Programme actif</p>
-            <p style={{margin:0, fontSize:15, fontWeight:600, color: currentProgram ? '#a78bfa' : 'var(--label3)'}}>
+            <p style={{margin:0, fontSize:15, fontWeight:600, color: currentProgram ? 'var(--purple-text)' : 'var(--label3)'}}>
               {currentProgram ? currentProgram.name : 'Aucun programme assigné'}
             </p>
           </div>
@@ -286,7 +278,7 @@ export default function ClientDetail() {
                   </p>
                 </div>
                 <button onClick={() => deleteCompletion(comp.id)} disabled={deleting === comp.id} aria-label="Supprimer cette séance"
-                  style={{background:'none', border:'none', color:'#ef4444', cursor:'pointer', opacity: deleting === comp.id ? 0.5 : 1, padding:4}}>
+                  style={{background:'none', border:'none', color:'var(--red-text)', cursor:'pointer', opacity: deleting === comp.id ? 0.5 : 1, padding:4}}>
                   <Trash2 size={16}/>
                 </button>
                 <button onClick={() => toggleExpand(comp.id)}
@@ -309,7 +301,7 @@ export default function ClientDetail() {
                             borderRadius:6, padding:'3px 8px', fontSize:11,
                             color: s._done === false ? 'var(--label3)' : 'var(--label1b)'
                           }}>
-                            {s.reps ? s.reps + ' reps' : ''}{s.load ? ' · ' + s.load + 'kg' : ''}{s.rpe ? ' · RPE ' + s.rpe : ''}
+                            {formatSetValue(s)}{s.load ? ' · ' + s.load + 'kg' : ''}{s.rpe ? ' · RPE ' + s.rpe : ''}
                           </div>
                         ))}
                       </div>
@@ -379,7 +371,7 @@ export default function ClientDetail() {
             </div>
           ) : measurements.map(m => (
             <div key={m.id} style={{background:'var(--card)', borderRadius:12, padding:'14px 16px', marginBottom:10}}>
-              <p style={{margin:'0 0 10px', fontSize:12, color:'#6366f1', fontWeight:700}}>
+              <p style={{margin:'0 0 10px', fontSize:12, color:'var(--accent-text)', fontWeight:700}}>
                 {new Date(m.measured_at).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})}
               </p>
               <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8}}>
@@ -425,7 +417,7 @@ export default function ClientDetail() {
                 <div style={{width:44, textAlign:'center', flexShrink:0}}>
                   {d ? (
                     <>
-                      <p style={{margin:0, fontSize:18, fontWeight:700, color: done ? '#22c55e' : '#6366f1', lineHeight:1}}>{d.getDate()}</p>
+                      <p style={{margin:0, fontSize:18, fontWeight:700, color: done ? 'var(--green-text)' : 'var(--accent-text)', lineHeight:1}}>{d.getDate()}</p>
                       <p style={{margin:0, fontSize:10, color:'var(--label2)'}}>{d.toLocaleDateString('fr-FR',{month:'short'}).toUpperCase()}</p>
                     </>
                   ) : <p style={{margin:0, fontSize:11, color:'var(--label3)'}}>–</p>}
@@ -435,7 +427,7 @@ export default function ClientDetail() {
                   {s.notes && !expanded[s.id] && <p style={{margin:'2px 0 0', fontSize:12, color:'var(--label2)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.notes}</p>}
                 </div>
                 <div style={{flexShrink:0, background: done ? 'rgba(52,199,89,0.16)' : 'rgba(0,122,255,0.14)', borderRadius:20, padding:'3px 10px', marginRight:4}}>
-                  <span style={{fontSize:11, color: done ? '#22c55e' : '#60a5fa', fontWeight:600}}>{done ? 'Fait ✓' : 'Planifié'}</span>
+                  <span style={{fontSize:11, color: done ? 'var(--green-text)' : 'var(--blue-text)', fontWeight:600}}>{done ? 'Fait ✓' : 'Planifié'}</span>
                 </div>
                 <button onClick={() => toggleExpand(s.id)} style={{background:'none', border:'none', color:'var(--label2)', cursor:'pointer', padding:4}}>
                   {expanded[s.id] ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
@@ -453,7 +445,7 @@ export default function ClientDetail() {
                   )}
                   <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
                     {s.day_number && <span style={{fontSize:11, background:'var(--fill)', borderRadius:8, padding:'3px 8px', color:'var(--label2)'}}>Jour {s.day_number}</span>}
-                    {done && s.completed_at && <span style={{fontSize:11, background:'rgba(52,199,89,0.16)', borderRadius:8, padding:'3px 8px', color:'#22c55e'}}>Complétée le {new Date(s.completed_at).toLocaleDateString('fr-FR')}</span>}
+                    {done && s.completed_at && <span style={{fontSize:11, background:'rgba(52,199,89,0.16)', borderRadius:8, padding:'3px 8px', color:'var(--green-text)'}}>Complétée le {new Date(s.completed_at).toLocaleDateString('fr-FR')}</span>}
                     {!done && s.session_date && <span style={{fontSize:11, background:'rgba(0,122,255,0.14)', borderRadius:8, padding:'3px 8px', color:'var(--accent-text)'}}>Planifiée le {new Date(s.session_date).toLocaleDateString('fr-FR')}</span>}
                   </div>
                 </div>
@@ -489,7 +481,7 @@ export default function ClientDetail() {
                     ['😤 Stress', ch.stress_level, '#ef4444']].map(([lbl, val, color]) => (
                     <div key={lbl} style={{background:'var(--bg)', borderRadius:8, padding:'8px 10px'}}>
                       <p style={{margin:'0 0 3px', fontSize:11, color:'var(--label2)'}}>{lbl}</p>
-                      <p style={{margin:0, fontSize:16, letterSpacing:1, color}}>{val ? stars(val) : '–'}</p>
+                      <p style={{margin:0, fontSize:16, letterSpacing:1, color: tone(color)}}>{val ? stars(val) : '–'}</p>
                     </div>
                   ))}
                 </div>
@@ -550,12 +542,14 @@ export default function ClientDetail() {
               </div>
             ))}
             <button onClick={saveEdit} disabled={editSaving}
-              style={{width:'100%',background:'#c9a84c',border:'none',borderRadius:12,padding:13,color:'#000',fontWeight:700,fontSize:14,cursor:editSaving?'not-allowed':'pointer',marginTop:4,opacity:editSaving?0.6:1}}>
+              style={{width:'100%',background:'var(--accent)',border:'none',borderRadius:12,padding:13,color:'#fff',fontWeight:700,fontSize:14,cursor:editSaving?'not-allowed':'pointer',marginTop:4,opacity:editSaving?0.6:1}}>
               {editSaving?'Enregistrement...':'Sauvegarder'}
             </button>
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   )
 }
+
+const iconBtn = { width:34, height:34, borderRadius:17, background:'var(--fill)', border:'none', color:'var(--label2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }

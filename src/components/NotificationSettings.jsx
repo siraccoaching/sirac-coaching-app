@@ -31,7 +31,7 @@ export default function NotificationSettings() {
 
   const help = {
     unsupported: 'Sur iPhone, ajoute d’abord l’app à l’écran d’accueil (Partager → « Sur l’écran d’accueil »), puis ouvre-la depuis l’icône pour activer les notifications.',
-    blocked: 'Les notifications sont bloquées pour cette app. Autorise-les dans les réglages du téléphone (Réglages → Notifications → Sirac Coaching), puis reviens ici.',
+    blocked: 'Les notifications sont bloquées pour cette app. Autorise-les dans les réglages du téléphone (Réglages → Notifications → ARISE), puis reviens ici.',
   }[state]
 
   return (

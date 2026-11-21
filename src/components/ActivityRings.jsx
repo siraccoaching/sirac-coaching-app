@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { tone } from '../lib/theme'
 
 // Anneaux d'activité façon Apple Watch : chaque anneau se remplit avec une animation à l'ouverture.
 // rings = [{ label, value, goal, unit, color, track }]
@@ -27,7 +28,7 @@ export default function ActivityRings({ rings, size = 150 }) {
         {rings.map(r => (
           <div key={r.label}>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--label)' }}>{r.label}</p>
-            <p style={{ margin: 0, fontSize: 19, fontWeight: 700, color: r.color, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+            <p style={{ margin: 0, fontSize: 19, fontWeight: 700, color: tone(r.color), letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
               {Math.round(r.value)}<span style={{ fontSize: 13, fontWeight: 600 }}>/{Math.round(r.goal)} {r.unit}</span>
             </p>
           </div>

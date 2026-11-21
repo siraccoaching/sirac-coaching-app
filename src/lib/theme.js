@@ -49,3 +49,7 @@ export function useTheme() {
   }, [])
   return { ...state, setPref: setThemePref }
 }
+
+// Couleur vive utilisée pour du TEXTE : assombrie en thème clair pour rester lisible sur fond blanc,
+// inchangée en thème sombre (variables --tone-* dans index.css).
+export const tone = c => `color-mix(in srgb, ${c} var(--tone-p), var(--tone-base))`

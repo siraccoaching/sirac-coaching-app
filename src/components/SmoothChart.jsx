@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { tone } from '../lib/theme'
 
 // Courbe lissée animée et interactive : glisser le doigt sur le graphique affiche la valeur du point.
 export function SmoothChart({ data, color = '#5e5ce6', unit = 'kg', height = 120 }) {
@@ -45,7 +46,7 @@ export function SmoothChart({ data, color = '#5e5ce6', unit = 'kg', height = 120
         <circle cx={a.x} cy={a.y} r={6} fill={color} stroke="var(--card)" strokeWidth={3} />
       </svg>
       <div style={{ position: 'absolute', top: 0, left: Math.min(Math.max(a.x - 45, 0), w - 90), width: 90, textAlign: 'center', pointerEvents: 'none' }}>
-        <span style={{ display: 'inline-block', background: color, color: 'white', borderRadius: 8, padding: '2px 8px', fontSize: 12, fontWeight: 700 }}>
+        <span style={{ display: 'inline-block', background: color + '2e', color: tone(color), borderRadius: 8, padding: '2px 8px', fontSize: 12, fontWeight: 700 }}>
           {a.value} {unit} · {a.date}
         </span>
       </div>

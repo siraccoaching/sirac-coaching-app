@@ -7,6 +7,7 @@ import { PageLayout, Card, Badge, SportIcon } from '../../components/Layout'
 import { CalendarDays } from 'lucide-react'
 import { UserPlus, Bell, BellOff, Activity, CheckCircle, Users, Dumbbell, BookOpen, LayoutTemplate, ChevronRight, Apple } from 'lucide-react'
 import CoachAlerts from './CoachAlerts'
+import { tone } from '../../lib/theme'
 
 export default function CoachDashboard() {
   const { profile } = useAuth()
@@ -57,8 +58,8 @@ export default function CoachDashboard() {
   const firstName = profile?.name?.split(' ')[0] || ''
 
   return (
-    <PageLayout
-      title="Sirac Coaching"
+    <PageLayout brand
+      title="Mes clients"
       subtitle={`${clients.length} client${clients.length > 1 ? 's' : ''} actif${clients.length > 1 ? 's' : ''}`}
       action={
         <button onClick={() => navigate('/coach/add-client')}
@@ -84,7 +85,7 @@ export default function CoachDashboard() {
             <Bell size={18} color="#818cf8" style={{ flexShrink:0 }} />
             <div>
               <p style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--label)' }}>Activer les notifications push</p>
-              <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.38)', marginTop:2 }}>Sois averti dès qu'un athlète termine sa séance</p>
+              <p style={{ margin:0, fontSize:11, color:'var(--label3)', marginTop:2 }}>Sois averti dès qu'un athlète termine sa séance</p>
             </div>
           </button>
         )}
@@ -99,8 +100,8 @@ export default function CoachDashboard() {
           ].map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} style={{ background: bg, border:'1px solid '+color+'25', borderRadius:14, padding:'12px 8px', textAlign:'center' }}>
               <Icon size={16} color={color} style={{ marginBottom:4 }} />
-              <p style={{ margin:0, fontSize:22, fontWeight:800, color }}>{value}</p>
-              <p style={{ margin:0, fontSize:10, color:'rgba(var(--contrast),0.38)', lineHeight:1.3, marginTop:2 }}>{label}</p>
+              <p style={{ margin:0, fontSize:22, fontWeight:800, color: tone(color) }}>{value}</p>
+              <p style={{ margin:0, fontSize:10, color:'var(--label3)', lineHeight:1.3, marginTop:2 }}>{label}</p>
             </div>
           ))}
         </div>
@@ -118,9 +119,9 @@ export default function CoachDashboard() {
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ margin:0, fontSize:13, fontWeight:600, color:'var(--label)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.client?.name}</p>
-                  <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.35)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.program_sessions?.name || 'S\u00e9ance libre'}{s.rpe_session ? ' \u00b7 RPE ' + s.rpe_session : ''}</p>
+                  <p style={{ margin:0, fontSize:11, color:'var(--label3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{s.program_sessions?.name || 'S\u00e9ance libre'}{s.rpe_session ? ' \u00b7 RPE ' + s.rpe_session : ''}</p>
                 </div>
-                <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.28)', flexShrink:0 }}>{formatTime(s.created_at)}</p>
+                <p style={{ margin:0, fontSize:11, color:'var(--label3)', flexShrink:0 }}>{formatTime(s.created_at)}</p>
               </div>
             ))}
           </div>
@@ -132,7 +133,7 @@ export default function CoachDashboard() {
               <button key={s} onClick={() => setFilter(s)}
                 style={{ flexShrink:0, padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', transition:'all 0.15s',
                   background: filter === s ? '#6366f1' : 'rgba(var(--contrast),0.07)',
-                  color: filter === s ? 'white' : 'rgba(var(--contrast),0.42)',
+                  color: filter === s ? 'white' : 'var(--label2)',
                 }}>
                 {s === 'all' ? 'Tous' : s}
               </button>
@@ -141,7 +142,7 @@ export default function CoachDashboard() {
         )}
 
         <div>
-          <p style={{ margin:'0 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(var(--contrast),0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>
+          <p style={{ margin:'0 0 10px 2px', fontSize:11, fontWeight:600, color:'var(--label3)', textTransform:'uppercase', letterSpacing:'0.07em' }}>
             Mes clients ({filtered.length})
           </p>
 
@@ -151,7 +152,7 @@ export default function CoachDashboard() {
             </div>
           ) : filtered.length === 0 ? (
             <div style={{ background:'var(--card)', border:'1px solid rgba(var(--contrast),0.07)', borderRadius:16, padding:32, textAlign:'center' }}>
-              <p style={{ margin:'0 0 8px', fontSize:13, color:'rgba(var(--contrast),0.38)' }}>Aucun client pour l'instant.</p>
+              <p style={{ margin:'0 0 8px', fontSize:13, color:'var(--label3)' }}>Aucun client pour l'instant.</p>
               <button onClick={() => navigate('/coach/add-client')} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--accent-text)', fontSize:13, fontWeight:600 }}>
                 + Ajouter un premier client
               </button>
@@ -173,7 +174,7 @@ export default function CoachDashboard() {
                           <p style={{ margin:0, fontSize:14, fontWeight:600, color:'var(--label)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client.name}</p>
                           <StatusBadge status={status} />
                         </div>
-                        <p style={{ margin:0, fontSize:11, color:'rgba(var(--contrast),0.32)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        <p style={{ margin:0, fontSize:11, color:'var(--label3)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                           {[client.sport, client.position].filter(Boolean).join(' \u00b7 ')}
                         </p>
                       </div>
@@ -188,7 +189,7 @@ export default function CoachDashboard() {
 
         {/* Quick tools */}
         <div>
-          <p style={{ margin:'4px 0 10px 2px', fontSize:11, fontWeight:600, color:'rgba(var(--contrast),0.32)', textTransform:'uppercase', letterSpacing:'0.07em' }}>Outils</p>
+          <p style={{ margin:'4px 0 10px 2px', fontSize:11, fontWeight:600, color:'var(--label3)', textTransform:'uppercase', letterSpacing:'0.07em' }}>Outils</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
             {[
               { icon: <CalendarDays size={18}/>, label: 'Agenda', path: '/coach/calendar', color: '#ff375f' },
@@ -197,7 +198,7 @@ export default function CoachDashboard() {
             ].map(tool => (
               <button key={tool.path} onClick={() => navigate(tool.path)}
                 style={{ background:'var(--card)', border:'1px solid rgba(var(--contrast),0.07)', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', textAlign:'left' }}>
-                <div style={{ width:36, height:36, borderRadius:10, background:tool.color+'22', display:'flex', alignItems:'center', justifyContent:'center', color:tool.color, flexShrink:0 }}>
+                <div style={{ width:36, height:36, borderRadius:10, background:tool.color+'22', display:'flex', alignItems:'center', justifyContent:'center', color:tone(tool.color), flexShrink:0 }}>
                   {tool.icon}
                 </div>
                 <span style={{ fontSize:13, fontWeight:600, color:'var(--label)' }}>{tool.label}</span>

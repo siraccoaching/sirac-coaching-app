@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { PageLayout, Card, Badge } from '../../components/Layout'
 import { Layers, Dumbbell, Clock, ChevronDown, ChevronUp, Users, Trash2, Pencil, ExternalLink } from 'lucide-react'
+import { measureOf } from '../../lib/measure'
 
 export default function ProgramDetail() {
   const { id } = useParams()
@@ -126,7 +127,7 @@ function SessionView({ sess, open, onToggle }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Pill label="Séries" value={ex.sets} />
-                <Pill label="Reps" value={ex.reps} />
+                <Pill label={measureOf(ex).label} value={ex.reps + measureOf(ex).unit} />
                 {ex.load && <Pill label="Charge" value={ex.load} />}
                 {ex.rpe && <Pill label="RPE" value={ex.rpe} />}
                 {ex.rest_seconds > 0 && <Pill label="Récup" value={`${ex.rest_seconds}s`} icon={<Clock size={9} />} />}

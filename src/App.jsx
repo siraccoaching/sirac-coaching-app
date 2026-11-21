@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './lib/hooks'
 import { useRealtimeNotifications } from './lib/notify'
 import Login from './pages/Login'
+const AIMealPlan = lazy(() => import('./pages/client/AIMealPlan'))
 const CoachDashboard = lazy(() => import('./pages/coach/Dashboard'))
 const ClientDetail = lazy(() => import('./pages/coach/ClientDetail'))
 const AddClient = lazy(() => import('./pages/coach/AddClient'))
@@ -94,6 +95,7 @@ export default function App() {
         <Route path="/client/free-session" element={<ProtectedRoute requiredRole="client"><FreeSession /></ProtectedRoute>} />
         <Route path="/coach/nutrition" element={<ProtectedRoute requiredRole="coach"><NutritionPlans /></ProtectedRoute>} />
         <Route path="/client/nutrition" element={<ProtectedRoute requiredRole="client"><Nutrition /></ProtectedRoute>} />
+        <Route path="/client/meal-plan" element={<ProtectedRoute requiredRole="client"><AIMealPlan /></ProtectedRoute>} />
         <Route path="/client/profile" element={<ProtectedRoute requiredRole="client"><Profile /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />} />
       </Routes>

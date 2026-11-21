@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout } from '../../components/Layout'
 import BarcodeScanner from '../../components/BarcodeScanner'
 import { ChevronLeft, ChevronRight, Plus, Trash2, Search, ScanBarcode, Copy, X, Clock, ClipboardList, PenLine } from 'lucide-react'
 import { DEFAULT_MEALS, localDateStr, estimateTargets, scaleFood, round1, fetchOffProduct, searchOff } from '../../lib/nutrition'
+import { tone } from '../../lib/theme'
 
 const MACROS = [
   { key: 'protein', label: 'Protéines', color: '#818cf8', targetKey: 'protein_target' },
@@ -42,7 +44,7 @@ function MacroBar({ label, color, value, target }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
         <span style={{ color: 'var(--label1b)', fontWeight: 600 }}>{label}</span>
-        <span style={{ color: 'var(--label2)' }}><span style={{ color }}>{Math.round(value)}</span>{target ? ` / ${Math.round(target)}` : ''} g</span>
+        <span style={{ color: 'var(--label2)' }}><span style={{ color: tone(color), fontWeight: 700 }}>{Math.round(value)}</span>{target ? ` / ${Math.round(target)}` : ''} g</span>
       </div>
       <div style={{ height: 6, background: 'var(--fill)', borderRadius: 4, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: pct + '%', background: color, borderRadius: 4, transition: 'width 0.4s' }} />
@@ -282,6 +284,7 @@ function QuantityStep({ food, meal, onBack, onAdd }) {
 
 export default function Nutrition() {
   const { profile } = useAuth()
+  const navigate = useNavigate()
   const [date, setDate] = useState(new Date())
   const [plan, setPlan] = useState(null)
   const [planMeals, setPlanMeals] = useState([])
@@ -360,7 +363,7 @@ export default function Nutrition() {
       <div style={{ padding: '12px 16px 110px', maxWidth: 560, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <button onClick={() => setDate(d => addDays(d, -1))} aria-label="Jour précédent" style={navBtn}><ChevronLeft size={20} /></button>
-          <button onClick={() => setDate(new Date())} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: isToday ? '#a5b4fc' : 'white' }}>
+          <button onClick={() => setDate(new Date())} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 700, color: isToday ? 'var(--accent-text)' : 'var(--label)' }}>
             {isToday ? "Aujourd'hui" : date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </button>
           <button onClick={() => setDate(d => addDays(d, 1))} aria-label="Jour suivant" style={navBtn}><ChevronRight size={20} /></button>
@@ -373,13 +376,24 @@ export default function Nutrition() {
               {MACROS.map(m => <MacroBar key={m.key} label={m.label} color={m.color} value={totals[m.key]} target={targets?.[m.targetKey] || 0} />)}
             </div>
           </div>
-          <p data-testid="kcal-remaining" style={{ margin: '12px 0 0', textAlign: 'center', fontSize: 13, color: remaining != null && remaining < 0 ? '#f87171' : 'var(--label2)' }}>
+          <p data-testid="kcal-remaining" style={{ margin: '12px 0 0', textAlign: 'center', fontSize: 13, color: remaining != null && remaining < 0 ? 'var(--red-text)' : 'var(--label2)' }}>
             {remaining == null
               ? 'Renseigne taille, poids, âge et activité dans ton profil pour estimer ton objectif.'
               : remaining >= 0 ? <>Il te reste <b style={{ color: 'var(--label)' }}>{remaining} kcal</b> aujourd'hui</> : <>Objectif dépassé de <b>{-remaining} kcal</b></>}
           </p>
           {targets?.estimated && <p style={{ margin: '4px 0 0', textAlign: 'center', fontSize: 11, color: 'var(--label3)' }}>Objectif estimé d'après ton profil (ton coach peut le personnaliser)</p>}
         </div>
+
+        <button data-testid="ai-plan-link" onClick={() => navigate('/client/meal-plan')}
+          style={{ width: '100%', marginBottom: 12, padding: '14px 16px', border: 'none', borderRadius: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
+            background: 'linear-gradient(135deg,#5e5ce6,#bf5af2)', color: 'white', boxShadow: '0 8px 22px rgba(94,92,230,.28)' }}>
+          <span style={{ fontSize: 26 }}>✨</span>
+          <span style={{ flex: 1 }}>
+            <span style={{ display: 'block', fontSize: 16, fontWeight: 700 }}>Plan repas IA</span>
+            <span style={{ display: 'block', fontSize: 13, opacity: .9 }}>Selon tes calories, tes allergies et ton matériel</span>
+          </span>
+          <ChevronRight size={20} />
+        </button>
 
         {!loading && logs.length === 0 && yesterdayLogs.length > 0 && (
           <button disabled={busy} onClick={() => copyYesterday(null)}
@@ -396,7 +410,7 @@ export default function Nutrition() {
             <div key={mealName} data-testid="meal-section" style={{ background: 'var(--card)', borderRadius: 14, marginBottom: 10, overflow: 'hidden' }}>
               <div style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: items.length ? '1px solid var(--fill)' : 'none' }}>
                 <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--label)', flex: 1 }}>{mealName}</span>
-                <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>{Math.round(kcal)} kcal</span>
+                <span style={{ fontSize: 12, color: 'var(--yellow-text)', fontWeight: 600 }}>{Math.round(kcal)} kcal</span>
                 {items.length === 0 && yCount > 0 && (
                   <button onClick={() => copyYesterday(mealName)} disabled={busy} title="Copier depuis hier" aria-label={'Copier ' + mealName + ' d’hier'}
                     style={{ background: 'none', border: 'none', color: 'var(--label2)', cursor: 'pointer', padding: 4, display: 'flex' }}><Copy size={15} /></button>
@@ -405,11 +419,11 @@ export default function Nutrition() {
                   style={{ background: '#6366f1', border: 'none', borderRadius: 8, width: 28, height: 28, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={16} /></button>
               </div>
               {items.map(food => (
-                <div key={food.id} data-testid="food-log" style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid #191928' }}>
+                <div key={food.id} data-testid="food-log" style={{ padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '0.5px solid var(--separator)' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 13, color: 'var(--label)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{food.food_name}</p>
                     <p style={{ margin: 0, fontSize: 11, color: 'var(--label3)' }}>
-                      {food.quantity} {food.unit} · <span style={{ color: '#f59e0b' }}>{Math.round(food.calories)} kcal</span> · P{round1(food.protein)} G{round1(food.carbs)} L{round1(food.fat)}
+                      {food.quantity} {food.unit} · <span style={{ color: 'var(--yellow-text)' }}>{Math.round(food.calories)} kcal</span> · P{round1(food.protein)} G{round1(food.carbs)} L{round1(food.fat)}
                     </p>
                   </div>
                   <button onClick={() => deleteLog(food.id)} aria-label={'Supprimer ' + food.food_name} style={{ background: 'none', border: 'none', color: '#ef444488', cursor: 'pointer', padding: 4 }}><Trash2 size={14} /></button>

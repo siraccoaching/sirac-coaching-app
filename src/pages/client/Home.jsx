@@ -102,7 +102,7 @@ export default function ClientHome() {
 
   const firstName = profile?.name?.split(' ')[0] || ''
   return (
-    <PageLayout title={'Bonjour ' + firstName + ' \u{1F44B}'} subtitle={new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}>
+    <PageLayout brand title={'Bonjour ' + firstName + ' \u{1F44B}'} subtitle={new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}>
       <div style={{ padding: '16px 16px 28px', display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 640, margin: '0 auto' }}>
 
         {profile && !profile.onboarding_done && (

@@ -6,6 +6,7 @@ import { PageLayout } from '../../components/Layout'
 import { Plus, Pencil, Trash2, Search, X, Play, Star } from 'lucide-react'
 import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
 import { CATEGORIES, MUSCLES, EQUIPMENT, CAT_COLORS, loadExerciseList, matchesSearch } from '../../lib/exercises'
+import { tone } from '../../lib/theme'
 
 const field = { width: '100%', background: 'var(--fill)', border: '1px solid var(--separator)', borderRadius: 10, padding: '10px 14px', color: 'var(--label)', fontSize: 14, boxSizing: 'border-box', marginBottom: 10, WebkitTextFillColor: 'var(--label)' }
 const selectStyle = { background: 'var(--fill)', border: '1px solid var(--separator)', borderRadius: 10, padding: '10px 12px', color: 'var(--label)', fontSize: 13, width: '100%' }
@@ -144,7 +145,7 @@ export default function ExerciseLibrary() {
             {search && <button onClick={() => setSearch('')} aria-label="Effacer" style={{ background: 'none', border: 'none', color: 'var(--label2)', cursor: 'pointer', padding: 0 }}><X size={14} /></button>}
           </div>
           <select value={filterMuscle} onChange={e => setFilterMuscle(e.target.value)} aria-label="Filtrer par muscle"
-            style={{ background: 'var(--card)', border: 'none', borderRadius: 10, padding: '8px 6px', color: filterMuscle ? 'white' : 'var(--label2)', fontSize: 13, width: 110, flexShrink: 0 }}>
+            style={{ background: 'var(--card)', border: 'none', borderRadius: 10, padding: '8px 6px', color: filterMuscle ? 'var(--label)' : 'var(--label2)', fontSize: 13, width: 110, flexShrink: 0 }}>
             <option value="">Muscle</option>
             {MUSCLES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
@@ -189,7 +190,7 @@ export default function ExerciseLibrary() {
                     {ex.coach_id && <Star size={12} color="#fbbf24" fill="#fbbf24" />}
                     <span style={{ fontWeight: 600, fontSize: 14 }}>{ex.name}</span>
                     {ex.category && (
-                      <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (CAT_COLORS[ex.category] || '#6366f1') + '22', color: CAT_COLORS[ex.category] || '#6366f1', fontWeight: 600 }}>{ex.category}</span>
+                      <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: (CAT_COLORS[ex.category] || '#6366f1') + '22', color: tone(CAT_COLORS[ex.category] || '#6366f1'), fontWeight: 600 }}>{ex.category}</span>
                     )}
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{[ex.muscles, ex.equipment].filter(Boolean).join(' · ')}</p>
@@ -198,7 +199,7 @@ export default function ExerciseLibrary() {
                   style={{ background: 'none', border: 'none', color: 'var(--label2)', cursor: 'pointer', padding: 4 }}><Pencil size={15} /></button>
                 {ex.coach_id && (
                   <button onClick={() => deleteExercise(ex)} aria-label={'Supprimer ' + ex.name}
-                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
+                    style={{ background: 'none', border: 'none', color: 'var(--red-text)', cursor: 'pointer', padding: 4 }}><Trash2 size={15} /></button>
                 )}
               </div>
             ))}

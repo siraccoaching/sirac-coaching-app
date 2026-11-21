@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/hooks'
-import { ArrowLeft, Send } from 'lucide-react'
+import { Send } from 'lucide-react'
+import { PageLayout } from '../components/Layout'
 
 // ─── Shared conversation view ────────────────────────────────────
 export function ConversationView({ otherId, otherName }) {
@@ -89,7 +90,7 @@ export function ConversationView({ otherId, otherName }) {
         <div ref={bottomRef}/>
       </div>
       {/* Input */}
-      <div style={{padding:'10px 16px', paddingBottom:'calc(10px + var(--sab))', background:'var(--card)', display:'flex', gap:8, alignItems:'flex-end', borderTop:'0.5px solid var(--separator)'}}>
+      <div style={{padding:'10px 16px', background:'var(--card)', flexShrink:0, display:'flex', gap:8, alignItems:'flex-end', borderTop:'0.5px solid var(--separator)'}}>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
@@ -104,7 +105,7 @@ export function ConversationView({ otherId, otherName }) {
           onClick={sendMessage}
           disabled={!text.trim()}
           style={{width:40, height:40, borderRadius:20, background: text.trim() ? '#6366f1' : 'var(--fill)',
-            border:'none', color:'white', cursor: text.trim() ? 'pointer' : 'default',
+            border:'none', color: text.trim() ? 'white' : 'var(--label3)', cursor: text.trim() ? 'pointer' : 'default',
             display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
             transition:'background 0.2s'}}>
           <Send size={16}/>
@@ -154,41 +155,19 @@ export function CoachMessages() {
   // ── Conversation view ──
   if (clientId) {
     return (
-      <div style={{height:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
-        <div style={{background:'var(--card)', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
-          <button onClick={() => navigate('/coach/messages')}
-            style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
-            <ArrowLeft size={20}/>
-          </button>
-          <div>
-            <p style={{margin:0, fontWeight:700, fontSize:16}}>
-              {selectedClient ? selectedClient.name : 'Conversation'}
-            </p>
-            {selectedClient?.sport && (
-              <p style={{margin:0, fontSize:12, color:'var(--label2)'}}>{selectedClient.sport}</p>
-            )}
-          </div>
-        </div>
-        <div style={{flex:1, overflow:'hidden', display:'flex', flexDirection:'column'}}>
-          {selectedClient || !loading ? (
-            <ConversationView otherId={clientId} otherName={selectedClient?.name || ''}/>
-          ) : (
-            <div style={{textAlign:'center', color:'var(--label3)', padding:40}}>Chargement...</div>
-          )}
-        </div>
-      </div>
+      <PageLayout fill back="/coach/messages" title={selectedClient ? selectedClient.name : 'Conversation'} subtitle={selectedClient?.sport}>
+        {selectedClient || !loading ? (
+          <ConversationView otherId={clientId} otherName={selectedClient?.name || ''}/>
+        ) : (
+          <div style={{textAlign:'center', color:'var(--label3)', padding:40}}>Chargement...</div>
+        )}
+      </PageLayout>
     )
   }
 
   // ── Client list ──
   return (
-    <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', color:'var(--label)', paddingBottom:80}}>
-      <div style={{background:'var(--card)', padding:'16px 20px', position:'sticky', top:'var(--sat)', zIndex:10, display:'flex', alignItems:'center', gap:12}}>
-        <button onClick={() => navigate('/coach')} style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
-          <ArrowLeft size={20}/>
-        </button>
-        <h2 style={{margin:0, fontSize:18}}>Messages</h2>
-      </div>
+    <PageLayout title="Messages">
       <div style={{padding:'12px 16px'}}>
         {loading ? (
           [1,2,3].map(i => (
@@ -203,15 +182,15 @@ export function CoachMessages() {
           <button key={client.id}
             onClick={() => navigate(`/coach/messages/${client.id}`)}
             style={{display:'flex', alignItems:'center', gap:12, width:'100%', background:'var(--card)',
-              border:'none', borderRadius:12, padding:'12px 16px', marginBottom:8,
+              border:'none', borderRadius:12, padding:'12px 16px', marginBottom:8, boxShadow:'var(--card-shadow)',
               color:'var(--label)', cursor:'pointer', textAlign:'left'}}>
-            <div style={{width:40, height:40, borderRadius:20, background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
+            <div style={{width:40, height:40, borderRadius:20, background:'linear-gradient(135deg,#6366f1,#8b5cf6)', color:'white',
               display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:16, flexShrink:0}}>
               {client.name?.[0]?.toUpperCase() || '?'}
             </div>
             <div style={{flex:1, minWidth:0}}>
-              <p style={{margin:0, fontWeight:600, fontSize:14}}>{client.name}</p>
-              {client.sport && <p style={{margin:0, fontSize:12, color:'var(--label2)'}}>{client.sport}</p>}
+              <p style={{margin:0, fontWeight:600, fontSize:15}}>{client.name}</p>
+              {client.sport && <p style={{margin:0, fontSize:13, color:'var(--label2)'}}>{client.sport}</p>}
             </div>
             {unread[client.id] > 0 && (
               <div style={{background:'#ef4444', borderRadius:10, padding:'2px 7px', fontSize:11, fontWeight:700, color:'white', flexShrink:0}}>
@@ -221,7 +200,7 @@ export function CoachMessages() {
           </button>
         ))}
       </div>
-    </div>
+    </PageLayout>
   )
 }
 
@@ -248,41 +227,23 @@ export function ClientMessages() {
   }
 
   if (loading) {
-    return (
-      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--label3)'}}>
-        Chargement...
-      </div>
-    )
+    return <PageLayout title="Coach"><div style={{textAlign:'center', color:'var(--label3)', padding:40}}>Chargement...</div></PageLayout>
   }
 
   if (!coach) {
     return (
-      <div style={{minHeight:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:'var(--label2)', padding:32}}>
-        <p style={{fontSize:15, marginBottom:8}}>Aucun coach assigné</p>
-        <p style={{fontSize:12, textAlign:'center'}}>Tu n'as pas encore de coach. Contacte ton coach pour qu'il t'ajoute.</p>
-      </div>
+      <PageLayout title="Coach">
+        <div style={{display:'flex', flexDirection:'column', alignItems:'center', color:'var(--label2)', padding:'60px 32px'}}>
+          <p style={{fontSize:15, marginBottom:8}}>Aucun coach assigné</p>
+          <p style={{fontSize:13, textAlign:'center'}}>Tu n'as pas encore de coach. Contacte ton coach pour qu'il t'ajoute.</p>
+        </div>
+      </PageLayout>
     )
   }
 
   return (
-    <div style={{height:'calc(100dvh - var(--sat))', background:'var(--bg)', display:'flex', flexDirection:'column'}}>
-      <div style={{background:'var(--card)', padding:'14px 20px', display:'flex', alignItems:'center', gap:12, flexShrink:0}}>
-        <button onClick={() => navigate(-1)}
-          style={{background:'none', border:'none', color:'var(--label)', cursor:'pointer', padding:4}}>
-          <ArrowLeft size={20}/>
-        </button>
-        <div style={{width:36, height:36, borderRadius:18, background:'linear-gradient(135deg,#6366f1,#8b5cf6)',
-          display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:14}}>
-          {coach.name?.[0]?.toUpperCase() || '?'}
-        </div>
-        <div>
-          <p style={{margin:0, fontWeight:700, fontSize:16}}>{coach.name}</p>
-          <p style={{margin:0, fontSize:11, color:'#22c55e'}}>● En ligne</p>
-        </div>
-      </div>
-      <div style={{flex:1, overflow:'hidden', display:'flex', flexDirection:'column'}}>
-        <ConversationView otherId={coach.id} otherName={coach.name}/>
-      </div>
-    </div>
+    <PageLayout fill title={coach.name} subtitle="Ton coach">
+      <ConversationView otherId={coach.id} otherName={coach.name}/>
+    </PageLayout>
   )
 }

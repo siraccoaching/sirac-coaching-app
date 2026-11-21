@@ -5,10 +5,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: { 50:'#eef2ff', 100:'#e0e7ff', 300:'#a5b4fc', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 900:'#1e1b4b' },
+        brand: { 50:'#eef2ff', 100:'#e0e7ff', 300: v('brand300'), 400: v('brand400'), 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 900:'#1e1b4b' },
         // Surfaces qui suivent le thème clair / sombre (voir src/index.css)
         dark: { 600: v('fill2'), 700: v('fill'), 800: v('card'), 900: v('bg'), 950: v('bg') },
         gray: { 300: v('gray300'), 400: v('gray400'), 500: v('gray500'), 600: v('gray600'), 700: v('gray700') },
+        green: { 400: v('green400') },
+        red: { 300: v('red300'), 400: v('red400') },
+        purple: { 400: v('purple400') },
         label: v('label'),
         contrast: v('label'),
       },

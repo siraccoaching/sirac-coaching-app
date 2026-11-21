@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Check, SkipForward, Minus, Plus } from 'lucide-react'
 import { ExerciseAnimation } from './ExerciseDemo'
 import { haptic } from '../lib/fx'
+import { formatTarget, measureOf, setHint } from '../lib/measure'
 
 // Mode focus : une série à la fois, grosses commandes, anneau de récupération plein écran.
-export default function FocusMode({ exercises, logs, onUpdateSet, onClose, onFinish }) {
+export default function FocusMode({ exercises, logs, onUpdateSet, onCompleteSet, onClose, onFinish }) {
   const steps = useMemo(() => exercises.flatMap(ex => (logs[ex.id]?.sets || []).map((_, si) => ({ ex, si }))), [exercises, logs])
   const firstTodo = Math.max(0, steps.findIndex(s => !logs[s.ex.id]?.sets[s.si]?._done))
   const [i, setI] = useState(firstTodo)
@@ -24,20 +26,21 @@ export default function FocusMode({ exercises, logs, onUpdateSet, onClose, onFin
   const nSets = logs[ex.id]?.sets.length || 0
   const done = i >= steps.length
   const bump = (field, d) => {
-    const v = parseFloat(String(set[field]).replace(',', '.')) || 0
+    const cur = String(set[field] ?? '').trim() === '' ? setHint(ex, set, field) : set[field]
+    const v = parseFloat(String(cur).replace(',', '.')) || 0
     onUpdateSet(ex.id, si, field, String(Math.max(0, Math.round((v + d) * 10) / 10)))
   }
 
   function validate() {
     haptic(15)
-    onUpdateSet(ex.id, si, '_done', true)
+    onCompleteSet(ex.id, si)
     const next = i + 1
     setI(next)
     if (next < steps.length && ex.rest_seconds > 0) setRest({ total: ex.rest_seconds, left: ex.rest_seconds })
   }
 
   const R = 120, C = 2 * Math.PI * R
-  return (
+  return createPortal(
     <div data-testid="focus-mode" style={{ position: 'fixed', inset: 0, zIndex: 1500, background: 'var(--bg)', display: 'flex', flexDirection: 'column', paddingTop: 'var(--sat)', paddingBottom: 'var(--sab)' }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 10 }}>
         <button onClick={onClose} aria-label="Quitter le mode focus" style={{ width: 36, height: 36, borderRadius: 18, border: 'none', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label)' }}><X size={18} /></button>
@@ -84,15 +87,15 @@ export default function FocusMode({ exercises, logs, onUpdateSet, onClose, onFin
           <div>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Série {si + 1} sur {nSets}</p>
             <p style={{ margin: '2px 0 0', fontSize: 28, fontWeight: 700, color: 'var(--label)', letterSpacing: '-0.02em', lineHeight: 1.15 }}>{ex.name}</p>
-            <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--label2)' }}>Objectif : {ex.sets} × {ex.reps}{ex.load ? ` @ ${ex.load}` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--label2)' }}>Objectif : {formatTarget(ex)}{ex.load ? ` @ ${ex.load}` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {[['reps', 'Répétitions', 1], ['load', 'Charge (kg)', 2.5]].map(([f, l, step]) => (
+            {[['reps', measureOf(ex).long, measureOf(ex).step], ['load', 'Charge (kg)', 2.5]].map(([f, l, step]) => (
               <div key={f} className="ios-group" style={{ padding: '12px 10px', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 6px', fontSize: 12, color: 'var(--label2)', fontWeight: 600 }}>{l}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                   <button onClick={() => bump(f, -step)} aria-label={`Moins ${l}`} style={round}><Minus size={18} /></button>
-                  <input value={set[f] ?? ''} inputMode="decimal" onChange={e => onUpdateSet(ex.id, si, f, e.target.value)} aria-label={l}
+                  <input value={set[f] ?? ''} placeholder={(String(setHint(ex, set, f)).match(/\d+([.,]\d+)?/) || [''])[0]} className="hint-input" inputMode="decimal" onChange={e => onUpdateSet(ex.id, si, f, e.target.value)} aria-label={l}
                     style={{ width: '100%', minWidth: 0, textAlign: 'center', fontSize: 30, fontWeight: 700, border: 'none', background: 'none', color: 'var(--label)', outline: 'none', WebkitTextFillColor: 'var(--label)' }} />
                   <button onClick={() => bump(f, step)} aria-label={`Plus ${l}`} style={round}><Plus size={18} /></button>
                 </div>
@@ -103,7 +106,8 @@ export default function FocusMode({ exercises, logs, onUpdateSet, onClose, onFin
           <button onClick={validate} style={bigBtn}><Check size={22} /> Série terminée</button>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   )
 }
 
