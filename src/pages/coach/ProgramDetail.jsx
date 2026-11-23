@@ -20,7 +20,7 @@ export default function ProgramDetail() {
       .from('programs')
       .select(`
         *,
-        client:profiles!programs_client_id_fkey(id, name, sport),
+        program_assignments(client:profiles(id, name, sport)),
         program_blocks(*, program_sessions(*, program_exercises(*))),
         program_sessions!program_sessions_program_id_fkey(*, program_exercises(*))
       `)
@@ -62,7 +62,7 @@ export default function ProgramDetail() {
         <Card className="p-4 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge color={isBlock ? 'brand' : 'green'}>{isBlock ? 'Organisation en blocs' : 'Simple'}</Badge>
-            {prog.client && <Badge color="gray"><Users size={10} className="inline mr-1" />{prog.client.name}</Badge>}
+            {(prog.program_assignments || []).map(a => a.client && <Badge key={a.client.id} color="gray"><Users size={10} className="inline mr-1" />{a.client.name}</Badge>)}
           </div>
           {prog.description && <p className="text-gray-400 text-sm">{prog.description}</p>}
         </Card>

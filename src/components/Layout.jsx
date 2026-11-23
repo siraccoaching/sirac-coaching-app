@@ -86,7 +86,7 @@ export function PageLayout({ children, title, subtitle, back, action, fill = fal
         <nav style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, height: 'calc(56px + var(--sab))', paddingBottom: 'var(--sab)',
           background: 'var(--bar-bg)', backdropFilter: 'saturate(180%) blur(20px)', WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-          borderTop: '0.5px solid var(--bar-border)', display: 'flex', zIndex: 100,
+          borderTop: '0.5px solid var(--bar-border)', display: 'flex', zIndex: 40,
         }}>
           {navItems.map(item => <TabItem key={item.path} item={item} active={isActive(item.path)} onClick={() => navigate(item.path)} />)}
         </nav>

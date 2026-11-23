@@ -67,6 +67,7 @@ export default function App() {
           user ? <Navigate to={profile?.role === 'coach' ? '/coach' : '/client'} replace /> : <Login />
         } />
         <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><CoachDashboard /></ProtectedRoute>} />
+        <Route path="/coach/client/:id/meal-plan" element={<ProtectedRoute requiredRole="coach"><AIMealPlan /></ProtectedRoute>} />
         <Route path="/coach/client/:id" element={<ProtectedRoute requiredRole="coach"><ClientDetail /></ProtectedRoute>} />
         <Route path="/coach/add-client" element={<ProtectedRoute requiredRole="coach"><AddClient /></ProtectedRoute>} />
         <Route path="/coach/programs" element={<ProtectedRoute requiredRole="coach"><Programs /></ProtectedRoute>} />

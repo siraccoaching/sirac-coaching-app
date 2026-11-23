@@ -7,6 +7,7 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Save, Dumbbell, Clock, Link, Book
 import { ExercisePicker, ExerciseThumb } from '../../components/ExerciseDemo'
 import { loadExerciseList, linkExercisesByName } from '../../lib/exercises'
 import { MEASURES, defaultMeasure } from '../../lib/measure'
+import { loadProgramClients, setProgramClients } from '../../lib/assignments'
 
 let _tmpId = 0
 const tmpId = () => `tmp_${++_tmpId}`
@@ -40,7 +41,7 @@ export default function ProgramBuilder() {
     name: '',
     description: '',
     type: 'block',
-    client_id: '',
+    client_ids: [],
     blocks: [emptyBlock()],
     simpleSessions: [emptySession()],
   })
@@ -89,11 +90,11 @@ export default function ProgramBuilder() {
       notes: ex.notes || '', video_url: ex.video_url || '',
     })
     const toSess = sess => ({
-      _id: nid(), name: sess.name, notes: sess.notes || '',
+      _id: nid(), _dbid: sess.id, name: sess.name, notes: sess.notes || '',
       exercises: (sess.program_exercises || []).sort((a,b) => a.order_index - b.order_index).map(toEx),
     })
     const toBlock = block => ({
-      _id: nid(), name: block.name, duration_weeks: block.duration_weeks,
+      _id: nid(), _dbid: block.id, name: block.name, duration_weeks: block.duration_weeks,
       description: block.description || '',
       sessions: (block.program_sessions || []).sort((a,b) => a.order_index - b.order_index).map(toSess),
     })
@@ -105,7 +106,7 @@ export default function ProgramBuilder() {
       name: data.name,
       description: data.description || '',
       type: data.type,
-      client_id: data.client_id || '',
+      client_ids: await loadProgramClients(id),
       blocks: blocks.length > 0 ? blocks : [emptyBlock()],
       simpleSessions: simple.length > 0 ? simple : [emptySession()],
     })
@@ -218,44 +219,46 @@ export default function ProgramBuilder() {
     if (isEdit) {
       const { error: upErr } = await supabase
         .from('programs')
-        .update({ name: prog.name.trim(), description: prog.description, type: prog.type, client_id: prog.client_id || null })
+        .update({ name: prog.name.trim(), description: prog.description, type: prog.type })
         .eq('id', id)
       if (upErr) { setError(upErr.message); setSaving(false); return }
-      if (prog.client_id) await supabase.from('programs').update({ client_id: null }).eq('client_id', prog.client_id).neq('id', id)
 
-      const { data: existSess } = await supabase.from('program_sessions').select('id').eq('program_id', id)
-      if (existSess?.length > 0) {
-        await supabase.from('program_exercises').delete().in('session_id', existSess.map(s => s.id))
-      }
-      await supabase.from('program_sessions').delete().eq('program_id', id)
-      await supabase.from('program_blocks').delete().eq('program_id', id)
-
-      if (prog.type === 'block') {
-        for (let bi = 0; bi < prog.blocks.length; bi++) {
-          const block = prog.blocks[bi]
-          if (!block.name.trim()) continue
-          const { data: blockData, error: blockErr } = await supabase
-            .from('program_blocks')
-            .insert({ program_id: id, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, order_index: bi })
-            .select().single()
-          if (blockErr) { setError(blockErr.message); setSaving(false); return }
-          await saveSessions(id, blockData.id, block.sessions)
+      // Mise à jour en place : les séances gardent leur identifiant (historique et planning des clients conservés)
+      try {
+        const keptBlocks = [], keptSessions = []
+        if (prog.type === 'block') {
+          for (let bi = 0; bi < prog.blocks.length; bi++) {
+            const block = prog.blocks[bi]
+            if (!block.name.trim()) continue
+            const row = { program_id: id, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, order_index: bi }
+            let blockId = block._dbid
+            if (blockId) { const { error } = await supabase.from('program_blocks').update(row).eq('id', blockId); if (error) throw error }
+            else { const { data, error } = await supabase.from('program_blocks').insert(row).select().single(); if (error) throw error; blockId = data.id }
+            keptBlocks.push(blockId)
+            keptSessions.push(...await saveSessions(id, blockId, block.sessions))
+          }
+        } else {
+          keptSessions.push(...await saveSessions(id, null, prog.simpleSessions))
         }
-      } else {
-        await saveSessions(id, null, prog.simpleSessions)
-      }
+        let qs = supabase.from('program_sessions').delete().eq('program_id', id)
+        if (keptSessions.length) qs = qs.not('id', 'in', `(${keptSessions.join(',')})`)
+        const { error: e1 } = await qs; if (e1) throw e1
+        let qb = supabase.from('program_blocks').delete().eq('program_id', id)
+        if (keptBlocks.length) qb = qb.not('id', 'in', `(${keptBlocks.join(',')})`)
+        const { error: e2 } = await qb; if (e2) throw e2
+      } catch (e) { setError(e.message || String(e)); setSaving(false); return }
+      await setProgramClients(id, prog.client_ids)
       navigate(`/coach/programs/${id}`)
       return
     }
 
     const { data: progData, error: progErr } = await supabase
       .from('programs')
-      .insert({ name: prog.name.trim(), description: prog.description, type: prog.type, client_id: prog.client_id || null, coach_id: profile.id })
+      .insert({ name: prog.name.trim(), description: prog.description, type: prog.type, coach_id: profile.id })
       .select().single()
     if (progErr) { setError(progErr.message); setSaving(false); return }
 
     const programId = progData.id
-    if (prog.client_id) await supabase.from('programs').update({ client_id: null }).eq('client_id', prog.client_id).neq('id', programId)
 
     if (prog.type === 'block') {
       for (let bi = 0; bi < prog.blocks.length; bi++) {
@@ -271,18 +274,30 @@ export default function ProgramBuilder() {
     } else {
       await saveSessions(programId, null, prog.simpleSessions)
     }
+    await setProgramClients(programId, prog.client_ids)
     navigate(`/coach/programs/${programId}`)
   }
 
+  // Enregistre les séances (mise à jour si elles existent déjà) et renvoie leurs identifiants.
   async function saveSessions(programId, blockId, sessions) {
+    const ids = []
     for (let si = 0; si < sessions.length; si++) {
       const sess = sessions[si]
       if (!sess.name.trim()) continue
-      const { data: sessData, error: sessErr } = await supabase
-        .from('program_sessions')
-        .insert({ program_id: programId, block_id: blockId, name: sess.name.trim(), notes: sess.notes, order_index: si })
-        .select().single()
-      if (sessErr) throw sessErr
+      const row = { program_id: programId, block_id: blockId, name: sess.name.trim(), notes: sess.notes, order_index: si }
+      let sessData
+      if (sess._dbid) {
+        const { data, error } = await supabase.from('program_sessions').update(row).eq('id', sess._dbid).select().single()
+        if (error) throw error
+        sessData = data
+        const { error: delErr } = await supabase.from('program_exercises').delete().eq('session_id', sess._dbid)
+        if (delErr) throw delErr
+      } else {
+        const { data, error } = await supabase.from('program_sessions').insert(row).select().single()
+        if (error) throw error
+        sessData = data
+      }
+      ids.push(sessData.id)
       const validExercises = sess.exercises.filter(e => e.name.trim())
       if (validExercises.length > 0) {
         const { error: exErr } = await supabase.from('program_exercises').insert(
@@ -304,6 +319,7 @@ export default function ProgramBuilder() {
         if (exErr) throw exErr
       }
     }
+    return ids
   }
 
   const isSimple = prog.type === 'simple'
@@ -332,17 +348,30 @@ export default function ProgramBuilder() {
             ))}
           </div>
 
-          <select value={prog.client_id} onChange={e => {
-              const clientId = e.target.value
-              const client = clients.find(c => c.id === clientId)
-              const fitnessKw = ['fitness', 'musculation', 'gym', 'crossfit', 'cardio']
-              const isFitness = client?.sport && fitnessKw.some(k => client.sport.toLowerCase().includes(k))
-              setProg(p => ({ ...p, client_id: clientId, ...(clientId ? { type: isFitness ? 'simple' : 'block' } : {}) }))
-            }}
-            className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-4 py-3 text-label focus:outline-none focus:border-brand-500 text-sm">
-            <option value="">— Assigner à un client (optionnel) —</option>
-            {clients.map(c => <option key={c.id} value={c.id}>{c.name} {c.sport ? `· ${c.sport}` : ''}</option>)}
-          </select>
+          <div data-testid="program-clients">
+            <p className="text-gray-500 text-xs mb-2">Clients qui suivent ce programme {prog.client_ids.length > 0 && <b className="text-label">· {prog.client_ids.length} sélectionné{prog.client_ids.length > 1 ? 's' : ''}</b>}</p>
+            {clients.length === 0 ? <p className="text-gray-500 text-sm">Aucun client pour l’instant.</p> : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {clients.map(c => {
+                  const on = prog.client_ids.includes(c.id)
+                  return (
+                    <button key={c.id} type="button" aria-pressed={on} onClick={() => setProg(p => {
+                        const ids = on ? p.client_ids.filter(x => x !== c.id) : [...p.client_ids, c.id]
+                        const fitnessKw = ['fitness', 'musculation', 'gym', 'crossfit', 'cardio']
+                        const first = clients.find(x => x.id === ids[0])
+                        const isFitness = first?.sport && fitnessKw.some(k => first.sport.toLowerCase().includes(k))
+                        return { ...p, client_ids: ids, ...(!isEdit && ids.length === 1 && !on ? { type: isFitness ? 'simple' : 'block' } : {}) }
+                      })}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 18, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                        border: '1px solid ' + (on ? 'transparent' : 'var(--separator)'), background: on ? 'var(--accent-soft)' : 'transparent', color: on ? 'var(--accent-text)' : 'var(--label)' }}>
+                      {on ? '✓' : '+'} {c.name}{c.sport ? <span style={{ fontWeight: 500, color: 'var(--label2)' }}> · {c.sport}</span> : null}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+            <p className="text-gray-500 text-xs mt-2">Un client sélectionné quitte son programme précédent.</p>
+          </div>
         </Card>
 
         {!isSimple && (

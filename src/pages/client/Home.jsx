@@ -7,6 +7,7 @@ import { Play, CheckCircle, Dumbbell, Ruler, ClipboardList, TrendingUp, MessageC
 import { IosList } from '../../components/IosList'
 import ActivityRings from '../../components/ActivityRings'
 import { localDateStr, estimateTargets } from '../../lib/nutrition'
+import { loadClientProgram } from '../../lib/assignments'
 
 export default function ClientHome() {
   const { profile } = useAuth()
@@ -29,14 +30,25 @@ export default function ClientHome() {
   }
 
   async function loadNextSession() {
-    const { data: prog } = await supabase
-      .from('programs').select('id, name, type, program_sessions(id, name, program_exercises(id))')
-      .eq('client_id', profile.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+    const prog = await loadClientProgram(profile.id, 'id, name, type, program_sessions(id, name, program_exercises(id))')
     if (!prog) return
     const sessions = prog.program_sessions || []
     const { data: done } = await supabase.from('session_completions')
-      .select('program_session_id').eq('client_id', profile.id)
+      .select('program_session_id, created_at').eq('client_id', profile.id)
     const doneIds = new Set((done || []).map(d => d.program_session_id))
+    // Priorité au planning du client : prochaine séance prévue à partir d'aujourd'hui
+    const today = localDateStr(new Date())
+    const { data: planned } = await supabase.from('scheduled_sessions').select('program_session_id, date')
+      .eq('client_id', profile.id).gte('date', today).order('date').limit(10)
+    const doneToday = new Set((done || []).filter(d => d.created_at && localDateStr(new Date(d.created_at)) === today).map(d => d.program_session_id))
+    const slot = (planned || []).find(p => !(p.date === today && doneToday.has(p.program_session_id)) && sessions.some(s => s.id === p.program_session_id))
+    if (slot) {
+      const s = sessions.find(x => x.id === slot.program_session_id)
+      const d = new Date(slot.date + 'T12:00')
+      const when = slot.date === today ? "Aujourd'hui" : d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })
+      setNextSession({ ...s, programName: prog.name, when })
+      return
+    }
     const next = sessions.find(s => !doneIds.has(s.id)) || sessions[0]
     if (next) setNextSession({ ...next, programName: prog.name })
   }
@@ -133,7 +145,7 @@ export default function ClientHome() {
           <button onClick={() => navigate('/client/session-log/' + nextSession.id)} data-testid="next-session"
             style={{ border: 'none', textAlign: 'left', background: 'linear-gradient(135deg,#5e5ce6,#8b5cf6)', borderRadius: 20, padding: '18px 20px', cursor: 'pointer', boxShadow: '0 10px 30px rgba(94,92,230,0.35)', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: '0 0 4px', fontSize: 12, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Prochaine séance</p>
+              <p style={{ margin: '0 0 4px', fontSize: 12, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Prochaine séance{nextSession.when ? ' · ' + nextSession.when : ''}</p>
               <p style={{ margin: '0 0 3px', fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '-0.02em' }}>{nextSession.name}</p>
               <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{nextSession.programName} · {nextSession.program_exercises?.length || 0} exercices</p>
             </div>

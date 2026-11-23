@@ -38,6 +38,16 @@ export default function ClientNutritionTab({ client }) {
 
   return (
     <div style={{ padding: '0 16px' }}>
+      <button data-testid="coach-generate-plan" onClick={() => navigate(`/coach/client/${client.id}/meal-plan`)}
+        style={{ width: '100%', marginBottom: 10, padding: '14px 16px', border: 'none', borderRadius: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
+          background: 'linear-gradient(135deg,#5e5ce6,#bf5af2)', color: 'white', boxShadow: '0 8px 22px rgba(94,92,230,.25)' }}>
+        <span style={{ fontSize: 24 }}>✨</span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: 'block', fontSize: 16, fontWeight: 700 }}>Générer un plan alimentaire</span>
+          <span style={{ display: 'block', fontSize: 13, opacity: .9 }}>Selon ses calories, ses allergies et son matériel</span>
+        </span>
+        <span style={{ fontSize: 20 }}>›</span>
+      </button>
       <div style={{ background: 'var(--card)', borderRadius: 12, padding: '12px 14px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 12, color: 'var(--label2)' }}>{plan ? 'Plan : ' + plan.name : 'Aucun plan assigné'}</p>
@@ -82,7 +92,7 @@ export default function ClientNutritionTab({ client }) {
       {ai && (
         <div data-testid="coach-ai-plan" style={{ background: 'var(--card)', borderRadius: 12, padding: '12px 14px', marginTop: 10 }}>
           <button onClick={() => setAiOpen(o => !o)} style={{ width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', color: 'var(--label)' }}>
-            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase' }}>✨ Dernier plan repas IA · {new Date(ai.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase' }}>✨ Dernier plan alimentaire · {new Date(ai.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
             <p style={{ margin: '4px 0 0', fontSize: 14 }}>{ai.days} jour{ai.days > 1 ? 's' : ''} · {ai.target_kcal} kcal/jour{ai.preferences?.allergies?.length ? ' · allergies : ' + ai.preferences.allergies.join(', ') : ''}</p>
             <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--accent-text)' }}>{aiOpen ? 'Masquer' : 'Voir les repas'}</p>
           </button>

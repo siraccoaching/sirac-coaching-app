@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout } from '../../components/Layout'
@@ -7,9 +8,18 @@ import { ALLERGENS, EQUIPMENT, DIETS, DAY_OPTIONS, MEALS_OPTIONS } from '../../l
 import { Sparkles, Clock, ChevronDown, ChevronUp, ShoppingCart, AlertTriangle, Plus, Check, History } from 'lucide-react'
 import { haptic } from '../../lib/fx'
 
-// Plan alimentaire généré par l'IA selon l'objectif calorique, les allergies et le matériel de cuisine.
+// Plan alimentaire personnalisé, généré selon l'objectif calorique, les allergies et le matériel de cuisine.
+// Côté client (/client/meal-plan) pour lui-même, côté coach (/coach/client/:id/meal-plan) pour un client.
 export default function AIMealPlan() {
-  const { profile } = useAuth()
+  const { profile: me } = useAuth()
+  const { id: clientParam } = useParams()
+  const asCoach = !!clientParam
+  const [profile, setProfile] = useState(null)
+  useEffect(() => {
+    if (!me?.id) return
+    if (!asCoach) { setProfile(me); return }
+    supabase.from('profiles').select('*').eq('id', clientParam).single().then(({ data }) => setProfile(data))
+  }, [me?.id, clientParam])
   const [coachTarget, setCoachTarget] = useState(null)
   const [kcal, setKcal] = useState('')
   const [allergies, setAllergies] = useState([])
@@ -51,7 +61,7 @@ export default function AIMealPlan() {
       const res = await fetch('/api/meal-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
-        body: JSON.stringify({ target_kcal: Number(kcal), days, meals_per_day: meals, allergies, other_allergies: otherAllergies, equipment, diet, dislikes }),
+        body: JSON.stringify({ client_id: asCoach ? profile.id : undefined, target_kcal: Number(kcal), days, meals_per_day: meals, allergies, other_allergies: otherAllergies, equipment, diet, dislikes }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(json.error || 'Erreur ' + res.status)
@@ -66,7 +76,7 @@ export default function AIMealPlan() {
   const kcalOk = Number(kcal) >= 1000 && Number(kcal) <= 6000
 
   return (
-    <PageLayout title="Plan repas IA" subtitle="Généré selon tes besoins" back="/client/nutrition">
+    <PageLayout title="Plan alimentaire" subtitle={asCoach ? (profile?.name ? 'Pour ' + profile.name : 'Pour ton client') : 'Personnalisé selon tes besoins'} back={asCoach ? `/coach/client/${clientParam}` : '/client/nutrition'}>
       <div style={{ padding: '12px 16px 24px', maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {current && !showForm && (
           <button onClick={() => setShowForm(true)} style={secondaryBtn}><Sparkles size={16} /> Générer un nouveau plan</button>
@@ -76,11 +86,11 @@ export default function AIMealPlan() {
           <>
             <Section title="Objectif calorique">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <input data-testid="ai-kcal" value={kcal} onChange={e => setKcal(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" disabled={!!coachTarget}
+                <input data-testid="ai-kcal" value={kcal} onChange={e => setKcal(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" disabled={!!coachTarget && !asCoach}
                   placeholder="2200" aria-label="Calories par jour" style={{ ...input, width: 120, fontSize: 20, fontWeight: 700, textAlign: 'center' }} />
                 <span style={{ color: 'var(--label2)', fontSize: 15 }}>kcal / jour</span>
               </div>
-              <p style={hint}>{coachTarget ? 'Fixé par ton coach dans ton plan nutritionnel.' : kcal ? 'Estimé d’après ton profil. Tu peux l’ajuster.' : 'Renseigne ton profil (taille, poids…) ou saisis ton objectif.'}</p>
+              <p style={hint}>{asCoach ? (coachTarget ? 'Repris de son plan nutritionnel. Tu peux l’ajuster.' : 'Estimé d’après son profil. Tu peux l’ajuster.') : coachTarget ? 'Fixé par ton coach dans ton plan nutritionnel.' : kcal ? 'Estimé d’après ton profil. Tu peux l’ajuster.' : 'Renseigne ton profil (taille, poids…) ou saisis ton objectif.'}</p>
             </Section>
 
             <Section title="Allergies et intolérances">
@@ -110,12 +120,12 @@ export default function AIMealPlan() {
               style={{ ...primaryBtn, opacity: busy || !kcalOk ? 0.6 : 1 }}>
               <Sparkles size={18} /> {busy ? 'Préparation de ton plan…' : 'Générer mon plan'}
             </button>
-            {busy && <p style={{ ...hint, textAlign: 'center' }} className="ios-page">L’IA compose tes repas. Cela prend de 30 secondes à 2 minutes, garde l’app ouverte.</p>}
+            {busy && <p style={{ ...hint, textAlign: 'center' }} className="ios-page">Composition des repas en cours. Cela prend de 20 secondes à 2 minutes, garde l’app ouverte.</p>}
             {current && !busy && <button onClick={() => setShowForm(false)} style={{ ...secondaryBtn, background: 'transparent' }}>Revenir à mon plan</button>}
           </>
         )}
 
-        {current && !showForm && <PlanView row={current} profileId={profile?.id} />}
+        {current && !showForm && <PlanView row={current} profileId={profile?.id} canLog={!asCoach} />}
 
         {history.length > 1 && !showForm && (
           <Section title="Plans précédents">
@@ -128,13 +138,13 @@ export default function AIMealPlan() {
             ))}
           </Section>
         )}
-        <p style={{ ...hint, textAlign: 'center' }}>Plan généré par intelligence artificielle, à titre indicatif. En cas d’allergie, vérifie toujours les étiquettes des produits.</p>
+        <p style={{ ...hint, textAlign: 'center' }}>Plan proposé automatiquement, à titre indicatif. En cas d’allergie, vérifie toujours les étiquettes des produits.</p>
       </div>
     </PageLayout>
   )
 }
 
-function PlanView({ row, profileId }) {
+function PlanView({ row, profileId, canLog }) {
   const plan = row.plan || {}
   const [day, setDay] = useState(0)
   const [open, setOpen] = useState({ 0: true })
@@ -155,7 +165,7 @@ function PlanView({ row, profileId }) {
   return (
     <div data-testid="ai-plan" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div className="ios-group" style={{ padding: 14 }}>
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase', letterSpacing: '.05em' }}>✨ Ton plan · {row.target_kcal} kcal / jour</p>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase', letterSpacing: '.05em' }}>✨ Plan · {row.target_kcal} kcal / jour{row.preferences?.created_by === 'coach' ? ' · préparé par le coach' : ''}</p>
         <p style={{ margin: '6px 0 0', fontSize: 15, color: 'var(--label)', lineHeight: 1.4 }}>{plan.summary}</p>
         {row.preferences?.allergies?.length > 0 && (
           <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--label2)' }}>Sans : {row.preferences.allergies.map(k => ALLERGENS.find(a => a.key === k)?.label).filter(Boolean).join(', ')}</p>
@@ -221,10 +231,10 @@ function PlanView({ row, profileId }) {
                         {m.steps.map((s, k) => <li key={k} style={{ marginBottom: 4 }}>{s}</li>)}
                       </ol>
                     </div>
-                    <button onClick={() => addToJournal(m, key)} disabled={added[key]}
+                    {canLog && <button onClick={() => addToJournal(m, key)} disabled={added[key]}
                       style={{ ...secondaryBtn, padding: '10px 0', fontSize: 14, color: added[key] ? 'var(--green-text)' : 'var(--accent-text)' }}>
                       {added[key] ? <><Check size={16} /> Ajouté au journal du jour</> : <><Plus size={16} /> Ajouter à mon journal d’aujourd’hui</>}
-                    </button>
+                    </button>}
                   </div>
                 )}
               </div>
