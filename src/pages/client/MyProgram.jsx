@@ -6,6 +6,8 @@ import { PageLayout, Card, Badge } from '../../components/Layout'
 import { Dumbbell, ChevronDown, ChevronUp, Clock, Play, CheckCircle, Layers } from 'lucide-react'
 import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
 import { formatTarget } from '../../lib/measure'
+import { loadClientProgram } from '../../lib/assignments'
+import ProgramPlanner from '../../components/ProgramPlanner'
 
 const EX_SELECT = 'program_exercises(*, exercise:exercises(*))'
 
@@ -25,17 +27,11 @@ export default function MyProgram() {
   }, [profile?.id])
 
   async function loadProgram() {
-    const { data } = await supabase
-      .from('programs')
-      .select(`
+    const data = await loadClientProgram(profile.id, `
         *,
         program_blocks(*, program_sessions(*, ${EX_SELECT})),
         program_sessions!program_sessions_program_id_fkey(*, ${EX_SELECT})
       `)
-      .eq('client_id', profile.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
 
     setProg(data || null)
 
@@ -77,12 +73,17 @@ export default function MyProgram() {
     .filter(s => !s.block_id)
     .sort((a, b) => a.order_index - b.order_index)
 
+  const orderedSessions = isBlock
+    ? blocks.flatMap(b => (b.program_sessions || []).sort((a, c) => a.order_index - c.order_index))
+    : simpleSessions
   const totalSessions = (prog.program_sessions || []).length
   const doneSessions = (prog.program_sessions || []).filter(s => doneIds.has(s.id)).length
 
   return (
     <PageLayout title={prog.name} back="/client">
       <div className="p-4 pb-10 space-y-4">
+
+        <ProgramPlanner clientId={profile.id} sessions={orderedSessions} />
 
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">

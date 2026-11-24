@@ -121,7 +121,7 @@ export default async function handler(req, res) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const supabaseUrl = process.env.VITE_SUPABASE_URL
   if (!serviceRoleKey || !supabaseUrl) return res.status(500).json({ error: 'Server configuration error' })
-  if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: "Le générateur IA n'est pas encore activé (clé API manquante côté serveur)." })
+  if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: "Le générateur de plans n'est pas encore activé (clé API manquante côté serveur)." })
 
   const token = (req.headers.authorization || '').replace('Bearer ', '')
   if (!token) return res.status(401).json({ error: 'Not authenticated' })
@@ -129,15 +129,21 @@ export default async function handler(req, res) {
   const { data: { user }, error: authErr } = await admin.auth.getUser(token)
   if (authErr || !user) return res.status(401).json({ error: 'Invalid session' })
 
-  const { data: profile } = await admin.from('profiles').select('id, role, weight, height, sex, birth_date, goals').eq('id', user.id).single()
-  if (!profile || profile.role !== 'client') return res.status(403).json({ error: 'Réservé aux clients.' })
+  const b = req.body || {}
+  const { data: me } = await admin.from('profiles').select('id, role').eq('id', user.id).single()
+  if (!me) return res.status(403).json({ error: 'Profil introuvable.' })
+  // Le client génère pour lui-même ; le coach génère pour l'un de ses clients.
+  const targetId = me.role === 'coach' ? b.client_id : user.id
+  if (!targetId) return res.status(400).json({ error: 'Client manquant.' })
+  const { data: profile } = await admin.from('profiles').select('id, role, coach_id, weight, height, sex, birth_date, goals').eq('id', targetId).single()
+  if (!profile || profile.role !== 'client') return res.status(403).json({ error: 'Client introuvable.' })
+  if (me.role === 'coach' && profile.coach_id !== user.id) return res.status(403).json({ error: "Ce client n'est pas rattaché à ton compte." })
 
   // Limite d'usage (coût de l'IA)
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-  const { count } = await admin.from('ai_meal_plans').select('id', { count: 'exact', head: true }).eq('client_id', user.id).gte('created_at', since)
-  if ((count || 0) >= MAX_PER_DAY) return res.status(429).json({ error: `Tu as déjà généré ${MAX_PER_DAY} plans aujourd'hui. Réessaie demain.` })
+  const { count } = await admin.from('ai_meal_plans').select('id', { count: 'exact', head: true }).eq('client_id', profile.id).gte('created_at', since)
+  if ((count || 0) >= MAX_PER_DAY) return res.status(429).json({ error: `${MAX_PER_DAY} plans ont déjà été générés aujourd'hui pour ce client. Réessaie demain.` })
 
-  const b = req.body || {}
   const kcal = Math.round(Number(b.target_kcal))
   if (!(kcal >= 1000 && kcal <= 6000)) return res.status(400).json({ error: 'Objectif calorique invalide (entre 1000 et 6000 kcal).' })
   const days = DAY_OPTIONS.includes(Number(b.days)) ? Number(b.days) : 1
@@ -171,19 +177,19 @@ export default async function handler(req, res) {
       ;({ plan } = await generate(client, prompt, { previous: raw, feedback }))
       hits = findAllergenHits(plan, allergies)
     }
-    const preferences = { days, meals_per_day: meals, allergies, other_allergies: otherAllergies, equipment, diet, dislikes }
+    const preferences = { days, meals_per_day: meals, allergies, other_allergies: otherAllergies, equipment, diet, dislikes, created_by: me.role }
     const { data: saved, error: saveErr } = await admin.from('ai_meal_plans')
-      .insert({ client_id: user.id, target_kcal: kcal, days, preferences, plan: { ...plan, warnings: hits } })
+      .insert({ client_id: profile.id, target_kcal: kcal, days, preferences, plan: { ...plan, warnings: hits } })
       .select().single()
     if (saveErr) return res.status(500).json({ error: saveErr.message })
     // Préférences mémorisées pour la prochaine fois
-    await admin.from('profiles').update({ allergies, kitchen_equipment: equipment, diet, food_dislikes: dislikes || null }).eq('id', user.id)
+    await admin.from('profiles').update({ allergies, kitchen_equipment: equipment, diet, food_dislikes: dislikes || null }).eq('id', profile.id)
     return res.status(200).json({ plan: saved })
   } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) return res.status(429).json({ error: 'Le service IA est très sollicité. Réessaie dans une minute.' })
-    if (e instanceof Anthropic.AuthenticationError) return res.status(503).json({ error: 'Clé API IA invalide côté serveur.' })
-    if (e instanceof Anthropic.APIError) return res.status(502).json({ error: 'Le service IA est indisponible pour le moment.' })
-    if (e instanceof SyntaxError) return res.status(502).json({ error: 'Réponse IA illisible, réessaie.' })
+    if (e instanceof Anthropic.RateLimitError) return res.status(429).json({ error: 'Le service est très sollicité. Réessaie dans une minute.' })
+    if (e instanceof Anthropic.AuthenticationError) return res.status(503).json({ error: 'Clé API invalide côté serveur.' })
+    if (e instanceof Anthropic.APIError) return res.status(502).json({ error: 'Le générateur est indisponible pour le moment.' })
+    if (e instanceof SyntaxError) return res.status(502).json({ error: 'Réponse illisible, réessaie.' })
     return res.status(e.status || 500).json({ error: e.message || 'Erreur inconnue' })
   }
 }

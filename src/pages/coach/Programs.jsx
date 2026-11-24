@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card, Badge } from '../../components/Layout'
 import { Plus, Layers, ChevronRight, Dumbbell, Copy, Trash2, Check, X } from 'lucide-react'
+import { setProgramClients } from '../../lib/assignments'
 
 export default function Programs() {
     const { profile } = useAuth()
@@ -12,6 +13,7 @@ export default function Programs() {
     const [loading, setLoading] = useState(true)
     const [clients, setClients] = useState([])
     const [assignProg, setAssignProg] = useState(null)
+    const [assignSel, setAssignSel] = useState([])
     const [assigning, setAssigning] = useState(false)
     const [deleteConfirm, setDeleteConfirm] = useState(null)
     const [deleting, setDeleting] = useState(false)
@@ -28,7 +30,7 @@ export default function Programs() {
           .from('programs')
           .select(`
                   *,
-                          client:profiles!programs_client_id_fkey(name, sport),
+                          program_assignments(client_id, client:profiles(id, name, sport)),
                                   program_blocks(id),
                                           program_sessions(id)
                                                 `)
@@ -48,15 +50,18 @@ export default function Programs() {
         setClients(data || [])
   }
 
-  async function assignToClient(clientId) {
+  // Plusieurs clients peuvent suivre le même programme
+  async function saveAssignments() {
         if (!assignProg) return
         setAssigning(true)
-        // un seul programme actif par client : l'ancien est libéré
-        if (clientId) await supabase.from('programs').update({ client_id: null }).eq('client_id', clientId).neq('id', assignProg.id)
-        await supabase.from('programs').update({ client_id: clientId || null }).eq('id', assignProg.id)
+        try { await setProgramClients(assignProg.id, assignSel) } catch (e) { alert('Erreur : ' + e.message) }
         await fetchPrograms()
         setAssignProg(null)
         setAssigning(false)
+  }
+  function openAssign(prog) {
+        setAssignSel((prog.program_assignments || []).map(a => a.client_id))
+        setAssignProg(prog)
   }
 
   async function deleteProgram(prog) {
@@ -80,7 +85,7 @@ export default function Programs() {
     try {
       const { data: newProg, error } = await supabase.from('programs').insert({
         name: prog.name + ' (copie)', type: prog.type, description: prog.description,
-        coach_id: profile.id, client_id: null, is_active: true,
+        coach_id: profile.id, is_active: true,
       }).select().single()
       if (error) throw error
       // blocs (on garde la correspondance ancien id -> nouvel id)
@@ -154,11 +159,7 @@ export default function Programs() {
                                                                                                                                       {prog.type === 'block' ? 'Blocs' : 'Simple'}
                                                                                                                                       </Badge>
                                                                                                                 </div>
-                                                                                            {prog.client ? (
-                                                                                                  <p className="text-brand-400 text-xs font-medium">{prog.client.name}</p>
-                                                                                                ) : (
-                                                                                                  <p className="text-gray-500 text-xs">Non assigné</p>
-                                                                                                              )}
+                                                                                            <ClientNames list={prog.program_assignments} />
                                                                                                               <div className="flex items-center gap-3 mt-2">
                                                                                                                 {prog.type === 'block' && (
                                                                                                     <span className="text-gray-500 text-xs flex items-center gap-1">
@@ -204,9 +205,9 @@ export default function Programs() {
                                                                                                     </button>
                                                                               </div>
                                                                               <button
-                                                                                                    onClick={(e) => { e.stopPropagation(); setAssignProg(prog) }}
+                                                                                                    onClick={(e) => { e.stopPropagation(); openAssign(prog) }}
                                                                                                     className="text-brand-400 text-xs font-medium hover:text-brand-300 transition-colors px-2 py-1">
-                                                                                {prog.client ? '🔄 Changer de client' : '+ Assigner à un client'}
+                                                                                {prog.program_assignments?.length ? '👥 Gérer les clients' : '+ Assigner des clients'}
                                                                               </button>
                                                             </div>
                                                         )}
@@ -215,42 +216,46 @@ export default function Programs() {
                           )}
               </div>
         
-          {/* Modal assignation */}
+          {/* Modal assignation : plusieurs clients */}
           {assignProg && (
-                          <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center p-4" onClick={() => setAssignProg(null)}>
-                                    <div className="bg-dark-800 border border-contrast/10 rounded-2xl p-4 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-                                                <div className="flex items-center justify-between mb-4">
-                                                              <h3 className="text-label font-semibold text-sm">Assigner "{assignProg.name}"</h3>
-                                                              <button onClick={() => setAssignProg(null)} className="text-gray-500"><X size={16} /></button>
-                                                </div>
-                                                <div className="space-y-2 max-h-64 overflow-y-auto">
-                                                              <button
-                                                                                onClick={() => assignToClient(null)}
-                                                                                disabled={assigning}
-                                                                                className="w-full text-left px-3 py-2.5 rounded-xl text-gray-400 text-sm hover:bg-dark-900 transition-colors flex items-center gap-2">
-                                                                              <X size={14} />
-                                                                              Retirer l'assignation
-                                                              </button>
-                                                  {clients.map(c => (
-                                            <button
-                                                                key={c.id}
-                                                                onClick={() => assignToClient(c.id)}
-                                                                disabled={assigning}
-                                                                className="w-full text-left px-3 py-2.5 rounded-xl text-label text-sm hover:bg-dark-900 transition-colors flex items-center justify-between">
-                                                              <div>
-                                                                                  <p className="font-medium">{c.name}</p>
-                                                                {c.sport && <p className="text-gray-500 text-xs">{c.sport}</p>}
-                                                              </div>
-                                              {assignProg.client_id === c.id && <Check size={14} className="text-brand-400" />}
-                                            </button>
-                                          ))}
-                                                  {clients.length === 0 && (
-                                            <p className="text-gray-500 text-xs text-center py-4">Aucun client disponible</p>
-                                                              )}
-                                                </div>
-                                    </div>
-                          </div>
-              )}
+            <div className="fixed inset-0 bg-black/70 z-50 flex items-end justify-center" onClick={() => setAssignProg(null)}>
+              <div data-testid="assign-sheet" className="bg-dark-800 w-full max-w-md" style={{ borderRadius: '20px 20px 0 0', padding: 16 }} onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-label font-semibold" style={{ fontSize: 17 }}>Clients de « {assignProg.name} »</h3>
+                  <button onClick={() => setAssignProg(null)} aria-label="Fermer" className="text-gray-500"><X size={18} /></button>
+                </div>
+                <p className="text-gray-500 text-xs mb-3">Coche un ou plusieurs clients. Un client coché quitte son programme précédent.</p>
+                <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '50vh' }}>
+                  {clients.map(c => {
+                    const on = assignSel.includes(c.id)
+                    return (
+                      <button key={c.id} role="checkbox" aria-checked={on} onClick={() => setAssignSel(sel => on ? sel.filter(x => x !== c.id) : [...sel, c.id])}
+                        className="w-full text-left px-3 py-3 rounded-xl text-label text-sm flex items-center gap-3"
+                        style={{ background: on ? 'var(--accent-soft)' : 'var(--fill)' }}>
+                        <span style={{ width: 22, height: 22, borderRadius: 11, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: on ? 'var(--accent)' : 'transparent', border: on ? 'none' : '2px solid rgb(var(--gray700-rgb))', color: 'white' }}>{on && <Check size={14} />}</span>
+                        <span style={{ flex: 1 }}>
+                          <span className="font-medium" style={{ display: 'block' }}>{c.name}</span>
+                          {c.sport && <span className="text-gray-500 text-xs">{c.sport}</span>}
+                        </span>
+                      </button>
+                    )
+                  })}
+                  {clients.length === 0 && <p className="text-gray-500 text-xs text-center py-4">Aucun client disponible</p>}
+                </div>
+                <button onClick={saveAssignments} disabled={assigning} data-testid="assign-save"
+                  style={{ width: '100%', marginTop: 14, padding: '14px 0', border: 'none', borderRadius: 14, background: 'var(--accent)', color: 'white', fontSize: 16, fontWeight: 700, cursor: 'pointer', opacity: assigning ? .6 : 1 }}>
+                  {assigning ? 'Enregistrement…' : assignSel.length ? `Assigner à ${assignSel.length} client${assignSel.length > 1 ? 's' : ''}` : 'Retirer tous les clients'}
+                </button>
+              </div>
+            </div>
+          )}
         </PageLayout>
       )
+}
+
+function ClientNames({ list }) {
+  const names = (list || []).map(a => a.client?.name).filter(Boolean)
+  if (!names.length) return <p className="text-gray-500 text-xs">Non assigné</p>
+  return <p className="text-brand-400 text-xs font-medium">👥 {names.length > 3 ? names.slice(0, 3).join(', ') + ` +${names.length - 3}` : names.join(', ')}</p>
 }

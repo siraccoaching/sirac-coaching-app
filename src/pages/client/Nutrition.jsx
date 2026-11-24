@@ -389,7 +389,7 @@ export default function Nutrition() {
             background: 'linear-gradient(135deg,#5e5ce6,#bf5af2)', color: 'white', boxShadow: '0 8px 22px rgba(94,92,230,.28)' }}>
           <span style={{ fontSize: 26 }}>✨</span>
           <span style={{ flex: 1 }}>
-            <span style={{ display: 'block', fontSize: 16, fontWeight: 700 }}>Plan repas IA</span>
+            <span style={{ display: 'block', fontSize: 16, fontWeight: 700 }}>Mon plan alimentaire</span>
             <span style={{ display: 'block', fontSize: 13, opacity: .9 }}>Selon tes calories, tes allergies et ton matériel</span>
           </span>
           <ChevronRight size={20} />

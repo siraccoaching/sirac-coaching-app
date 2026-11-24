@@ -8,6 +8,8 @@ import ClientNutritionTab from '../../components/ClientNutritionTab'
 import PrivatePhoto from '../../components/PrivatePhoto'
 import { formatSetValue } from '../../lib/measure'
 import { tone } from '../../lib/theme'
+import { assignClient } from '../../lib/assignments'
+import ProgramPlanner from '../../components/ProgramPlanner'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
@@ -91,10 +93,10 @@ export default function ClientDetail() {
     if (coachId) {
       const { data: progs } = await supabase
         .from('programs')
-        .select('id, name, type, client_id')
+        .select('id, name, type, program_assignments(client_id), program_sessions!program_sessions_program_id_fkey(id, name, order_index, block_id, program_blocks(order_index))')
         .eq('coach_id', coachId)
       setPrograms(progs || [])
-      const cp = (progs || []).find(p => p.client_id === id)
+      const cp = (progs || []).find(p => (p.program_assignments || []).some(a => a.client_id === id))
       setCurrentProgram(cp || null)
     }
 
@@ -135,13 +137,9 @@ export default function ClientDetail() {
 
   async function assignProgram(progId) {
     setAssigning(true)
-    if (currentProgram && currentProgram.id !== progId) {
-      await supabase.from('programs').update({ client_id: null }).eq('id', currentProgram.id)
-    }
-    await supabase.from('programs').update({ client_id: id }).eq('id', progId)
+    try { await assignClient(progId, id) } catch (e) { alert('Erreur : ' + e.message) }
     const prog = programs.find(p => p.id === progId)
-    setCurrentProgram({ ...prog, client_id: id })
-    setPrograms(prev => prev.map(p => p.id === progId ? { ...p, client_id: id } : (p.client_id === id ? { ...p, client_id: null } : p)))
+    setCurrentProgram(prog || null)
     setAssignModal(false)
     setAssigning(false)
   }
@@ -403,7 +401,12 @@ export default function ClientDetail() {
       {/* ── CALENDRIER ── */}
       {tab === 'calendar' && (
         <div style={{padding:'0 16px'}}>
-          {sessions.length === 0 ? (
+          {currentProgram && (
+            <div style={{marginBottom:12}}>
+              <ProgramPlanner readOnly clientId={id} sessions={[...(currentProgram.program_sessions || [])].sort((a, b) => ((a.program_blocks?.order_index ?? 0) - (b.program_blocks?.order_index ?? 0)) || (a.order_index - b.order_index))} />
+            </div>
+          )}
+          {sessions.length === 0 ? (currentProgram ? null :
             <div style={{textAlign:'center', paddingTop:40, color:'var(--label3)'}}>
               <p style={{fontSize:15}}>Aucune séance planifiée</p>
               <p style={{fontSize:12}}>Aucune session dans le calendrier.</p>

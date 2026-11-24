@@ -76,7 +76,7 @@ export function useRealtimeNotifications(profile) {
         notify('Séance terminée 💪', (who || 'Un client') + ' vient de terminer sa séance', `/coach/client/${c.client_id}`)
       })
     } else {
-      ch.on('postgres_changes', { event: '*', schema: 'public', table: 'programs', filter: `client_id=eq.${me}` }, ({ eventType }) => {
+      ch.on('postgres_changes', { event: '*', schema: 'public', table: 'program_assignments', filter: `client_id=eq.${me}` }, ({ eventType }) => {
         if (eventType === 'DELETE') return
         notify('Programme mis à jour', 'Ton coach a publié ton programme. Ouvre-le pour voir tes séances.', '/client/program')
       })
