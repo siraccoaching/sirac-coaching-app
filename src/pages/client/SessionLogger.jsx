@@ -9,6 +9,7 @@ import FocusMode from '../../components/FocusMode'
 import { celebrate, haptic } from '../../lib/fx'
 import { Maximize2 } from 'lucide-react'
 import { MEASURES, measureOf, formatTarget, setHint, fillFromHints, emptySet } from '../../lib/measure'
+import { cacheGet, cacheSet, isNetworkError, isOffline, queueSession, updateQueued } from '../../lib/offline'
 
 const inputStyle = {
   WebkitTextFillColor: 'var(--label)',
@@ -40,6 +41,9 @@ export default function SessionLogger() {
   const [historicalPRs, setHistoricalPRs] = useState({})
   const [sessionPRs, setSessionPRs] = useState([])
   const [demo, setDemo] = useState(null)
+  const [offlineMode, setOfflineMode] = useState(false)
+  const [localId, setLocalId] = useState(null)
+  const [savedOffline, setSavedOffline] = useState(false)
 
   useEffect(() => { if (profile?.id) loadSession() }, [sessionId, profile?.id])
 
@@ -51,15 +55,17 @@ export default function SessionLogger() {
   }, [activeTimer, timerSeconds])
 
   async function loadSession() {
-    const { data } = await supabase
+    let { data, error: sessErr } = isOffline() ? { data: null, error: new Error('offline') } : await supabase
       .from('program_sessions')
       .select('*, program_exercises(*, exercise:exercises(*))')
       .eq('id', sessionId)
       .single()
+    if (sessErr && isNetworkError(sessErr)) { data = cacheGet('session:' + sessionId); setOfflineMode(true) }
+    else if (data) cacheSet('session:' + sessionId, data)
     setSess(data)
 
     if (data?.program_exercises) {
-      const { data: lastComp } = await supabase
+      let { data: lastComp, error: lcErr } = isOffline() ? { data: null, error: new Error('offline') } : await supabase
         .from('session_completions')
         .select('id, created_at, exercise_logs(exercise_id, exercise_name, set_data, notes)')
         .eq('program_session_id', sessionId)
@@ -67,6 +73,8 @@ export default function SessionLogger() {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
+      if (lcErr && isNetworkError(lcErr)) lastComp = cacheGet('last:' + sessionId)
+      else cacheSet('last:' + sessionId, lastComp || null)
 
       const prevLogs = {}
       if (lastComp?.exercise_logs?.length > 0) {
@@ -91,7 +99,7 @@ export default function SessionLogger() {
       }
       setLogs(initial)
       // Fetch historical max per exercise for PR detection
-      if (data.program_exercises?.length > 0) {
+      if (data.program_exercises?.length > 0 && !isOffline()) {
         const names = data.program_exercises.map(e => e.name)
         const { data: pastComps } = await supabase
           .from('session_completions').select('id').eq('client_id', profile.id)
@@ -143,20 +151,29 @@ export default function SessionLogger() {
 
   async function handleComplete() {
     setSaving(true)
-    const { data: comp, error: compErr } = await supabase
-      .from('session_completions')
-      .insert({ program_session_id: sessionId, client_id: profile.id, notes: sessionNotes })
-      .select().single()
-    if (compErr) { alert('Erreur: ' + compErr.message); setSaving(false); return }
-
     const exercises = sess.program_exercises.sort((a,b) => a.order_index - b.order_index)
-    const logsToInsert = exercises
+    const buildLogs = cid => exercises
       .filter(ex => logs[ex.id]?.sets?.length > 0)
-      .map(ex => ({ completion_id: comp.id, exercise_id: ex.id, library_exercise_id: ex.exercise_id || null, exercise_name: ex.name, set_data: logs[ex.id].sets.map(({ _prev, ...st }) => ({ ...st, measure: ex.measure || 'reps' })), notes: logs[ex.id].notes || '' }))
+      .map(ex => ({ ...(cid ? { completion_id: cid } : {}), exercise_id: ex.id, library_exercise_id: ex.exercise_id || null, exercise_name: ex.name, set_data: logs[ex.id].sets.map(({ _prev, ...st }) => ({ ...st, measure: ex.measure || 'reps' })), notes: logs[ex.id].notes || '' }))
 
-    if (logsToInsert.length > 0) {
-      const { error: logErr } = await supabase.from('exercise_logs').insert(logsToInsert)
-      if (logErr) console.error('Log error:', logErr)
+    const completion = { program_session_id: sessionId, client_id: profile.id, notes: sessionNotes }
+    let comp = null, compErr = null
+    if (!isOffline()) ({ data: comp, error: compErr } = await supabase.from('session_completions').insert(completion).select().single())
+    let logsToInsert
+    if (isOffline() || (compErr && isNetworkError(compErr))) {
+      // Pas de réseau : la séance est gardée sur le téléphone et sera envoyée au retour du réseau
+      const lid = 'local-' + Date.now()
+      logsToInsert = buildLogs(null)
+      queueSession({ localId: lid, completion, logs: logsToInsert, rating: null })
+      setLocalId(lid); setSavedOffline(true)
+    } else if (compErr) {
+      alert('Erreur: ' + compErr.message); setSaving(false); return
+    } else {
+      logsToInsert = buildLogs(comp.id)
+      if (logsToInsert.length > 0) {
+        const { error: logErr } = await supabase.from('exercise_logs').insert(logsToInsert)
+        if (logErr) console.error('Log error:', logErr)
+      }
     }
     // Detect PRs
     const newPRs = []
@@ -173,12 +190,13 @@ export default function SessionLogger() {
     if (newPRs.length > 0) setSessionPRs(newPRs)
     setFocus(false)
     celebrate({ big: newPRs.length > 0 })
-    setCompletionId(comp.id)
+    setCompletionId(comp?.id || null)
     setShowRPEModal(true)
   }
 
   async function submitRPE() {
-    if (completionId) {
+    if (localId) updateQueued(localId, { rating: { rpe_session: rpeValue, wellbeing_note: wellbeingNote, session_rating: { feeling: rpeFeeling } } })
+    else if (completionId) {
       await supabase.from('session_completions').update({
         rpe_session: rpeValue,
         wellbeing_note: wellbeingNote,
@@ -210,6 +228,11 @@ export default function SessionLogger() {
     <PageLayout title={sess.name} back="/client/program">
       <div className="p-4 pb-10 space-y-4">
 
+        {offlineMode && (
+          <div data-testid="offline-banner" style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '10px 14px', borderRadius: 14, background: 'rgba(255,149,0,0.14)', color: 'var(--orange-text)', fontSize: 14 }}>
+            📶 Pas de réseau : tu peux faire ta séance, elle sera envoyée à ton coach dès que tu retrouves du réseau.
+          </div>
+        )}
         <button onClick={() => setFocus(true)} data-testid="focus-btn"
           style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', borderRadius: 16, padding: '14px 0', fontSize: 16, fontWeight: 700, color: 'white', cursor: 'pointer', background: 'linear-gradient(135deg,#5e5ce6,#8b5cf6)', boxShadow: '0 8px 22px rgba(94,92,230,.3)' }}>
           <Maximize2 size={18} /> Mode focus · une série à la fois
@@ -360,6 +383,7 @@ export default function SessionLogger() {
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-end', justifyContent:'center'}}>
           <div style={{background:'var(--card)', borderRadius:'24px 24px 0 0', padding:'28px 20px 40px', width:'100%', maxWidth:480}}>
             <h3 style={{margin:'0 0 6px', fontSize:20, fontWeight:700, textAlign:'center', color:'var(--label)'}}>Séance terminée ! 🎉</h3>
+            {savedOffline && <p data-testid="saved-offline" style={{margin:'0 0 10px', fontSize:13, textAlign:'center', color:'var(--orange-text)'}}>📶 Enregistrée sur ton téléphone. Elle partira toute seule au retour du réseau.</p>}
             <p style={{margin:'0 0 16px', fontSize:14, color:'var(--label2)', textAlign:'center'}}>Comment tu te sens ?</p>
             {sessionPRs.length > 0 && (
               <div className="ios-pop" style={{background:'linear-gradient(135deg,#f59e0b22,#ef444422)', border:'1px solid #f59e0b44', borderRadius:12, padding:'12px 14px', marginBottom:16}}>

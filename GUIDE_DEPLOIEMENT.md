@@ -132,3 +132,9 @@ npm run dev
 
 La base d'exercices est régénérable avec `python3 scripts/build_exercise_seed.py exercises.json`
 (fichier `dist/exercises.json` du dépôt free-exercise-db).
+
+## Notifications app fermée, rappels, médias (migration 20261124001000)
+- Variables Vercel : `VITE_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`.
+- Base : la table `private.settings` contient `push_url` (adresse de `/api/push`) et `push_secret` (généré par la base, jamais affiché).
+- Rappel du matin : cron Vercel tous les jours à 6 h UTC (`/api/reminders`), qui garde aussi la base Supabase active.
+- Espaces de fichiers : `message-media` (privé) et `exercise-videos` (public, vidéos de démonstration du coach), 50 Mo maximum par fichier.

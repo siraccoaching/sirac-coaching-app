@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card, Badge } from '../../components/Layout'
 import { Plus, Layers, ChevronRight, Dumbbell, Copy, Trash2, Check, X } from 'lucide-react'
-import { setProgramClients } from '../../lib/assignments'
+import { setProgramClients, copyProgram } from '../../lib/assignments'
 
 export default function Programs() {
     const { profile } = useAuth()
@@ -83,38 +83,7 @@ export default function Programs() {
   async function duplicateProgram(prog) {
     setDuplicating(prog.id)
     try {
-      const { data: newProg, error } = await supabase.from('programs').insert({
-        name: prog.name + ' (copie)', type: prog.type, description: prog.description,
-        coach_id: profile.id, is_active: true,
-      }).select().single()
-      if (error) throw error
-      // blocs (on garde la correspondance ancien id -> nouvel id)
-      const blockMap = {}
-      const { data: blocks } = await supabase.from('program_blocks').select('*').eq('program_id', prog.id).order('order_index')
-      for (const b of blocks || []) {
-        const { data: nb, error: be } = await supabase.from('program_blocks').insert({
-          program_id: newProg.id, name: b.name, description: b.description, duration_weeks: b.duration_weeks, order_index: b.order_index,
-        }).select().single()
-        if (be) throw be
-        blockMap[b.id] = nb.id
-      }
-      // séances + exercices
-      const { data: sessions } = await supabase.from('program_sessions').select('*, program_exercises(*)').eq('program_id', prog.id).order('order_index')
-      for (const sess of sessions || []) {
-        const { data: ns, error: se } = await supabase.from('program_sessions').insert({
-          program_id: newProg.id, block_id: sess.block_id ? blockMap[sess.block_id] || null : null,
-          name: sess.name, notes: sess.notes, day_number: sess.day_number, order_index: sess.order_index,
-        }).select().single()
-        if (se) throw se
-        const exs = sess.program_exercises || []
-        if (exs.length) {
-          const { error: ee } = await supabase.from('program_exercises').insert(exs.map(ex => ({
-            session_id: ns.id, exercise_id: ex.exercise_id, name: ex.name, sets: ex.sets, reps: ex.reps, measure: ex.measure || 'reps', load: ex.load,
-            rpe: ex.rpe, rest_seconds: ex.rest_seconds, notes: ex.notes, video_url: ex.video_url, order_index: ex.order_index,
-          })))
-          if (ee) throw ee
-        }
-      }
+      await copyProgram(prog.id, profile.id, prog.name + ' (copie)')
     } catch (e) {
       alert('Erreur pendant la duplication : ' + e.message)
     }

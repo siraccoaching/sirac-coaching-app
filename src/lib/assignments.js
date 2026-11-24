@@ -1,12 +1,17 @@
 import { supabase } from './supabase'
+import { cacheGet, cacheSet, isNetworkError, isOffline } from './offline'
 
 // Un programme peut être suivi par plusieurs clients ; chaque client a un seul programme actif.
 
 // Programme actif du client connecté (ou d'un client donné), avec la sélection demandée.
 export async function loadClientProgram(clientId, select = '*') {
-  const { data } = await supabase.from('program_assignments')
+  const key = 'program:' + clientId + ':' + select.replace(/\s+/g, '').length
+  if (isOffline()) return cacheGet(key)
+  const { data, error } = await supabase.from('program_assignments')
     .select(`program_id, assigned_at, program:programs(${select})`)
     .eq('client_id', clientId).maybeSingle()
+  if (error && isNetworkError(error)) return cacheGet(key) // hors ligne : dernier programme connu
+  if (!error) cacheSet(key, data?.program || null)
   return data?.program || null
 }
 
@@ -40,4 +45,52 @@ export async function assignClient(programId, clientId) {
   const { error } = await supabase.from('program_assignments')
     .upsert({ program_id: programId, client_id: clientId, assigned_at: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'client_id' })
   if (error) throw error
+}
+
+// Copie complète d'un programme (blocs, séances, exercices). Renvoie le nouveau programme et
+// la correspondance « ancienne séance → nouvelle séance ».
+export async function copyProgram(programId, coachId, name) {
+  const { data: prog, error: pe } = await supabase.from('programs').select('*').eq('id', programId).single()
+  if (pe) throw pe
+  const { data: newProg, error } = await supabase.from('programs').insert({
+    name: name || prog.name + ' (copie)', type: prog.type, description: prog.description, coach_id: coachId, is_active: true,
+  }).select().single()
+  if (error) throw error
+  const blockMap = {}, sessionMap = {}
+  const { data: blocks } = await supabase.from('program_blocks').select('*').eq('program_id', programId).order('order_index')
+  for (const b of blocks || []) {
+    const { data: nb, error: be } = await supabase.from('program_blocks').insert({
+      program_id: newProg.id, name: b.name, description: b.description, duration_weeks: b.duration_weeks, order_index: b.order_index,
+    }).select().single()
+    if (be) throw be
+    blockMap[b.id] = nb.id
+  }
+  const { data: sessions } = await supabase.from('program_sessions').select('*, program_exercises(*)').eq('program_id', programId).order('order_index')
+  for (const sess of sessions || []) {
+    const { data: ns, error: se } = await supabase.from('program_sessions').insert({
+      program_id: newProg.id, block_id: sess.block_id ? blockMap[sess.block_id] || null : null,
+      name: sess.name, notes: sess.notes, day_number: sess.day_number, order_index: sess.order_index,
+    }).select().single()
+    if (se) throw se
+    sessionMap[sess.id] = ns.id
+    const exs = sess.program_exercises || []
+    if (exs.length) {
+      const { error: ee } = await supabase.from('program_exercises').insert(exs.map(ex => ({
+        session_id: ns.id, exercise_id: ex.exercise_id, name: ex.name, sets: ex.sets, reps: ex.reps, measure: ex.measure || 'reps', load: ex.load,
+        rpe: ex.rpe, rest_seconds: ex.rest_seconds, notes: ex.notes, video_url: ex.video_url, order_index: ex.order_index,
+      })))
+      if (ee) throw ee
+    }
+  }
+  return { program: newProg, sessionMap }
+}
+
+// Programme partagé → version personnelle pour un seul client (son planning suit la copie).
+export async function personalizeForClient(programId, clientId, clientName, coachId) {
+  const { data: prog } = await supabase.from('programs').select('name').eq('id', programId).single()
+  const { program, sessionMap } = await copyProgram(programId, coachId, `${prog?.name || 'Programme'} · ${clientName}`)
+  await assignClient(program.id, clientId)
+  const { error } = await supabase.rpc('remap_client_schedule', { p_client: clientId, p_map: sessionMap })
+  if (error) throw error
+  return program
 }

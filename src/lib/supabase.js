@@ -14,28 +14,27 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 export async function subscribeToPush(userId) {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null
+  const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+  if (!vapidKey) return null
   try {
     const reg = await navigator.serviceWorker.ready
-    const existing = await reg.pushManager.getSubscription()
-    if (existing) return existing
-
-    const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
-    if (!vapidKey) return null
-
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidKey)
-    })
-
+    let sub = await reg.pushManager.getSubscription()
+    // Clé du serveur changée : on refait l'abonnement
+    if (sub && sub.options?.applicationServerKey) {
+      const cur = btoa(String.fromCharCode(...new Uint8Array(sub.options.applicationServerKey))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+      if (cur !== vapidKey.replace(/=+$/, '')) { await sub.unsubscribe(); sub = null }
+    }
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) })
+    // Un abonnement par appareil (téléphone, ordinateur…)
     await supabase.from('push_subscriptions').upsert({
       user_id: userId,
+      endpoint: sub.endpoint,
       subscription: JSON.stringify(sub),
       updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' })
-
+    }, { onConflict: 'endpoint' })
     return sub
   } catch (err) {
-    console.error('Push subscription error:', err)
+    console.warn('Abonnement push impossible :', err?.message || err)
     return null
   }
 }

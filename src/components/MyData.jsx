@@ -52,7 +52,7 @@ export default function MyData({ userId }) {
         </button>
       </div>
       {msg && <p style={{ margin: '6px 16px 0', fontSize: 13, color: msg.startsWith('Erreur') ? 'var(--red-text)' : 'var(--green-text)' }}>{msg}</p>}
-      <p style={{ margin: '6px 16px 0', fontSize: 12, color: 'var(--label2)' }}>Tes données ne sont visibles que par toi et ton coach.</p>
+      <p style={{ margin: '6px 16px 0', fontSize: 12, color: 'var(--label2)' }}>Tes données ne sont visibles que par toi et ton coach. <a href="/legal/confidentialite" style={{ color: 'var(--accent-text)' }}>Confidentialité</a> · <a href="/legal/cgu" style={{ color: 'var(--accent-text)' }}>Conditions</a></p>
     </div>
   )
 }
