@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
+import { cacheGet, cacheSet, isOffline } from './offline'
 
 export function useAuth() {
   const [user, setUser] = useState(null)
@@ -22,8 +23,11 @@ export function useAuth() {
   }, [])
 
   async function fetchProfile(userId) {
+    if (isOffline() && cacheGet('profile:' + userId)) { setProfile(cacheGet('profile:' + userId)); setLoading(false); return }
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    setProfile(data)
+    // Hors ligne : on reprend le dernier profil connu
+    if (data) cacheSet('profile:' + userId, data)
+    setProfile(data || cacheGet('profile:' + userId))
     setLoading(false)
   }
 

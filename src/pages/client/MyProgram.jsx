@@ -8,6 +8,7 @@ import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDem
 import { formatTarget } from '../../lib/measure'
 import { loadClientProgram } from '../../lib/assignments'
 import ProgramPlanner from '../../components/ProgramPlanner'
+import { cacheGet, cacheSet, isOffline } from '../../lib/offline'
 
 const EX_SELECT = 'program_exercises(*, exercise:exercises(*))'
 
@@ -38,12 +39,16 @@ export default function MyProgram() {
     if (data) {
       const allSessionIds = (data.program_sessions || []).map(s => s.id)
       if (allSessionIds.length > 0) {
-        const { data: comps } = await supabase
-          .from('session_completions')
-          .select('program_session_id, completed_at')
-          .eq('client_id', profile.id)
-          .in('program_session_id', allSessionIds)
-        setCompletions(comps || [])
+        if (isOffline()) setCompletions(cacheGet('comps:' + profile.id) || [])
+        else {
+          const { data: comps } = await supabase
+            .from('session_completions')
+            .select('program_session_id, completed_at')
+            .eq('client_id', profile.id)
+            .in('program_session_id', allSessionIds)
+          setCompletions(comps || [])
+          cacheSet('comps:' + profile.id, comps || [])
+        }
       }
     }
     setLoading(false)

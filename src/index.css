@@ -209,3 +209,7 @@ button { -webkit-user-select: none; user-select: none; }
 
 /* Cases de saisie vides : la valeur suggérée (objectif / dernière séance) apparaît en gris clair */
 .hint-input::placeholder { color: var(--label3); opacity: .5; font-weight: 500; }
+
+/* Point rouge clignotant pendant l'enregistrement d'un vocal */
+@keyframes rec-blink { 50% { opacity: .25 } }
+.rec-dot { width: 10px; height: 10px; border-radius: 5px; background: #ff3b30; animation: rec-blink 1s infinite; flex-shrink: 0; }

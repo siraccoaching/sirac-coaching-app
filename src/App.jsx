@@ -1,8 +1,11 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './lib/hooks'
-import { useRealtimeNotifications } from './lib/notify'
+import { useRealtimeNotifications, useEnsurePush } from './lib/notify'
+import { useOfflineSync } from './lib/offline'
+import ConsentGate from './components/ConsentGate'
 import Login from './pages/Login'
+const Legal = lazy(() => import('./pages/Legal'))
 const AIMealPlan = lazy(() => import('./pages/client/AIMealPlan'))
 const CoachDashboard = lazy(() => import('./pages/coach/Dashboard'))
 const ClientDetail = lazy(() => import('./pages/coach/ClientDetail'))
@@ -57,12 +60,25 @@ function Loader() {
 export default function App() {
   const { user, profile, loading } = useAuth()
   useRealtimeNotifications(user ? profile : null)
+  useEnsurePush(user ? profile : null)
+  const { offline, pending, justSynced } = useOfflineSync(!!user && profile?.role === 'client')
   if (loading) return <Loader />
   return (
     <BrowserRouter>
       <div className="ios-statusbar" aria-hidden />
+      {(offline || pending > 0 || justSynced > 0) && (
+        <div data-testid="sync-pill" role="status" style={{ position: 'fixed', bottom: 'calc(66px + var(--sab))', left: '50%', transform: 'translateX(-50%)', zIndex: 960, padding: '6px 14px', borderRadius: 20,
+          fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(0,0,0,.15)',
+          background: justSynced ? '#34c759' : offline ? '#ff9500' : 'var(--accent)', color: 'white', pointerEvents: 'none' }}>
+          {justSynced ? `✓ ${justSynced} séance${justSynced > 1 ? 's' : ''} envoyée${justSynced > 1 ? 's' : ''} au coach`
+            : offline ? `📶 Hors ligne${pending ? ` · ${pending} séance${pending > 1 ? 's' : ''} en attente` : ''}`
+            : `Envoi de ${pending} séance${pending > 1 ? 's' : ''}…`}
+        </div>
+      )}
       <Suspense fallback={<Loader />}>
+      <ConsentGate profile={user ? profile : null}>
       <Routes>
+        <Route path="/legal/:doc" element={<Legal />} />
         <Route path="/login" element={
           user ? <Navigate to={profile?.role === 'coach' ? '/coach' : '/client'} replace /> : <Login />
         } />
@@ -100,6 +116,7 @@ export default function App() {
         <Route path="/client/profile" element={<ProtectedRoute requiredRole="client"><Profile /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to={user ? (profile?.role === 'coach' ? '/coach' : '/client') : '/login'} replace />} />
       </Routes>
+      </ConsentGate>
       </Suspense>
     </BrowserRouter>
   )

@@ -8,7 +8,7 @@ import ClientNutritionTab from '../../components/ClientNutritionTab'
 import PrivatePhoto from '../../components/PrivatePhoto'
 import { formatSetValue } from '../../lib/measure'
 import { tone } from '../../lib/theme'
-import { assignClient } from '../../lib/assignments'
+import { assignClient, personalizeForClient } from '../../lib/assignments'
 import ProgramPlanner from '../../components/ProgramPlanner'
 
 function ProgressChart({ data, label }) {
@@ -144,6 +144,17 @@ export default function ClientDetail() {
     setAssigning(false)
   }
 
+  // Copie du programme partagé, réservée à ce client, puis ouverture dans le créateur
+  async function personalize() {
+    if (!confirm(`Créer une version du programme rien que pour ${client.name} ? Les autres clients gardent le programme actuel.`)) return
+    setAssigning(true)
+    try {
+      const prog = await personalizeForClient(currentProgram.id, id, client.name, coachProfile?.id || client.coach_id)
+      navigate(`/coach/programs/${prog.id}/edit`)
+    } catch (e) { alert('Erreur : ' + e.message) }
+    setAssigning(false)
+  }
+
   async function deleteCompletion(compId) {
     if (!confirm('Supprimer cette séance ?')) return
     setDeleting(compId)
@@ -248,6 +259,15 @@ export default function ClientDetail() {
             {currentProgram ? 'Changer' : 'Assigner'}
           </button>
         </div>
+        {currentProgram && (currentProgram.program_assignments || []).length > 1 && (
+          <div style={{marginTop:10, paddingTop:10, borderTop:'0.5px solid var(--separator)'}}>
+            <p style={{margin:'0 0 8px', fontSize:13, color:'var(--label2)'}}>👥 Programme partagé avec {(currentProgram.program_assignments || []).length - 1} autre{(currentProgram.program_assignments || []).length > 2 ? 's' : ''} client{(currentProgram.program_assignments || []).length > 2 ? 's' : ''}. Une modification s’applique à tous.</p>
+            <button data-testid="personalize-btn" onClick={personalize} disabled={assigning}
+              style={{width:'100%', background:'var(--accent-soft)', border:'none', color:'var(--accent-text)', borderRadius:10, padding:'10px 0', fontSize:14, fontWeight:600, cursor:'pointer'}}>
+              ✏️ {assigning ? 'Création…' : `Personnaliser pour ${client.name.split(' ')[0]}`}
+            </button>
+          </div>
+        )}
       </div>
 
       <div style={{display:'flex', margin:'0 16px 12px', background:'var(--card)', borderRadius:10, padding:4, overflowX:'auto', gap:2}}>

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { localDateStr } from '../lib/nutrition'
 import { haptic } from '../lib/fx'
 import { ChevronLeft, ChevronRight, CalendarDays, Plus, X, Play, Trash2, Check, GripVertical } from 'lucide-react'
+import { cacheGet, cacheSet, isOffline } from '../lib/offline'
 
 const DAY_SHORT = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 const DAY_LONG = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -35,13 +36,16 @@ export default function ProgramPlanner({ clientId, sessions, readOnly = false })
 
   async function load() {
     const from = localDateStr(week), to = localDateStr(addDays(week, 6))
+    const ck = 'planner:' + clientId + ':' + from
+    if (isOffline()) { const c = cacheGet(ck); if (c) { setRows(c.rows); setDone(c.done) } return }
     const [{ data: r }, { data: c }] = await Promise.all([
       supabase.from('scheduled_sessions').select('*').eq('client_id', clientId).gte('date', from).lte('date', to).order('created_at'),
       supabase.from('session_completions').select('program_session_id, created_at').eq('client_id', clientId)
         .gte('created_at', week.toISOString()).lt('created_at', addDays(week, 7).toISOString()),
     ])
-    setRows(r || [])
-    setDone((c || []).map(x => ({ sid: x.program_session_id, date: localDateStr(new Date(x.created_at)) })))
+    const d = (c || []).map(x => ({ sid: x.program_session_id, date: localDateStr(new Date(x.created_at)) }))
+    setRows(r || []); setDone(d)
+    cacheSet(ck, { rows: r || [], done: d })
   }
 
   const isDone = r => done.some(d => d.sid === r.program_session_id && d.date === r.date)

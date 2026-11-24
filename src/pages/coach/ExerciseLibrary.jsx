@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
@@ -40,7 +40,10 @@ function ExerciseForm({ initial, onSave, onCancel, saving }) {
         <option value="">Matériel</option>
         {EQUIPMENT.map(m => <option key={m} value={m}>{m}</option>)}
       </select>
-      <input value={form.video_url} onChange={e => set('video_url', e.target.value)} placeholder="Lien vidéo de démo (YouTube, Vimeo ou .mp4)" style={field} />
+      <VideoUpload value={form.video_url} onChange={v => set('video_url', v)} />
+      {!(form.video_url || '').includes('/storage/v1/object/public/exercise-videos/') && (
+        <input value={form.video_url} onChange={e => set('video_url', e.target.value)} placeholder="… ou un lien vidéo (YouTube, Vimeo ou .mp4)" style={field} />
+      )}
       <textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Consignes d'exécution" rows={3}
         style={{ ...field, resize: 'none', marginBottom: 14 }} />
       <div style={{ display: 'flex', gap: 10 }}>
@@ -50,6 +53,41 @@ function ExerciseForm({ initial, onSave, onCancel, saving }) {
           {saving ? 'Enregistrement…' : initial?.coach_id ? 'Enregistrer' : 'Ajouter'}
         </button>
       </div>
+    </div>
+  )
+}
+
+// Envoi d'une vidéo filmée par le coach (stockée dans l'espace « exercise-videos »)
+function VideoUpload({ value, onChange }) {
+  const { profile } = useAuth()
+  const ref = useRef(null)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const own = value && value.includes('/storage/v1/object/public/exercise-videos/')
+  async function upload(file) {
+    setErr('')
+    const ext0 = (file.name.split('.').pop() || '').toLowerCase()
+    const type = file.type || (ext0 === 'mov' ? 'video/quicktime' : ext0 === 'webm' ? 'video/webm' : 'video/mp4')
+    if (!type.startsWith('video/')) { setErr('Choisis une vidéo.'); return }
+    file = new File([file], file.name || 'video.' + ext0, { type })
+    if (file.size > 50 * 1024 * 1024) { setErr(`Vidéo trop lourde (${Math.round(file.size / 1048576)} Mo, maximum 50 Mo). Filme en 720p ou coupe-la.`); return }
+    setBusy(true)
+    const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().slice(0, 4)
+    const path = `${profile.id}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('exercise-videos').upload(path, file, { contentType: type })
+    if (error) { setErr('Envoi impossible : ' + error.message); setBusy(false); return }
+    onChange(supabase.storage.from('exercise-videos').getPublicUrl(path).data.publicUrl)
+    setBusy(false)
+  }
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <input ref={ref} type="file" accept="video/*" hidden data-testid="video-file" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) upload(f) }} />
+      <button type="button" onClick={() => ref.current?.click()} disabled={busy} data-testid="video-upload-btn"
+        style={{ width: '100%', padding: '12px 0', border: '1.5px dashed var(--accent)', borderRadius: 12, background: 'var(--accent-soft)', color: 'var(--accent-text)', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+        {busy ? 'Envoi de la vidéo…' : own ? '🎬 Remplacer ma vidéo' : '🎬 Envoyer ma vidéo (depuis le téléphone)'}
+      </button>
+      {err && <p role="alert" style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--red-text)' }}>{err}</p>}
+      {own && <video src={value} controls playsInline muted preload="metadata" data-testid="video-preview" style={{ width: '100%', maxHeight: 220, borderRadius: 12, marginTop: 8, background: '#000' }} />}
     </div>
   )
 }

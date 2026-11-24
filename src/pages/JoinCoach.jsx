@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { ConsentCheckbox } from '../components/ConsentGate'
 
 export default function JoinCoach() {
   const [params] = useSearchParams()
@@ -10,6 +11,7 @@ export default function JoinCoach() {
   const [coach, setCoach] = useState(null)
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({ name: '', email: '', password: '', sport: '', position: '' })
+  const [consent, setConsent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -40,7 +42,10 @@ export default function JoinCoach() {
       if (signUpError) throw signUpError
       if (!authData.user?.id) throw new Error('Erreur lors de la création du compte')
       // Si Supabase ne demande pas de confirmer l'email, le client est déjà connecté : direction son espace.
-      if (authData.session) { navigate('/client/onboarding', { replace: true }); return }
+      if (authData.session) {
+        await supabase.from('profiles').update({ terms_accepted_at: new Date().toISOString() }).eq('id', authData.user.id)
+        navigate('/client/onboarding', { replace: true }); return
+      }
       setSuccess(true)
     } catch (err) {
       setError(err.message || 'Une erreur est survenue')
@@ -127,7 +132,8 @@ export default function JoinCoach() {
 
           {error && <p style={{ color: 'var(--red-text)', fontSize: 13, margin: 0, textAlign: 'center' }}>{error}</p>}
 
-          <button type="submit" disabled={submitting} style={{ marginTop: 6, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: 'white', border: 'none', borderRadius: 12, padding: '14px', fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>
+          <ConsentCheckbox checked={consent} onChange={setConsent} />
+          <button type="submit" disabled={submitting || !consent} style={{ marginTop: 6, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: 'white', border: 'none', borderRadius: 12, padding: '14px', fontSize: 15, fontWeight: 700, cursor: submitting || !consent ? 'not-allowed' : 'pointer', opacity: submitting || !consent ? 0.5 : 1 }}>
             {submitting ? 'Creation...' : 'Creer mon compte'}
           </button>
 
