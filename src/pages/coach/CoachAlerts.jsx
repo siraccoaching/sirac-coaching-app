@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/hooks'
 import { Bell, AlertCircle, Trophy, Clock, X } from 'lucide-react'
+import { acwr } from '../../lib/tests'
 
 export default function CoachAlerts() {
   const { profile } = useAuth()
@@ -37,6 +38,15 @@ export default function CoachAlerts() {
     }
 
     const newAlerts = []
+
+    // Charge d'entraînement : ratio aigu (7 j) / chronique (28 j) > 1,5 → alerte
+    const { data: loads } = await supabase.from('session_completions').select('client_id, created_at, rpe_session, duration_minutes')
+      .in('client_id', clientIds).gte('created_at', new Date(now - 28 * 86400000).toISOString())
+    for (const client of clients) {
+      const mine = (loads || []).filter(l => l.client_id === client.id)
+      const r = acwr(mine, now)
+      if (r != null && r > 1.5) newAlerts.push({ id: 'load_' + client.id + '_' + now.toISOString().slice(0, 10), type: 'load', clientId: client.id, clientName: client.name, ratio: r, ts: now.toISOString() })
+    }
 
     for (const client of clients) {
       const last = lastByClient[client.id]
@@ -91,7 +101,8 @@ export default function CoachAlerts() {
     }
 
     // Sort: PRs first, then inactives; most recent first
-    newAlerts.sort((a, b) => { if (a.type !== b.type) return a.type === 'pr' ? -1 : 1; return new Date(b.ts) - new Date(a.ts) })
+    const rank = { load: 0, pr: 1, inactive: 2 }
+    newAlerts.sort((a, b) => { if (a.type !== b.type) return rank[a.type] - rank[b.type]; return new Date(b.ts) - new Date(a.ts) })
     setAlerts(newAlerts.filter(a => !dismissed.includes(a.id)))
     setLoading(false)
   }
@@ -118,11 +129,13 @@ export default function CoachAlerts() {
             borderRadius:12, padding:'12px 14px', marginBottom:8, cursor:'pointer', display:'flex', alignItems:'flex-start', gap:10}}>
           <div style={{width:32, height:32, borderRadius:10, background: alert.type === 'pr' ? '#22c55e22' : '#ef444422',
             display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
-            {alert.type === 'pr' ? <Trophy size={16} color="#22c55e"/> : <Clock size={16} color="#ef4444"/>}
+            {alert.type === 'pr' ? <Trophy size={16} color="#22c55e"/> : alert.type === 'load' ? <span style={{fontSize:15}}>⚡</span> : <Clock size={16} color="#ef4444"/>}
           </div>
           <div style={{flex:1}}>
             <p style={{margin:'0 0 2px', fontSize:13, fontWeight:600, color:'var(--label)'}}>{alert.clientName}</p>
-            {alert.type === 'pr' ? (
+            {alert.type === 'load' ? (
+              <p style={{margin:0, fontSize:12, color:'var(--orange-text)'}}>⚡ Charge en hausse brutale : ratio aigu/chronique {String(alert.ratio).replace('.', ',')} (&gt; 1,5)</p>
+            ) : alert.type === 'pr' ? (
               <p style={{margin:0, fontSize:12, color:'var(--green-text)'}}>🏆 PR sur {alert.exercise} : {alert.load} kg (+{(alert.load - alert.prev).toFixed(1)})</p>
             ) : (
               <p style={{margin:0, fontSize:12, color:'var(--red-text)'}}>⚠️ Inactif depuis {alert.days} jours</p>

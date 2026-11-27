@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { X, Check, SkipForward, Minus, Plus } from 'lucide-react'
 import { ExerciseAnimation } from './ExerciseDemo'
 import { haptic } from '../lib/fx'
-import { formatTarget, measureOf, setHint } from '../lib/measure'
+import { formatTarget, measureOf, setHint, rpeLabel } from '../lib/measure'
 
 // Mode focus : une série à la fois, grosses commandes, anneau de récupération plein écran.
 export default function FocusMode({ exercises, logs, onUpdateSet, onCompleteSet, onClose, onFinish }) {
@@ -87,7 +87,7 @@ export default function FocusMode({ exercises, logs, onUpdateSet, onCompleteSet,
           <div>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Série {si + 1} sur {nSets}</p>
             <p style={{ margin: '2px 0 0', fontSize: 28, fontWeight: 700, color: 'var(--label)', letterSpacing: '-0.02em', lineHeight: 1.15 }}>{ex.name}</p>
-            <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--label2)' }}>Objectif : {formatTarget(ex)}{ex.load ? ` @ ${ex.load}` : ''}{ex.rpe ? ` · RPE ${ex.rpe}` : ''}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 14, color: 'var(--label2)' }}>Objectif : {formatTarget(ex)}{ex.load ? ` @ ${ex.load}` : ''}{rpeLabel(ex) ? ` · RPE ${rpeLabel(ex)}` : ''}{ex.tempo ? ` · tempo ${ex.tempo}` : ''}</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {[['reps', measureOf(ex).long, measureOf(ex).step], ['load', 'Charge (kg)', 2.5]].map(([f, l, step]) => (

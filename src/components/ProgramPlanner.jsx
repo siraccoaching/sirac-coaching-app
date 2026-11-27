@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { supabase } from '../lib/supabase'
 import { localDateStr } from '../lib/nutrition'
+import { matchDayLabel, sessionMatchOffset } from '../lib/periodization'
 import { haptic } from '../lib/fx'
 import { ChevronLeft, ChevronRight, CalendarDays, Plus, X, Play, Trash2, Check, GripVertical } from 'lucide-react'
 import { cacheGet, cacheSet, isOffline } from '../lib/offline'
@@ -18,7 +19,7 @@ const fmtDay = d => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'shor
 // Planning du client : il place les séances de son programme sur les jours de son choix
 // et peut les déplacer (glisser-déposer, ou toucher la séance puis choisir un autre jour).
 // En lecture seule pour le coach (fiche client).
-export default function ProgramPlanner({ clientId, sessions, readOnly = false }) {
+export default function ProgramPlanner({ clientId, sessions, planSessions, readOnly = false }) {
   const navigate = useNavigate()
   const [week, setWeek] = useState(() => mondayOf(new Date()))
   const [rows, setRows] = useState([])
@@ -27,6 +28,7 @@ export default function ProgramPlanner({ clientId, sessions, readOnly = false })
   const [adding, setAdding] = useState(null)      // date → feuille « ajouter une séance »
   const [wizard, setWizard] = useState(false)
   const [drag, setDrag] = useState(null)          // { row, x, y, over }
+  const [events, setEvents] = useState([])        // matchs et événements fixés par le coach
   const todayStr = localDateStr(new Date())
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(week, i)), [week])
   const color = id => COLORS[Math.max(0, sessions.findIndex(s => s.id === id)) % COLORS.length]
@@ -37,7 +39,10 @@ export default function ProgramPlanner({ clientId, sessions, readOnly = false })
   async function load() {
     const from = localDateStr(week), to = localDateStr(addDays(week, 6))
     const ck = 'planner:' + clientId + ':' + from
-    if (isOffline()) { const c = cacheGet(ck); if (c) { setRows(c.rows); setDone(c.done) } return }
+    if (isOffline()) { const c = cacheGet(ck); if (c) { setRows(c.rows); setDone(c.done); setEvents(c.events || []) } return }
+    const { data: ev } = await supabase.from('client_events').select('*').eq('client_id', clientId)
+      .gte('date', localDateStr(addDays(week, -3))).lte('date', localDateStr(addDays(week, 9)))
+    setEvents(ev || [])
     const [{ data: r }, { data: c }] = await Promise.all([
       supabase.from('scheduled_sessions').select('*').eq('client_id', clientId).gte('date', from).lte('date', to).order('created_at'),
       supabase.from('session_completions').select('program_session_id, created_at').eq('client_id', clientId)
@@ -45,7 +50,7 @@ export default function ProgramPlanner({ clientId, sessions, readOnly = false })
     ])
     const d = (c || []).map(x => ({ sid: x.program_session_id, date: localDateStr(new Date(x.created_at)) }))
     setRows(r || []); setDone(d)
-    cacheSet(ck, { rows: r || [], done: d })
+    cacheSet(ck, { rows: r || [], done: d, events: ev || [] })
   }
 
   const isDone = r => done.some(d => d.sid === r.program_session_id && d.date === r.date)
@@ -132,8 +137,14 @@ export default function ProgramPlanner({ clientId, sessions, readOnly = false })
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: isToday ? 'var(--accent-text)' : 'var(--label2)' }}>{DAY_SHORT[i]}</p>
                 <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: isToday ? 'var(--accent-text)' : past ? 'var(--label3)' : 'var(--label)' }}>{d.getDate()}</p>
               </div>
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {items.length === 0 && <span style={{ fontSize: 13, color: 'var(--label3)' }}>Repos</span>}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                {events.filter(e => e.date === ds).map(e => (
+                  <span key={e.id} data-testid="event-chip" style={{ padding: '6px 10px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: e.type === 'match' ? 'rgba(255,59,48,0.14)' : 'var(--fill)', color: e.type === 'match' ? 'var(--red-text)' : 'var(--label2)' }}>
+                    {e.type === 'match' ? '🏈 Match' : e.type === 'bye' ? '😴 Bye' : e.type === 'test' ? '📋 Tests' : '📌'}{e.label ? ` · ${e.label}` : ''}
+                  </span>
+                ))}
+                {(() => { const j = matchDayLabel(ds, events.filter(e => e.type === 'match')); return j && j !== 'Match' ? <span data-testid="match-offset" style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', background: 'var(--fill)', borderRadius: 6, padding: '2px 6px' }}>{j}</span> : null })()}
+                {items.length === 0 && !events.some(e => e.date === ds) && <span style={{ fontSize: 13, color: 'var(--label3)' }}>Repos</span>}
                 {items.map(r => {
                   const ok = isDone(r)
                   const missed = !ok && past
@@ -208,7 +219,7 @@ export default function ProgramPlanner({ clientId, sessions, readOnly = false })
         </Sheet>
       )}
 
-      {wizard && <PlanWizard sessions={sessions} color={color} clientId={clientId} onClose={() => setWizard(false)} onDone={() => { setWizard(false); setWeek(mondayOf(new Date())); load() }} />}
+      {wizard && <PlanWizard sessions={planSessions?.length ? planSessions : sessions} color={color} clientId={clientId} onClose={() => setWizard(false)} onDone={() => { setWizard(false); setWeek(mondayOf(new Date())); load() }} />}
     </div>
   )
 }
@@ -216,19 +227,42 @@ export default function ProgramPlanner({ clientId, sessions, readOnly = false })
 // Planification rapide : jours de la semaine pour chaque séance, sur plusieurs semaines.
 function PlanWizard({ sessions, color, clientId, onClose, onDone }) {
   const defaults = [[0], [2], [4], [1], [3], [5], [6]]
-  const [pick, setPick] = useState(() => Object.fromEntries(sessions.map((s, i) => [s.id, defaults[i % 7]])))
+  const offsets = Object.fromEntries(sessions.map(s => [s.id, sessionMatchOffset(s.name)]))
+  const hasOffsets = Object.values(offsets).some(v => v !== null)
+  const [matches, setMatches] = useState([])
+  const [byMatch, setByMatch] = useState(true)
+  useEffect(() => {
+    supabase.from('client_events').select('date').eq('client_id', clientId).eq('type', 'match').gte('date', localDateStr(new Date())).order('date')
+      .then(({ data }) => setMatches((data || []).map(m => m.date)))
+  }, [clientId])
+  const matchMode = hasOffsets && matches.length > 0 && byMatch
+  // jour proposé : celui écrit dans le nom de la séance (« Lundi — … »), sinon réparti dans la semaine
+  const dayIn = name => { const n = String(name || '').toLowerCase(); const i = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'].findIndex(d => n.includes(d)); return i < 0 ? null : i }
+  const [pick, setPick] = useState(() => Object.fromEntries(sessions.map((s, i) => [s.id, dayIn(s.name) !== null ? [dayIn(s.name)] : defaults[i % 7]])))
   const [weeks, setWeeks] = useState(4)
   const [busy, setBusy] = useState(false)
   const toggle = (sid, d) => setPick(p => ({ ...p, [sid]: p[sid].includes(d) ? p[sid].filter(x => x !== d) : [...p[sid], d].sort() }))
-  const total = Object.values(pick).reduce((n, a) => n + a.length, 0) * weeks
+  const horizon = localDateStr(addDays(new Date(), weeks * 7))
+  const total = matchMode
+    ? matches.filter(m => m <= horizon).length * Object.values(offsets).filter(v => v !== null).length + Object.entries(pick).filter(([id]) => offsets[id] === null).reduce((n, [, a]) => n + a.length, 0) * weeks
+    : Object.values(pick).reduce((n, a) => n + a.length, 0) * weeks
 
   async function save() {
     setBusy(true)
     const today = localDateStr(new Date())
     const monday = mondayOf(new Date())
     const ins = []
-    for (let w = 0; w < weeks; w++) for (const s of sessions) for (const d of pick[s.id] || []) {
-      const ds = localDateStr(addDays(monday, w * 7 + d))
+    for (let w = 0; w < weeks; w++) for (const s of sessions) {
+      if (matchMode && offsets[s.id] !== null) continue
+      for (const d of pick[s.id] || []) {
+        const ds = localDateStr(addDays(monday, w * 7 + d))
+        if (ds >= today) ins.push({ client_id: clientId, program_session_id: s.id, date: ds })
+      }
+    }
+    // Séances « J-4 », « J+1 »… calées sur chaque match
+    if (matchMode) for (const m of matches.filter(x => x <= horizon)) for (const s of sessions) {
+      if (offsets[s.id] === null) continue
+      const ds = localDateStr(addDays(new Date(m + 'T12:00'), offsets[s.id]))
       if (ds >= today) ins.push({ client_id: clientId, program_session_id: s.id, date: ds })
     }
     // on remplace le planning à venir de ces séances
@@ -245,7 +279,13 @@ function PlanWizard({ sessions, color, clientId, onClose, onDone }) {
   return (
     <Sheet title="Planifier mon programme" subtitle="Choisis tes jours d’entraînement pour chaque séance" onClose={onClose}>
       <div data-testid="plan-wizard" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {sessions.map(s => (
+        {hasOffsets && matches.length > 0 && (
+          <label data-testid="by-match" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,59,48,0.1)', fontSize: 14, color: 'var(--label)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={byMatch} onChange={e => setByMatch(e.target.checked)} style={{ width: 20, height: 20, accentColor: '#ff3b30' }} />
+            <span>🏈 Caler les séances J-x sur mes {matches.length} prochain{matches.length > 1 ? 's' : ''} match{matches.length > 1 ? 's' : ''}</span>
+          </label>
+        )}
+        {sessions.filter(s => !(matchMode && offsets[s.id] !== null)).map(s => (
           <div key={s.id}>
             <p style={{ margin: '0 0 6px', fontSize: 15, fontWeight: 600, color: 'var(--label)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 10, height: 10, borderRadius: 5, background: color(s.id) }} />{s.name}
