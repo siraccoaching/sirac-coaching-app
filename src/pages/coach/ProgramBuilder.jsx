@@ -6,14 +6,14 @@ import { PageLayout, Card } from '../../components/Layout'
 import { Plus, Trash2, ChevronDown, ChevronUp, Save, Dumbbell, Clock, Link, BookOpen } from 'lucide-react'
 import { ExercisePicker, ExerciseThumb } from '../../components/ExerciseDemo'
 import { loadExerciseList, linkExercisesByName } from '../../lib/exercises'
-import { MEASURES, defaultMeasure } from '../../lib/measure'
+import { MEASURES, BLOCK_TYPES, defaultMeasure, parseRest, restLabel } from '../../lib/measure'
 import { loadProgramClients, setProgramClients } from '../../lib/assignments'
 
 let _tmpId = 0
 const tmpId = () => `tmp_${++_tmpId}`
 
 function emptyExercise() {
-  return { _id: tmpId(), exercise_id: null, images: null, name: '', sets: 3, reps: '8', measure: 'reps', load: '', rpe: '', rest_seconds: 120, notes: '', video_url: '' }
+  return { _id: tmpId(), exercise_id: null, images: null, name: '', sets: 3, reps: '8', measure: 'reps', load: '', rpe: '', rest: '2 min', notes: '', video_url: '', tempo: '', block_type: '', week_overrides: {}, track_velocity: false }
 }
 function emptySession(blockId = null) {
   return { _id: tmpId(), block_id: blockId, name: '', notes: '', exercises: [emptyExercise()] }
@@ -52,7 +52,7 @@ export default function ProgramBuilder() {
     if (isEdit) loadProgram()
     const tpl = location.state?.template
     if (tpl && !isEdit) {
-      const toEx = ex => ({ _id: tmpId(), exercise_id: ex.exercise_id || null, images: ex.images || null, name: ex.name, sets: ex.sets||3, reps: String(ex.reps||'8'), measure: ex.measure || 'reps', load: '', rpe: '', rest_seconds: ex.rest_seconds||120, notes: ex.notes||'', video_url: ex.video_url||'' })
+      const toEx = ex => ({ _id: tmpId(), exercise_id: ex.exercise_id || null, images: ex.images || null, name: ex.name, sets: ex.sets||3, reps: String(ex.reps||'8'), measure: ex.measure || 'reps', load: '', rpe: '', rest: (ex.rest_seconds || 120) + ' s', notes: ex.notes||'', video_url: ex.video_url||'', tempo: '', block_type: '', week_overrides: {}, track_velocity: false })
       const toSess = s => ({ _id: tmpId(), name: s.name, notes: '', exercises: (s.exercises||[]).map(toEx) })
       if (tpl.type === 'block') {
         const blocks = (tpl.blocks||[]).map(b => ({ _id: tmpId(), name: b.name, duration_weeks: b.duration_weeks||4, description: '', sessions: (b.sessions||[]).map(toSess) }))
@@ -85,9 +85,10 @@ export default function ProgramBuilder() {
     let _c = 1000
     const nid = () => `tmp_${++_c}`
     const toEx = ex => ({
-      _id: nid(), exercise_id: ex.exercise_id || null, images: ex.exercise?.images || null, name: ex.name, sets: ex.sets, reps: ex.reps, measure: ex.measure || 'reps',
-      load: ex.load || '', rpe: ex.rpe || '', rest_seconds: ex.rest_seconds || 120,
-      notes: ex.notes || '', video_url: ex.video_url || '',
+      _id: nid(), exercise_id: ex.exercise_id || null, images: ex.exercise?.images || null, name: ex.name, sets: ex.sets_text || String(ex.sets ?? ''), reps: ex.reps, measure: ex.measure || 'reps',
+      load: ex.load || '', rpe: ex.rpe_text || (ex.rpe ?? ''), rest: ex.rest_text || (ex.rest_seconds ? ex.rest_seconds + ' s' : ''),
+      notes: ex.notes || '', video_url: ex.video_url || '', tempo: ex.tempo || '', block_type: ex.block_type || '',
+      week_overrides: ex.week_overrides || {}, track_velocity: !!ex.track_velocity,
     })
     const toSess = sess => ({
       _id: nid(), _dbid: sess.id, name: sess.name, notes: sess.notes || '',
@@ -95,7 +96,7 @@ export default function ProgramBuilder() {
     })
     const toBlock = block => ({
       _id: nid(), _dbid: block.id, name: block.name, duration_weeks: block.duration_weeks,
-      description: block.description || '',
+      description: block.description || '', week_labels: block.week_labels || {},
       sessions: (block.program_sessions || []).sort((a,b) => a.order_index - b.order_index).map(toSess),
     })
 
@@ -169,7 +170,7 @@ export default function ProgramBuilder() {
   function addExerciseFromLib(libEx) {
     if (!libTarget) return
     const { bi, si, isSimple } = libTarget
-    const newEx = { _id: tmpId(), exercise_id: libEx.id, images: libEx.images || null, name: libEx.name, sets: 3, reps: defaultMeasure(libEx) === 'distance' ? '400' : '8', measure: defaultMeasure(libEx), load: '', rpe: '', rest_seconds: 120, notes: '', video_url: libEx.video_url||'' }
+    const newEx = { _id: tmpId(), exercise_id: libEx.id, images: libEx.images || null, name: libEx.name, sets: 3, reps: defaultMeasure(libEx) === 'distance' ? '400' : '8', measure: defaultMeasure(libEx), load: '', rpe: '', rest: '2 min', notes: '', video_url: libEx.video_url||'', tempo: '', block_type: '', week_overrides: {}, track_velocity: false }
     setProg(p => {
       const sessions = isSimple ? [...p.simpleSessions] : [...p.blocks[bi].sessions]
       const current = sessions[si].exercises.filter(e => e.name.trim())
@@ -230,7 +231,7 @@ export default function ProgramBuilder() {
           for (let bi = 0; bi < prog.blocks.length; bi++) {
             const block = prog.blocks[bi]
             if (!block.name.trim()) continue
-            const row = { program_id: id, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, order_index: bi }
+            const row = { program_id: id, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, week_labels: block.week_labels || {}, order_index: bi }
             let blockId = block._dbid
             if (blockId) { const { error } = await supabase.from('program_blocks').update(row).eq('id', blockId); if (error) throw error }
             else { const { data, error } = await supabase.from('program_blocks').insert(row).select().single(); if (error) throw error; blockId = data.id }
@@ -266,7 +267,7 @@ export default function ProgramBuilder() {
         if (!block.name.trim()) continue
         const { data: blockData, error: blockErr } = await supabase
           .from('program_blocks')
-          .insert({ program_id: programId, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, order_index: bi })
+          .insert({ program_id: programId, name: block.name.trim(), description: block.description, duration_weeks: Number(block.duration_weeks) || 1, week_labels: block.week_labels || {}, order_index: bi })
           .select().single()
         if (blockErr) { setError(blockErr.message); setSaving(false); return }
         await saveSessions(programId, blockData.id, block.sessions)
@@ -305,13 +306,15 @@ export default function ProgramBuilder() {
             session_id: sessData.id,
             exercise_id: ex.exercise_id || null,
             name: ex.name.trim(),
-            sets: Number(ex.sets) || 3,
+            ...exerciseFields(ex),
             reps: ex.reps || '8',
             measure: ex.measure || 'reps',
             load: ex.load || '',
-            rpe: ex.rpe ? Number(ex.rpe) : null,
-            rest_seconds: Number(ex.rest_seconds) || 120,
             notes: ex.notes || '',
+            tempo: ex.tempo || null,
+            block_type: ex.block_type || null,
+            week_overrides: cleanOverrides(ex.week_overrides),
+            track_velocity: !!ex.track_velocity,
             video_url: ex.video_url || null,
             order_index: ei,
           }))
@@ -397,15 +400,19 @@ export default function ProgramBuilder() {
                         placeholder="Nom du bloc (ex: Accumulation)"
                         className="flex-1 bg-dark-900 border border-contrast/10 rounded-xl px-3 py-2.5 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm" />
                       <div className="flex items-center gap-1.5 bg-dark-900 border border-contrast/10 rounded-xl px-3">
-                        <input type="number" inputMode="numeric" min="1" max="16" value={block.duration_weeks}
+                        <input type="number" inputMode="numeric" min="1" max="52" value={block.duration_weeks}
                           onChange={e => updateBlock(bi, 'duration_weeks', e.target.value)}
                           className="w-8 bg-transparent text-label text-sm text-center focus:outline-none" />
                         <span className="text-gray-500 text-xs">sem</span>
                       </div>
                     </div>
+                    <textarea value={block.description || ''} onChange={e => updateBlock(bi, 'description', e.target.value)} rows={3}
+                      placeholder="Objectifs, volume, règles de la phase (optionnel)"
+                      className="w-full bg-dark-900 border border-contrast/10 rounded-xl px-3 py-2.5 text-label placeholder-gray-600 focus:outline-none focus:border-brand-500 text-sm resize-y" />
+                    <WeekLabels weeks={Number(block.duration_weeks) || 1} labels={block.week_labels || {}} onChange={v => updateBlock(bi, 'week_labels', v)} />
                     <div className="space-y-2">
                       {block.sessions.map((sess, si) => (
-                        <SessionCard key={sess._id}
+                        <SessionCard key={sess._id} weeks={Number(block.duration_weeks) || 1} weekLabels={block.week_labels || {}}
                           sess={sess} bi={bi} si={si}
                           open={openSessions[`${bi}-${si}`]}
                           onToggle={() => setOpenSessions(os => ({ ...os, [`${bi}-${si}`]: !os[`${bi}-${si}`] }))}
@@ -476,7 +483,7 @@ export default function ProgramBuilder() {
   )
 }
 
-function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, onUpdateExercise, onAddExercise, onRemoveExercise, onOpenLibrary }) {
+function SessionCard({ weeks, weekLabels, sess, si, open, onToggle, onUpdate, onRemove, canRemove, onUpdateExercise, onAddExercise, onRemoveExercise, onOpenLibrary }) {
   return (
     <div className="border border-contrast/8 rounded-xl overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 bg-dark-800">
@@ -503,7 +510,7 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
             className="w-full bg-dark-800 border border-contrast/8 rounded-lg px-3 py-2 text-label placeholder-gray-600 text-sm focus:outline-none focus:border-brand-500" />
           <div className="space-y-2">
             {sess.exercises.map((ex, ei) => (
-              <ExerciseRow key={ex._id} ex={ex} ei={ei}
+              <ExerciseRow key={ex._id} ex={ex} ei={ei} weeks={weeks} weekLabels={weekLabels}
                 onUpdate={(k, v) => onUpdateExercise(ei, k, v)}
                 onRemove={() => onRemoveExercise(ei)}
                 canRemove={sess.exercises.length > 1}
@@ -528,58 +535,157 @@ function SessionCard({ sess, si, open, onToggle, onUpdate, onRemove, canRemove, 
   )
 }
 
-function ExerciseRow({ ex, ei, onUpdate, onRemove, canRemove }) {
-  const m = MEASURES[ex.measure] || MEASURES.reps
-  const inp = 'bg-dark-700 border border-contrast/10 rounded-lg text-label text-xs focus:outline-none focus:border-brand-500 text-center'
+// Champs saisis en texte libre → colonnes en base (fourchettes gardées telles quelles)
+function exerciseFields(ex) {
+  const setsIn = String(ex.sets ?? '').trim(), rpeIn = String(ex.rpe ?? '').trim().replace(/^RPE\s*/i, ''), restIn = String(ex.rest ?? '').trim()
+  const setsNum = /^\d+$/.test(setsIn) ? Number(setsIn) : (parseInt((setsIn.match(/\d+/) || ['3'])[0], 10) || 3)
+  const rpeNum = /^\d+([.,]\d+)?$/.test(rpeIn) ? Number(rpeIn.replace(',', '.')) : null
+  const restSec = parseRest(restIn)
+  const restClean = /^\d+\s*(s|sec)?$/i.test(restIn) || /^\d+\s*min$/i.test(restIn)
+  return {
+    sets: setsNum, sets_text: /^\d+$/.test(setsIn) ? null : setsIn || null,
+    rpe: rpeNum, rpe_text: rpeNum === null && rpeIn ? rpeIn : null,
+    rest_seconds: restSec, rest_text: restIn && !restClean ? restIn : null,
+  }
+}
+function cleanOverrides(o) {
+  const out = {}
+  for (const [w, v] of Object.entries(o || {})) {
+    const c = Object.fromEntries(Object.entries(v || {}).filter(([, x]) => x !== '' && x != null))
+    if (Object.keys(c).length) {
+      if (c.sets !== undefined) { const f = exerciseFields({ sets: c.sets, rpe: '', rest: '' }); c.sets = f.sets; if (f.sets_text) c.sets_text = f.sets_text }
+      if (c.rpe !== undefined) { const r = String(c.rpe).replace(/^RPE\s*/i, ''); if (/^\d+([.,]\d+)?$/.test(r)) c.rpe = Number(r.replace(',', '.')); else { delete c.rpe; c.rpe_text = r } }
+      out[w] = c
+    }
+  }
+  return out
+}
+
+// Étiquettes des semaines d'une phase : toucher une semaine → Décharge → Tests → normale
+function WeekLabels({ weeks, labels, onChange }) {
+  const cycle = ['', 'Décharge', 'Tests']
   return (
-    <div className="bg-dark-800 border border-contrast/5 rounded-lg p-2.5 space-y-2">
+    <div data-testid="week-labels">
+      <p className="text-gray-500 text-xs mb-1.5">Semaines de la phase (touche pour marquer décharge / tests)</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+        {Array.from({ length: Math.min(weeks, 52) }, (_, i) => i + 1).map(w => {
+          const l = labels[w] || ''
+          return (
+            <button key={w} type="button" onClick={() => { const n = cycle[(cycle.indexOf(l) + 1) % cycle.length]; const next = { ...labels }; if (n) next[w] = n; else delete next[w]; onChange(next) }}
+              style={{ minWidth: 38, padding: '5px 6px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, lineHeight: 1.15,
+                background: l === 'Décharge' ? 'rgba(52,199,89,0.18)' : l === 'Tests' ? 'rgba(255,149,0,0.2)' : l ? 'var(--accent-soft)' : 'var(--fill)', color: l === 'Décharge' ? 'var(--green-text)' : l === 'Tests' ? 'var(--orange-text)' : l ? 'var(--accent-text)' : 'var(--label2)' }}>
+              S{w}{l && <span style={{ display: 'block', fontSize: 9, fontWeight: 600 }}>{l.toLowerCase()}</span>}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ExerciseRow({ ex, ei, weeks = 1, weekLabels = {}, onUpdate, onRemove, canRemove }) {
+  const m = MEASURES[ex.measure] || MEASURES.reps
+  const [showWeeks, setShowWeeks] = useState(false)
+  const inp = 'bg-dark-700 border border-contrast/10 rounded-lg text-label text-xs focus:outline-none focus:border-brand-500 text-center'
+  const nOver = Object.keys(ex.week_overrides || {}).length
+  const setOver = (w, k, v) => onUpdate('week_overrides', { ...(ex.week_overrides || {}), [w]: { ...((ex.week_overrides || {})[w] || {}), [k]: v } })
+  const bt = BLOCK_TYPES[ex.block_type]
+  return (
+    <div className="bg-dark-800 border border-contrast/5 rounded-lg p-2.5 space-y-2" style={bt ? { borderLeft: `4px solid ${bt.color}` } : undefined}>
       <div className="flex items-center gap-2">
         {ex.images?.length ? <ExerciseThumb exercise={ex} size={28} /> : <Dumbbell size={12} className="text-gray-600 flex-shrink-0" />}
         <input value={ex.name} onChange={e => onUpdate('name', e.target.value)}
           placeholder={`Exercice ${ei + 1} (ex: Back Squat)`}
           className="flex-1 bg-transparent text-label text-sm placeholder-gray-600 focus:outline-none" />
         {canRemove && (
-          <button onClick={onRemove} className="text-gray-700 hover:text-red-400 transition-colors">
+          <button onClick={onRemove} aria-label="Retirer l’exercice" className="text-gray-700 hover:text-red-400 transition-colors">
             <Trash2 size={11} />
           </button>
         )}
       </div>
+      <div role="radiogroup" aria-label="Type de bloc" style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        {Object.values(BLOCK_TYPES).map(b => {
+          const on = ex.block_type === b.key
+          return (
+            <button key={b.key} type="button" role="radio" aria-checked={on} onClick={() => onUpdate('block_type', on ? '' : b.key)}
+              style={{ border: 'none', borderRadius: 12, padding: '4px 9px', fontSize: 11, fontWeight: 600, cursor: 'pointer', background: on ? b.color : 'var(--fill)', color: on ? 'white' : 'var(--label2)' }}>
+              {b.emoji} {b.label}
+            </button>
+          )
+        })}
+      </div>
       <div role="radiogroup" aria-label="Type de mesure" style={{ display: 'flex', background: 'var(--fill)', borderRadius: 9, padding: 2, gap: 2 }}>
         {Object.values(MEASURES).map(opt => (
-          <button key={opt.key} type="button" role="radio" aria-checked={m.key === opt.key}
-            onClick={() => { onUpdate('measure', opt.key); if (m.key !== opt.key) onUpdate('reps', opt.placeholder) }}
-            style={{ flex: 1, border: 'none', borderRadius: 7, padding: '5px 0', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+          <button key={opt.key} type="button" role="radio" aria-checked={m.key === opt.key} aria-label={opt.long}
+            onClick={() => { onUpdate('measure', opt.key); if (m.key !== opt.key && !ex.reps) onUpdate('reps', opt.placeholder) }}
+            style={{ flex: 1, border: 'none', borderRadius: 7, padding: '5px 0', fontSize: 11, fontWeight: 600, cursor: 'pointer',
               background: m.key === opt.key ? 'var(--segment)' : 'transparent', color: m.key === opt.key ? 'var(--label)' : 'var(--label2)',
               boxShadow: m.key === opt.key ? '0 1px 3px rgba(0,0,0,.12)' : 'none' }}>
-            {opt.key === 'reps' ? 'Répétitions' : opt.key === 'distance' ? 'Distance' : 'Durée'}
+            {opt.seg}
           </button>
         ))}
       </div>
       <div className="grid grid-cols-5 gap-1.5">
         <div className="text-center">
           <p className="text-gray-500 text-xs mb-1">Séries</p>
-          <input type="number" inputMode="numeric" min="1" value={ex.sets} onChange={e => onUpdate('sets', e.target.value)} className={`${inp} w-full py-1.5`} />
+          <input value={ex.sets} onChange={e => onUpdate('sets', e.target.value)} placeholder="3" aria-label="Séries (ex. 3 ou 2 → 3)" className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
-          <p className="text-gray-500 text-xs mb-1">{m.key === 'reps' ? 'Reps' : m.key === 'distance' ? 'Mètres' : 'Secondes'}</p>
-          <input value={ex.reps} onChange={e => onUpdate('reps', e.target.value)} placeholder={m.placeholder} inputMode={m.key === 'reps' ? 'text' : 'numeric'} aria-label={m.long} className={`${inp} w-full py-1.5`} />
+          <p className="text-gray-500 text-xs mb-1">{m.col}</p>
+          <input value={ex.reps} onChange={e => onUpdate('reps', e.target.value)} placeholder={m.placeholder} aria-label={m.long} className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-500 text-xs mb-1">Charge</p>
-          <input value={ex.load} onChange={e => onUpdate('load', e.target.value)} placeholder="80%" className={`${inp} w-full py-1.5`} />
+          <input value={ex.load} onChange={e => onUpdate('load', e.target.value)} placeholder="75 %" aria-label="Charge (kg, % du 1RM…)" className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-500 text-xs mb-1">RPE</p>
-          <input type="number" inputMode="decimal" min="1" max="10" step="0.5" value={ex.rpe} onChange={e => onUpdate('rpe', e.target.value)} placeholder="7" className={`${inp} w-full py-1.5`} />
+          <input value={ex.rpe} onChange={e => onUpdate('rpe', e.target.value)} placeholder="–" aria-label="RPE (ex. 8 ou 7-8)" className={`${inp} w-full py-1.5`} />
         </div>
         <div className="text-center">
           <p className="text-gray-500 text-xs mb-1 flex items-center justify-center gap-0.5"><Clock size={9} />Récup</p>
-          <input type="number" inputMode="numeric" min="0" step="15" value={ex.rest_seconds} onChange={e => onUpdate('rest_seconds', e.target.value)} className={`${inp} w-full py-1.5`} />
+          <input value={ex.rest} onChange={e => onUpdate('rest', e.target.value)} placeholder="2-3 min" aria-label="Récupération (ex. 90 s, 2-3 min)" className={`${inp} w-full py-1.5`} />
         </div>
       </div>
-      <input value={ex.notes} onChange={e => onUpdate('notes', e.target.value)}
-        placeholder="Notes (ex: tempo 30X1, grip serré...)"
-        className="w-full bg-dark-700 border border-contrast/8 rounded-lg px-2.5 py-1.5 text-label placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
+      <div className="flex gap-1.5">
+        <input value={ex.tempo || ''} onChange={e => onUpdate('tempo', e.target.value)} placeholder="Tempo (3-0-1-0)" aria-label="Tempo"
+          className="w-28 bg-dark-700 border border-contrast/8 rounded-lg px-2.5 py-1.5 text-label placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
+        <input value={ex.notes} onChange={e => onUpdate('notes', e.target.value)}
+          placeholder="Consignes (grip serré, bras de lancer…)"
+          className="flex-1 min-w-0 bg-dark-700 border border-contrast/8 rounded-lg px-2.5 py-1.5 text-label placeholder-gray-600 text-xs focus:outline-none focus:border-brand-500" />
+      </div>
+      <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
+        {weeks > 1 && (
+          <button type="button" data-testid="week-progression-btn" onClick={() => setShowWeeks(v => !v)}
+            style={{ border: 'none', borderRadius: 10, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: nOver ? 'var(--accent-soft)' : 'var(--fill)', color: nOver ? 'var(--accent-text)' : 'var(--label2)' }}>
+            📈 Progression par semaine{nOver ? ` (${nOver})` : ''}
+          </button>
+        )}
+        <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--label2)', cursor: 'pointer' }}>
+          <input type="checkbox" checked={!!ex.track_velocity} onChange={e => onUpdate('track_velocity', e.target.checked)} /> Vitesse de barre (m/s)
+        </label>
+      </div>
+      {showWeeks && weeks > 1 && (
+        <div data-testid="week-progression" style={{ background: 'var(--fill)', borderRadius: 10, padding: 8 }}>
+          <p style={{ margin: '0 0 6px', fontSize: 11, color: 'var(--label2)' }}>Laisse vide pour garder la valeur de base. Ex. S1 : 4 × 10 à 65 % · S4 : 3 × 6 à 65 %.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '44px repeat(4, minmax(0,1fr))', gap: 4, fontSize: 11, color: 'var(--label2)', fontWeight: 600, textAlign: 'center' }}>
+            <span>Sem.</span><span>Séries</span><span>{m.col}</span><span>Charge</span><span>RPE</span>
+          </div>
+          {Array.from({ length: Math.min(weeks, 52) }, (_, i) => i + 1).map(w => {
+            const o = (ex.week_overrides || {})[w] || {}
+            const lab = weekLabels[w]
+            return (
+              <div key={w} style={{ display: 'grid', gridTemplateColumns: '44px repeat(4, minmax(0,1fr))', gap: 4, marginTop: 4, alignItems: 'center' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: lab ? 'var(--green-text)' : 'var(--label)', textAlign: 'center', lineHeight: 1.1 }}>S{w}{lab ? <span style={{ display: 'block', fontSize: 9 }}>{lab.toLowerCase()}</span> : null}</span>
+                {[['sets', ex.sets], ['reps', ex.reps], ['load', ex.load], ['rpe', ex.rpe]].map(([k, base]) => (
+                  <input key={k} value={o[k] ?? o[k + '_text'] ?? ''} onChange={e => setOver(w, k, e.target.value)} placeholder={String(base ?? '')} aria-label={`Semaine ${w} ${k}`}
+                    className={`${inp} w-full py-1`} />
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <Link size={10} className="text-gray-600 flex-shrink-0" />
         <input value={ex.video_url} onChange={e => onUpdate('video_url', e.target.value)}

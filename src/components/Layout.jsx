@@ -137,8 +137,8 @@ function TabItem({ item, active, onClick }) {
   )
 }
 
-export function Card({ children, className = '' }) {
-  return <div className={`bg-dark-800 rounded-2xl ${className}`}>{children}</div>
+export function Card({ children, className = '', style }) {
+  return <div className={`bg-dark-800 rounded-2xl ${className}`} style={style}>{children}</div>
 }
 
 export function Badge({ color = 'gray', children }) {

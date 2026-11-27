@@ -8,7 +8,9 @@ import { ExerciseMedia, ExerciseThumb, ExerciseDetailModal } from '../../compone
 import FocusMode from '../../components/FocusMode'
 import { celebrate, haptic } from '../../lib/fx'
 import { Maximize2 } from 'lucide-react'
-import { MEASURES, measureOf, formatTarget, setHint, fillFromHints, emptySet } from '../../lib/measure'
+import { MEASURES, BLOCK_TYPES, measureOf, formatTarget, setHint, fillFromHints, emptySet, rpeLabel, restLabel } from '../../lib/measure'
+import { phaseAt, applyWeek } from '../../lib/periodization'
+import { buildMaxes, maxFor, percentToKg } from '../../lib/strength'
 import { cacheGet, cacheSet, isNetworkError, isOffline, queueSession, updateQueued } from '../../lib/offline'
 
 const inputStyle = {
@@ -16,6 +18,7 @@ const inputStyle = {
 }
 // Série | valeur | charge | RPE | ✓ | supprimer : mêmes colonnes pour l'en-tête et les lignes
 const setGrid = { display: 'grid', gridTemplateColumns: '30px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 34px 22px', gap: 6, alignItems: 'center' }
+const setGridVbt = { ...setGrid, gridTemplateColumns: '26px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 32px 20px', gap: 4 }
 
 export default function SessionLogger() {
   const { sessionId } = useParams()
@@ -44,6 +47,12 @@ export default function SessionLogger() {
   const [offlineMode, setOfflineMode] = useState(false)
   const [localId, setLocalId] = useState(null)
   const [savedOffline, setSavedOffline] = useState(false)
+  const [weekInfo, setWeekInfo] = useState(null)
+  const [maxes, setMaxes] = useState({})
+  const [startedAt] = useState(() => Date.now())
+  const [duration, setDuration] = useState('')
+  const [throws, setThrows] = useState('')
+  const [gps, setGps] = useState({ distance_m: '', hsr_m: '', vmax_kmh: '' })
 
   useEffect(() => { if (profile?.id) loadSession() }, [sessionId, profile?.id])
 
@@ -62,6 +71,17 @@ export default function SessionLogger() {
       .single()
     if (sessErr && isNetworkError(sessErr)) { data = cacheGet('session:' + sessionId); setOfflineMode(true) }
     else if (data) cacheSet('session:' + sessionId, data)
+    // Semaine du programme : la progression prévue pour cette semaine remplace les valeurs de base
+    let wi = null
+    try {
+      const asg = isOffline() ? cacheGet('assign:' + profile.id) : (await supabase.from('program_assignments')
+        .select('start_date, assigned_at, program:programs(program_blocks(id, name, order_index, duration_weeks, week_labels))').eq('client_id', profile.id).maybeSingle()).data
+      if (asg && !isOffline()) cacheSet('assign:' + profile.id, asg)
+      const ph = asg && phaseAt(asg.program?.program_blocks, asg.start_date || asg.assigned_at)
+      if (ph?.block && data?.block_id === ph.blockId) wi = ph
+    } catch { /* hors ligne */ }
+    setWeekInfo(wi)
+    if (data?.program_exercises && wi) data = { ...data, program_exercises: data.program_exercises.map(ex => applyWeek(ex, wi.week)) }
     setSess(data)
 
     if (data?.program_exercises) {
@@ -99,8 +119,10 @@ export default function SessionLogger() {
       }
       setLogs(initial)
       // Fetch historical max per exercise for PR detection
+      if (isOffline()) setMaxes(cacheGet('maxes:' + profile.id) || {})
       if (data.program_exercises?.length > 0 && !isOffline()) {
         const names = data.program_exercises.map(e => e.name)
+        const { data: tests } = await supabase.from('performance_tests').select('test_key, value, reps, tested_at').eq('client_id', profile.id).like('test_key', 'rm:%')
         const { data: pastComps } = await supabase
           .from('session_completions').select('id').eq('client_id', profile.id)
         const pastIds = (pastComps || []).map(s => s.id)
@@ -108,6 +130,8 @@ export default function SessionLogger() {
           const { data: pastLogs } = await supabase
             .from('exercise_logs').select('exercise_name, set_data, exercise:program_exercises(name)')
             .in('completion_id', pastIds)
+          const mx = buildMaxes(tests, pastLogs)
+          setMaxes(mx); cacheSet('maxes:' + profile.id, mx)
           const maxMap = {}
           for (const log of pastLogs || []) {
             const name = log.exercise?.name || log.exercise_name
@@ -118,6 +142,8 @@ export default function SessionLogger() {
             if (!maxMap[name] || m > maxMap[name]) maxMap[name] = m
           }
           setHistoricalPRs(maxMap)
+        } else {
+          const mx = buildMaxes(tests, []); setMaxes(mx); cacheSet('maxes:' + profile.id, mx)
         }
       }
     }
@@ -156,7 +182,10 @@ export default function SessionLogger() {
       .filter(ex => logs[ex.id]?.sets?.length > 0)
       .map(ex => ({ ...(cid ? { completion_id: cid } : {}), exercise_id: ex.id, library_exercise_id: ex.exercise_id || null, exercise_name: ex.name, set_data: logs[ex.id].sets.map(({ _prev, ...st }) => ({ ...st, measure: ex.measure || 'reps' })), notes: logs[ex.id].notes || '' }))
 
-    const completion = { program_session_id: sessionId, client_id: profile.id, notes: sessionNotes }
+    const mins = Math.max(1, Math.min(300, Math.round((Date.now() - startedAt) / 60000)))
+    setDuration(String(mins))
+    const completion = { program_session_id: sessionId, client_id: profile.id, notes: sessionNotes, duration_minutes: mins,
+      throws: throws ? Number(throws) : null, phase_week: weekInfo?.globalWeek || null }
     let comp = null, compErr = null
     if (!isOffline()) ({ data: comp, error: compErr } = await supabase.from('session_completions').insert(completion).select().single())
     let logsToInsert
@@ -195,13 +224,12 @@ export default function SessionLogger() {
   }
 
   async function submitRPE() {
-    if (localId) updateQueued(localId, { rating: { rpe_session: rpeValue, wellbeing_note: wellbeingNote, session_rating: { feeling: rpeFeeling } } })
+    const g = Object.fromEntries(Object.entries(gps).filter(([, v]) => v !== '').map(([k, v]) => [k, Number(String(v).replace(',', '.'))]))
+    const rating = { rpe_session: rpeValue, wellbeing_note: wellbeingNote, session_rating: { feeling: rpeFeeling },
+      duration_minutes: Number(duration) || null, ...(Object.keys(g).length ? { gps: g } : {}) }
+    if (localId) updateQueued(localId, { rating })
     else if (completionId) {
-      await supabase.from('session_completions').update({
-        rpe_session: rpeValue,
-        wellbeing_note: wellbeingNote,
-        session_rating: { feeling: rpeFeeling }
-      }).eq('id', completionId)
+      await supabase.from('session_completions').update(rating).eq('id', completionId)
     }
     navigate('/client/program', { replace: true })
   }
@@ -228,6 +256,11 @@ export default function SessionLogger() {
     <PageLayout title={sess.name} back="/client/program">
       <div className="p-4 pb-10 space-y-4">
 
+        {weekInfo && (
+          <div data-testid="week-banner" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 14, background: 'var(--accent-soft)', color: 'var(--accent-text)', fontSize: 14, fontWeight: 600 }}>
+            📅 {weekInfo.block.name} · semaine {weekInfo.week}/{weekInfo.weeks}{weekInfo.label ? ` · ${weekInfo.label}` : ''}
+          </div>
+        )}
         {offlineMode && (
           <div data-testid="offline-banner" style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '10px 14px', borderRadius: 14, background: 'rgba(255,149,0,0.14)', color: 'var(--orange-text)', fontSize: 14 }}>
             📶 Pas de réseau : tu peux faire ta séance, elle sera envoyée à ton coach dès que tu retrouves du réseau.
@@ -270,8 +303,14 @@ export default function SessionLogger() {
           const exLog = logs[ex.id] || { sets: [], notes: '' }
           const isOpen = openExercises[ex.id]
           const embedUrl = getYoutubeEmbedUrl(ex.video_url)
+          const bt = BLOCK_TYPES[ex.block_type]
+          const mx = maxFor(maxes, ex)
+          const kg = percentToKg(ex.load, mx?.value)
+          const kgLow = (kg.match(/[\d,]+/) || [''])[0].replace(',', '.')
+          const vbt = !!ex.track_velocity
+          const grid = vbt ? setGridVbt : setGrid
           return (
-            <Card key={ex.id} className="overflow-hidden">
+            <Card key={ex.id} className="overflow-hidden" style={bt ? { borderLeft: `4px solid ${bt.color}` } : undefined}>
               <div role="button" tabIndex={0} onClick={() => setOpenExercises(oe => ({ ...oe, [ex.id]: !oe[ex.id] }))}
                 className="w-full p-3 text-left cursor-pointer" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
@@ -280,16 +319,19 @@ export default function SessionLogger() {
                     <Dumbbell size={15} className="text-brand-400" />
                   </div>)}
                   <div style={{ flex: 1, minWidth: 0 }}>
+                    {bt && <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: bt.color, textTransform: 'uppercase', letterSpacing: '.04em' }}>{bt.emoji} {bt.label}</p>}
                     <p className="text-label font-semibold" style={{ fontSize: 15, lineHeight: 1.25, margin: 0 }}>{ex.name}</p>
                     <p className="text-gray-500 text-xs" style={{ margin: '2px 0 0' }}>
                       {formatTarget(ex)}
                       {ex.load ? ` @ ${ex.load}` : ''}
-                      {ex.rpe ? ` · RPE ${ex.rpe}` : ''}
+                      {rpeLabel(ex) ? ` · RPE ${rpeLabel(ex)}` : ''}
                     </p>
+                    {kg && <p data-testid="kg-target" style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 700, color: 'var(--accent-text)' }}>≈ {kg} <span style={{ fontWeight: 500, color: 'var(--label2)', fontSize: 11 }}>(1RM {mx.value} kg · {mx.source})</span></p>}
+                    {ex.week_note && <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--orange-text)' }}>{ex.week_note}</p>}
                   </div>
                   {isOpen ? <ChevronUp size={16} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />}
                 </div>
-                {((ex.video_url || ex.exercise) || ex.rest_seconds > 0) && (
+                {((ex.video_url || ex.exercise) || ex.rest_seconds > 0 || ex.tempo || ex.rest_text) && (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {(ex.video_url || ex.exercise) && (
                       <span role="button" tabIndex={0} onClick={e => { e.stopPropagation(); setDemo({ ...(ex.exercise || {}), name: ex.exercise?.name || ex.name, video_url: ex.video_url || ex.exercise?.video_url }) }}
@@ -297,12 +339,13 @@ export default function SessionLogger() {
                         <Info size={11} />Démo
                       </span>
                     )}
-                    {ex.rest_seconds > 0 && (
-                      <button onClick={e => { e.stopPropagation(); startTimer(ex.rest_seconds) }}
+                    {(ex.rest_seconds > 0 || ex.rest_text) && (
+                      <button onClick={e => { e.stopPropagation(); if (ex.rest_seconds > 0) startTimer(ex.rest_seconds) }}
                         className="flex items-center gap-1 text-gray-500 text-xs px-2.5 py-1 rounded-full border border-contrast/10">
-                        <Clock size={11} />Récup {ex.rest_seconds}s
+                        <Clock size={11} />Récup {restLabel(ex)}
                       </button>
                     )}
+                    {ex.tempo && <span className="flex items-center gap-1 text-gray-500 text-xs px-2.5 py-1 rounded-full border border-contrast/10">⏱ Tempo {ex.tempo}</span>}
                   </div>
                 )}
               </div>
@@ -313,23 +356,23 @@ export default function SessionLogger() {
                   {(embedUrl || ex.exercise?.images?.length > 0) && (
                     <ExerciseMedia exercise={{ ...(ex.exercise || {}), name: ex.name, video_url: ex.video_url || ex.exercise?.video_url }} height={180} />
                   )}
-                  <div style={{ ...setGrid, padding: '0 2px' }}>
-                    {['Série', measureOf(ex).key === 'reps' ? 'Reps' : measureOf(ex).key === 'distance' ? 'Mètres' : 'Sec.', 'Kg', 'RPE', '', ''].map((h, hi) => (
+                  <div style={{ ...grid, padding: '0 2px' }}>
+                    {['Série', measureOf(ex).col, 'Kg', 'RPE', ...(vbt ? ['m/s'] : []), '', ''].map((h, hi) => (
                       <p key={hi} className="text-gray-500 text-xs text-center" style={{ margin: 0 }}>{h}</p>
                     ))}
                   </div>
                   {exLog.sets.map((set, si) => (
-                    <div key={si} style={setGrid}>
+                    <div key={si} style={grid}>
                       <div className="h-8 bg-dark-700 rounded-md flex items-center justify-center">
                         <span className="text-gray-500 text-xs">{si + 1}</span>
                       </div>
-                      {['reps', 'load', 'rpe'].map(field => (
+                      {['reps', 'load', 'rpe', ...(vbt ? ['velocity'] : [])].map(field => (
                         <input key={field}
-                          value={set[field]}
+                          value={set[field] ?? ''}
                           onChange={e => updateSet(ex.id, si, field, e.target.value)}
-                          placeholder={setHint(ex, set, field) || '—'}
+                          placeholder={setHint(ex, set, field) || (field === 'load' && kgLow) || '—'}
                           inputMode="decimal"
-                          aria-label={(field === 'reps' ? measureOf(ex).long : field === 'load' ? 'Charge' : 'RPE') + ' série ' + (si + 1)}
+                          aria-label={(field === 'reps' ? measureOf(ex).long : field === 'load' ? 'Charge' : field === 'velocity' ? 'Vitesse (m/s)' : 'RPE') + ' série ' + (si + 1)}
                           style={inputStyle}
                           className="hint-input min-w-0 w-full bg-dark-700 border border-contrast/10 rounded-lg px-1 py-2 text-label text-sm text-center focus:outline-none focus:border-brand-500"
                         />
@@ -359,6 +402,17 @@ export default function SessionLogger() {
           )
         })}
 
+        {exercises.some(e => /lancer|passe/i.test(e.name) && !/med-?ball/i.test(e.name)) && (
+          <Card className="p-3">
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--label)', fontWeight: 600 }}>
+              🏈 Lancers effectués
+              <input data-testid="throws-input" value={throws} onChange={e => setThrows(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric" placeholder="0"
+                style={{ ...inputStyle, width: 90, marginLeft: 'auto', textAlign: 'center', background: 'var(--fill)', border: 'none', borderRadius: 10, padding: '8px 10px', fontSize: 16 }} />
+            </label>
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--label2)' }}>Volume de lancers compté à chaque séance (suivi par ton coach).</p>
+          </Card>
+        )}
+
         <Card className="p-3">
           <p className="text-gray-400 text-xs mb-2 font-medium">Notes de séance</p>
           <textarea value={sessionNotes} onChange={e => setSessionNotes(e.target.value)}
@@ -381,7 +435,7 @@ export default function SessionLogger() {
         
       {showRPEModal && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:1000, display:'flex', alignItems:'flex-end', justifyContent:'center'}}>
-          <div style={{background:'var(--card)', borderRadius:'24px 24px 0 0', padding:'28px 20px 40px', width:'100%', maxWidth:480}}>
+          <div style={{background:'var(--card)', borderRadius:'24px 24px 0 0', padding:'28px 20px 40px', width:'100%', maxWidth:480, maxHeight:'92vh', overflowY:'auto'}}>
             <h3 style={{margin:'0 0 6px', fontSize:20, fontWeight:700, textAlign:'center', color:'var(--label)'}}>Séance terminée ! 🎉</h3>
             {savedOffline && <p data-testid="saved-offline" style={{margin:'0 0 10px', fontSize:13, textAlign:'center', color:'var(--orange-text)'}}>📶 Enregistrée sur ton téléphone. Elle partira toute seule au retour du réseau.</p>}
             <p style={{margin:'0 0 16px', fontSize:14, color:'var(--label2)', textAlign:'center'}}>Comment tu te sens ?</p>
@@ -409,6 +463,26 @@ export default function SessionLogger() {
               ))}
             </div>
 
+            <div style={{display:'flex', gap:10, marginBottom:14}}>
+              <label style={{flex:1, fontSize:13, color:'var(--label2)'}}>Durée (min)
+                <input data-testid="duration-input" value={duration} onChange={e => setDuration(e.target.value.replace(/[^\d]/g, ''))} inputMode="numeric"
+                  style={{display:'block', width:'100%', boxSizing:'border-box', marginTop:4, background:'var(--fill)', border:'none', borderRadius:10, padding:'9px 12px', fontSize:16, color:'var(--label)'}} />
+              </label>
+              <div style={{flex:1, fontSize:13, color:'var(--label2)'}}>Charge de séance
+                <p data-testid="session-load" style={{margin:'4px 0 0', padding:'9px 0', fontSize:16, fontWeight:700, color:'var(--label)'}}>{(Number(duration) || 0) * rpeValue} UA</p>
+              </div>
+            </div>
+            <details style={{marginBottom:14}}>
+              <summary style={{cursor:'pointer', fontSize:13, color:'var(--accent-text)', fontWeight:600}}>Données GPS (optionnel)</summary>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3, minmax(0,1fr))', gap:8, marginTop:8}}>
+                {[['distance_m', 'Distance (m)'], ['hsr_m', 'Haute vitesse (m)'], ['vmax_kmh', 'V. max (km/h)']].map(([k, l]) => (
+                  <label key={k} style={{fontSize:11, color:'var(--label2)'}}>{l}
+                    <input value={gps[k]} onChange={e => setGps(g => ({ ...g, [k]: e.target.value }))} inputMode="decimal" aria-label={l}
+                      style={{display:'block', width:'100%', boxSizing:'border-box', marginTop:3, background:'var(--fill)', border:'none', borderRadius:8, padding:'8px', fontSize:15, color:'var(--label)'}} />
+                  </label>
+                ))}
+              </div>
+            </details>
             <p style={{margin:'0 0 8px', fontSize:13, color:'var(--label1b)', fontWeight:600}}>Difficulté perçue (RPE) : <span style={{color:'var(--accent-text)'}}>{rpeValue}/10</span></p>
             <input type="range" min={1} max={10} value={rpeValue} onChange={e => setRpeValue(Number(e.target.value))}
               style={{width:'100%', marginBottom:20, accentColor:'#6366f1'}}/>

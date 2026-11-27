@@ -8,11 +8,13 @@ export async function loadClientProgram(clientId, select = '*') {
   const key = 'program:' + clientId + ':' + select.replace(/\s+/g, '').length
   if (isOffline()) return cacheGet(key)
   const { data, error } = await supabase.from('program_assignments')
-    .select(`program_id, assigned_at, program:programs(${select})`)
+    .select(`program_id, assigned_at, start_date, program:programs(${select})`)
     .eq('client_id', clientId).maybeSingle()
   if (error && isNetworkError(error)) return cacheGet(key) // hors ligne : dernier programme connu
-  if (!error) cacheSet(key, data?.program || null)
-  return data?.program || null
+  // date de début du programme pour ce client (sert à calculer la phase et la semaine en cours)
+  const prog = data?.program ? { ...data.program, _start: data.start_date || data.assigned_at?.slice(0, 10) } : null
+  if (!error) cacheSet(key, prog)
+  return prog
 }
 
 // Clients assignés à un programme
@@ -60,7 +62,7 @@ export async function copyProgram(programId, coachId, name) {
   const { data: blocks } = await supabase.from('program_blocks').select('*').eq('program_id', programId).order('order_index')
   for (const b of blocks || []) {
     const { data: nb, error: be } = await supabase.from('program_blocks').insert({
-      program_id: newProg.id, name: b.name, description: b.description, duration_weeks: b.duration_weeks, order_index: b.order_index,
+      program_id: newProg.id, name: b.name, description: b.description, duration_weeks: b.duration_weeks, week_labels: b.week_labels || {}, order_index: b.order_index,
     }).select().single()
     if (be) throw be
     blockMap[b.id] = nb.id
@@ -75,10 +77,8 @@ export async function copyProgram(programId, coachId, name) {
     sessionMap[sess.id] = ns.id
     const exs = sess.program_exercises || []
     if (exs.length) {
-      const { error: ee } = await supabase.from('program_exercises').insert(exs.map(ex => ({
-        session_id: ns.id, exercise_id: ex.exercise_id, name: ex.name, sets: ex.sets, reps: ex.reps, measure: ex.measure || 'reps', load: ex.load,
-        rpe: ex.rpe, rest_seconds: ex.rest_seconds, notes: ex.notes, video_url: ex.video_url, order_index: ex.order_index,
-      })))
+      // toutes les colonnes de l'exercice (fourchettes, tempo, progression par semaine…) sauf ses identifiants
+      const { error: ee } = await supabase.from('program_exercises').insert(exs.map(({ id, session_id, created_at, ...ex }) => ({ ...ex, session_id: ns.id })))
       if (ee) throw ee
     }
   }

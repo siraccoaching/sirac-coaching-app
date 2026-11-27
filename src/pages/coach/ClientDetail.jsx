@@ -10,6 +10,9 @@ import { formatSetValue } from '../../lib/measure'
 import { tone } from '../../lib/theme'
 import { assignClient, personalizeForClient } from '../../lib/assignments'
 import ProgramPlanner from '../../components/ProgramPlanner'
+import TestsPanel from '../../components/TestsPanel'
+import LoadPanel from '../../components/LoadPanel'
+import SeasonPanel from '../../components/SeasonPanel'
 
 function ProgressChart({ data, label }) {
   if (!data || data.length < 2) {
@@ -93,7 +96,7 @@ export default function ClientDetail() {
     if (coachId) {
       const { data: progs } = await supabase
         .from('programs')
-        .select('id, name, type, program_assignments(client_id), program_sessions!program_sessions_program_id_fkey(id, name, order_index, block_id, program_blocks(order_index))')
+        .select('id, name, type, program_assignments(client_id), program_blocks(id, name, order_index, duration_weeks, week_labels), program_sessions!program_sessions_program_id_fkey(id, name, order_index, block_id, program_blocks(order_index))')
         .eq('coach_id', coachId)
       setPrograms(progs || [])
       const cp = (progs || []).find(p => (p.program_assignments || []).some(a => a.client_id === id))
@@ -271,7 +274,7 @@ export default function ClientDetail() {
       </div>
 
       <div style={{display:'flex', margin:'0 16px 12px', background:'var(--card)', borderRadius:10, padding:4, overflowX:'auto', gap:2}}>
-        {[['history','📋 Historique'], ['progress','📈 Progression'], ['measurements','📏 Mensurations'], ['calendar','📅 Calendrier'], ['checkins','📊 Bilans'], ['nutrition','🍎 Nutrition']].map(([key, label]) => (
+        {[['history','📋 Historique'], ['progress','📈 Progression'], ['measurements','📏 Mensurations'], ['calendar','📅 Calendrier'], ['tests','🏁 Tests'], ['load','⚡ Charge'], ['checkins','📊 Bilans'], ['nutrition','🍎 Nutrition']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} style={{
             flexShrink:0, padding:'8px 10px', border:'none', borderRadius:8, cursor:'pointer', fontSize:11, fontWeight:600, whiteSpace:'nowrap',
             background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? 'white' : 'var(--label2)'
@@ -421,6 +424,7 @@ export default function ClientDetail() {
       {/* ── CALENDRIER ── */}
       {tab === 'calendar' && (
         <div style={{padding:'0 16px'}}>
+          <SeasonPanel clientId={id} program={currentProgram} />
           {currentProgram && (
             <div style={{marginBottom:12}}>
               <ProgramPlanner readOnly clientId={id} sessions={[...(currentProgram.program_sessions || [])].sort((a, b) => ((a.program_blocks?.order_index ?? 0) - (b.program_blocks?.order_index ?? 0)) || (a.order_index - b.order_index))} />
@@ -480,6 +484,8 @@ export default function ClientDetail() {
       )}
 
       {tab === 'nutrition' && client && <ClientNutritionTab client={client} />}
+      {tab === 'tests' && <div style={{padding:'0 16px'}}><TestsPanel clientId={id} /></div>}
+      {tab === 'load' && <div style={{padding:'0 16px'}}><LoadPanel clientId={id} /></div>}
 
       {/* ── BILANS HEBDO ── */}
       {tab === 'checkins' && (

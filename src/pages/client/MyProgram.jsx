@@ -5,10 +5,11 @@ import { useAuth } from '../../lib/hooks'
 import { PageLayout, Card, Badge } from '../../components/Layout'
 import { Dumbbell, ChevronDown, ChevronUp, Clock, Play, CheckCircle, Layers } from 'lucide-react'
 import { ExerciseThumb, ExerciseDetailModal } from '../../components/ExerciseDemo'
-import { formatTarget } from '../../lib/measure'
+import { formatTarget, rpeLabel, restLabel } from '../../lib/measure'
 import { loadClientProgram } from '../../lib/assignments'
 import ProgramPlanner from '../../components/ProgramPlanner'
 import { cacheGet, cacheSet, isOffline } from '../../lib/offline'
+import { phaseAt, applyWeek } from '../../lib/periodization'
 
 const EX_SELECT = 'program_exercises(*, exercise:exercises(*))'
 
@@ -35,6 +36,9 @@ export default function MyProgram() {
       `)
 
     setProg(data || null)
+    // ouvre directement la phase en cours
+    const cur = data && phaseAt(data.program_blocks, data._start)
+    if (cur?.block) setOpenBlocks({ [[...data.program_blocks].sort((a, b) => a.order_index - b.order_index).findIndex(b => b.id === cur.blockId)]: true })
 
     if (data) {
       const allSessionIds = (data.program_sessions || []).map(s => s.id)
@@ -54,7 +58,10 @@ export default function MyProgram() {
     setLoading(false)
   }
 
-  const doneIds = new Set(completions.map(c => c.program_session_id))
+  // Programme périodisé : une séance compte comme faite pour la semaine en cours seulement
+  const phNow = prog?.type === 'block' ? phaseAt(prog.program_blocks, prog._start) : null
+  const weekStart = phNow?.block ? new Date(new Date(prog._start + 'T00:00').getTime() + (phNow.globalWeek - 1) * 7 * 86400000) : null
+  const doneIds = new Set(completions.filter(c => !weekStart || new Date(c.completed_at) >= weekStart).map(c => c.program_session_id))
 
   if (loading) return (
     <PageLayout title="Mon programme" back="/client">
@@ -81,6 +88,7 @@ export default function MyProgram() {
   const orderedSessions = isBlock
     ? blocks.flatMap(b => (b.program_sessions || []).sort((a, c) => a.order_index - c.order_index))
     : simpleSessions
+  const ph = isBlock ? phaseAt(blocks, prog._start) : null
   const totalSessions = (prog.program_sessions || []).length
   const doneSessions = (prog.program_sessions || []).filter(s => doneIds.has(s.id)).length
 
@@ -88,7 +96,21 @@ export default function MyProgram() {
     <PageLayout title={prog.name} back="/client">
       <div className="p-4 pb-10 space-y-4">
 
-        <ProgramPlanner clientId={profile.id} sessions={orderedSessions} />
+        {ph?.block && (
+          <div data-testid="current-phase" className="ios-group" style={{ padding: 14 }}>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--accent-text)', textTransform: 'uppercase', letterSpacing: '.05em' }}>Cette semaine</p>
+            <p style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 700, color: 'var(--label)' }}>{ph.block.name}</p>
+            <p style={{ margin: '2px 0 8px', fontSize: 14, color: 'var(--label2)' }}>Semaine {ph.week} sur {ph.weeks}{ph.label ? ` · ${ph.label}` : ''} · semaine {ph.globalWeek} du programme</p>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {Array.from({ length: ph.weeks }, (_, i) => (
+                <span key={i} style={{ flex: 1, height: 6, borderRadius: 3, background: i + 1 < ph.week ? 'var(--accent)' : i + 1 === ph.week ? '#bf5af2' : (ph.block.week_labels?.[i + 1] ? 'rgba(52,199,89,0.45)' : 'var(--fill)') }} />
+              ))}
+            </div>
+          </div>
+        )}
+        {ph?.before && <div className="ios-group" style={{ padding: 14, fontSize: 14, color: 'var(--label2)' }}>📅 Ton programme commence dans {ph.startsIn} jour{ph.startsIn > 1 ? 's' : ''}.</div>}
+
+        <ProgramPlanner clientId={profile.id} sessions={orderedSessions} planSessions={ph?.blockId ? orderedSessions.filter(x => x.block_id === ph.blockId) : null} />
 
         <Card className="p-4">
           <div className="flex items-center justify-between mb-2">
@@ -125,7 +147,7 @@ export default function MyProgram() {
                     </details>
                   )}
                   {blockSessions.map(sess => (
-                    <SessionCard key={sess.id} sess={sess} done={doneIds.has(sess.id)}
+                    <SessionCard key={sess.id} sess={sess} done={doneIds.has(sess.id)} week={ph?.blockId === block.id ? ph.week : null}
                       open={openSessions[sess.id]}
                       onToggle={() => setOpenSessions(os => ({ ...os, [sess.id]: !os[sess.id] }))}
                       onStart={() => navigate(`/client/session-log/${sess.id}`)}
@@ -158,8 +180,8 @@ export default function MyProgram() {
   )
 }
 
-function SessionCard({ sess, done, open, onToggle, onStart, onDemo }) {
-  const exercises = (sess.program_exercises || []).sort((a,b) => a.order_index - b.order_index)
+function SessionCard({ sess, done, open, onToggle, onStart, onDemo, week }) {
+  const exercises = (sess.program_exercises || []).sort((a,b) => a.order_index - b.order_index).map(ex => applyWeek(ex, week))
   return (
     <div className="border border-contrast/8 rounded-xl overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2.5 bg-dark-800">
@@ -193,8 +215,9 @@ function SessionCard({ sess, done, open, onToggle, onStart, onDemo }) {
                 <div className="flex flex-wrap gap-2 mt-0.5">
                   <span className="text-gray-500 text-xs">{formatTarget(ex)}</span>
                   {ex.load && <span className="text-gray-500 text-xs">@ {ex.load}</span>}
-                  {ex.rpe && <span className="text-gray-500 text-xs">RPE {ex.rpe}</span>}
-                  {ex.rest_seconds > 0 && <span className="text-gray-500 text-xs flex items-center gap-0.5"><Clock size={9} />{ex.rest_seconds}s</span>}
+                  {rpeLabel(ex) && <span className="text-gray-500 text-xs">RPE {rpeLabel(ex)}</span>}
+                  {restLabel(ex) && <span className="text-gray-500 text-xs flex items-center gap-0.5"><Clock size={9} />{restLabel(ex)}</span>}
+                  {ex.tempo && <span className="text-gray-500 text-xs">⏱ {ex.tempo}</span>}
                 </div>
                 {ex.notes && <p className="text-gray-600 text-xs italic mt-0.5">{ex.notes}</p>}
               </div>

@@ -1,8 +1,37 @@
-// Type de mesure d'un exercice : répétitions, distance (mètres) ou durée (secondes).
+// Type de mesure d'un exercice : répétitions, distance (mètres ou yards) ou durée (secondes ou minutes).
 export const MEASURES = {
-  reps: { key: 'reps', label: 'Reps', long: 'Répétitions', unit: '', step: 1, placeholder: '8' },
-  distance: { key: 'distance', label: 'Distance', long: 'Distance (m)', unit: ' m', step: 50, placeholder: '400' },
-  time: { key: 'time', label: 'Durée', long: 'Durée (s)', unit: ' s', step: 5, placeholder: '30' },
+  reps: { key: 'reps', label: 'Reps', seg: 'Reps', col: 'Reps', long: 'Répétitions', unit: '', step: 1, placeholder: '8' },
+  distance: { key: 'distance', label: 'Distance', seg: 'Mètres', col: 'Mètres', long: 'Distance (m)', unit: ' m', step: 50, placeholder: '400' },
+  yards: { key: 'yards', label: 'Distance', seg: 'Yards', col: 'Yards', long: 'Distance (yd)', unit: ' yd', step: 5, placeholder: '40' },
+  time: { key: 'time', label: 'Durée', seg: 'Secondes', col: 'Sec.', long: 'Durée (s)', unit: ' s', step: 5, placeholder: '30' },
+  minutes: { key: 'minutes', label: 'Durée', seg: 'Minutes', col: 'Min', long: 'Durée (min)', unit: ' min', step: 1, placeholder: '20' },
+}
+
+// Type de bloc (couleur et libellé) : terrain, salle, prévention, conditionnement
+export const BLOCK_TYPES = {
+  terrain: { key: 'terrain', label: 'Terrain', emoji: '🏃', color: '#ff9500' },
+  salle: { key: 'salle', label: 'Salle', emoji: '🏋️', color: '#007aff' },
+  prevention: { key: 'prevention', label: 'Prévention', emoji: '🛡️', color: '#34c759' },
+  conditionnement: { key: 'conditionnement', label: 'Cond.', emoji: '❤️', color: '#ff375f' },
+}
+
+// Libellés avec fourchettes : « 2 → 3 », « RPE 7-8 », « Récup 2-3 min »
+export const setsLabel = ex => ex?.sets_text || String(ex?.sets ?? '')
+export const rpeLabel = ex => ex?.rpe_text || (ex?.rpe != null && ex?.rpe !== '' ? String(ex.rpe) : '')
+export function restLabel(ex) {
+  if (ex?.rest_text) return ex.rest_text
+  const s = Number(ex?.rest_seconds) || 0
+  if (!s) return ''
+  if (s < 120) return s + ' s'
+  return Math.floor(s / 60) + ' min' + (s % 60 ? ' ' + String(s % 60).padStart(2, '0') : '')
+}
+
+// « 2-3 min » → 150 s ; « 90 s » → 90 ; texte libre → 0
+export function parseRest(text) {
+  const m = String(text || '').replace(',', '.').match(/^\s*(\d+(?:\.\d+)?)\s*(?:-\s*(\d+(?:\.\d+)?))?\s*(min|s|sec)?\b/i)
+  if (!m) return 0
+  const a = parseFloat(m[1]), b = parseFloat(m[2] || m[1]), v = (a + b) / 2
+  return Math.round((m[3] || 's').toLowerCase().startsWith('min') ? v * 60 : v)
 }
 
 export function measureOf(ex) {
@@ -17,8 +46,10 @@ export function defaultMeasure(libEx) {
 // « 4 × 10 », « 6 × 200 m », « 3 × 45 s »
 export function formatTarget(ex) {
   const m = measureOf(ex)
-  if (!ex?.reps) return `${ex?.sets ?? ''} séries`
-  return `${ex.sets} × ${ex.reps}${m.unit}`
+  const sets = setsLabel(ex)
+  if (!ex?.reps) return `${sets} séries`
+  const unit = m.unit && !String(ex.reps).trim().toLowerCase().endsWith(m.unit.trim()) ? m.unit : ''
+  return `${sets} × ${ex.reps}${unit}`
 }
 
 // Valeur d'une série enregistrée : « 10 reps », « 400 m », « 45 s »

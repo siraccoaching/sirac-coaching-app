@@ -4,9 +4,12 @@ import { supabase } from '../../lib/supabase'
 import { TrendingUp, BarChart3 } from 'lucide-react'
 import { PageLayout } from '../../components/Layout'
 import { SmoothChart, GrowBars } from '../../components/SmoothChart'
+import TestsPanel from '../../components/TestsPanel'
+import { useAuth } from '../../lib/hooks'
 
 export default function Progress() {
   const navigate = useNavigate()
+  const { profile } = useAuth()
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('load')
   const [loadData, setLoadData] = useState({})
@@ -137,6 +140,10 @@ export default function Progress() {
           </>
         ))}
         </>}
+      </div>
+      <div style={{ padding: '0 16px 24px' }}>
+        <p className="ios-section-title" style={{ marginTop: 8 }}>Mes tests</p>
+        {profile?.id && <TestsPanel clientId={profile.id} canDelete={false} />}
       </div>
     </PageLayout>
   )
