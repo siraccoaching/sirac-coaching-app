@@ -36,7 +36,8 @@ export function setHint(ex, set, field) {
   const prev = set?._prev?.[field]
   if (prev) return String(prev)
   if (field === 'reps') return String(ex?.reps ?? '')
-  if (field === 'load') return String(ex?.load ?? '')
+  // charge : seulement une valeur en kg (pas « 70-72 % », « PdC » ou « Technique »)
+  if (field === 'load') return /^\s*\d+([.,]\d+)?\s*(kg)?\s*$/i.test(String(ex?.load ?? '')) ? String(ex.load) : ''
   return ''
 }
 

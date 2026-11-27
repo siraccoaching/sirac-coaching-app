@@ -64,7 +64,7 @@ export default function ProgramDetail() {
             <Badge color={isBlock ? 'brand' : 'green'}>{isBlock ? 'Organisation en blocs' : 'Simple'}</Badge>
             {(prog.program_assignments || []).map(a => a.client && <Badge key={a.client.id} color="gray"><Users size={10} className="inline mr-1" />{a.client.name}</Badge>)}
           </div>
-          {prog.description && <p className="text-gray-400 text-sm">{prog.description}</p>}
+          {prog.description && <p className="text-gray-400 text-sm" style={{ whiteSpace: 'pre-line' }}>{prog.description}</p>}
         </Card>
 
         {isBlock && blocks.map((block, bi) => (
@@ -77,7 +77,7 @@ export default function ProgramDetail() {
             </button>
             {openBlocks[bi] && (
               <div className="p-3 space-y-2">
-                {block.description ? <p className="text-gray-500 text-xs px-1 mb-2">{block.description}</p> : null}
+                {block.description ? <p className="text-gray-500 text-xs px-1 mb-2" style={{ whiteSpace: 'pre-line', lineHeight: 1.5 }}>{block.description}</p> : null}
                 {block.program_sessions?.sort((a,b) => a.order_index - b.order_index).map((sess, si) => (
                   <SessionView key={sess.id} sess={sess}
                     open={openSessions[sess.id]}

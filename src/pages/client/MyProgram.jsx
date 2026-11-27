@@ -118,6 +118,12 @@ export default function MyProgram() {
               </button>
               {openBlocks[bi] && (
                 <div className="p-3 space-y-2">
+                  {block.description && (
+                    <details data-testid="phase-info" style={{ background: 'var(--fill)', borderRadius: 12, padding: '10px 12px' }}>
+                      <summary style={{ cursor: 'pointer', fontSize: 14, fontWeight: 600, color: 'var(--accent-text)' }}>Objectifs et consignes de la phase</summary>
+                      <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--label1b)', whiteSpace: 'pre-line' }}>{block.description}</p>
+                    </details>
+                  )}
                   {blockSessions.map(sess => (
                     <SessionCard key={sess.id} sess={sess} done={doneIds.has(sess.id)}
                       open={openSessions[sess.id]}
