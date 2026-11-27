@@ -72,7 +72,7 @@ export default function CoachSettings() {
     <PageLayout title="Réglages">
       <div className="p-4 pb-10 space-y-4">
         <ThemePicker />
-        <p style={{ margin: '4px 16px 0', fontSize: 13, color: 'var(--label2)' }}>Pages légales (à compléter avec tes informations) : <a href="/legal/confidentialite" style={{ color: 'var(--accent-text)' }}>Confidentialité</a> · <a href="/legal/cgu" style={{ color: 'var(--accent-text)' }}>Conditions</a></p>
+        <p style={{ margin: '4px 16px 0', fontSize: 13, color: 'var(--label2)' }}>Pages légales : <a href="/legal/mentions" style={{ color: 'var(--accent-text)' }}>Mentions légales</a> · <a href="/legal/confidentialite" style={{ color: 'var(--accent-text)' }}>Confidentialité</a> · <a href="/legal/cgu" style={{ color: 'var(--accent-text)' }}>Conditions</a></p>
         <NotificationSettings />
 
         <Card className="p-4 space-y-4">
