@@ -14,7 +14,7 @@ function configure() {
   if (configured) return true
   const pub = process.env.VITE_VAPID_PUBLIC_KEY, priv = process.env.VAPID_PRIVATE_KEY
   if (!pub || !priv) return false
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'https://sirac-coaching-app.vercel.app', pub, priv)
+  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'https://app.sirac-coaching.com', pub, priv)
   configured = true
   return true
 }

@@ -1,13 +1,30 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 
-// Pages légales publiques : /legal/confidentialite et /legal/cgu
-// Les mentions entre [crochets] sont à compléter par l'éditeur (nom, SIRET, adresse…).
-const EDITEUR = '[Nom et prénom ou raison sociale — SIRET — adresse postale]'
-const CONTACT = '[adresse email de contact]'
-const MAJ = '24 novembre 2026'
+// Pages légales publiques : /legal/mentions, /legal/confidentialite et /legal/cgu
+const NOM = 'Sirac KOUGNAGLO'
+const SIRET = '952 379 154 00018'
+const ADRESSE = '2 allée Gauguin, 54000 Nancy, France'
+const CONTACT = 'sirac.coaching@gmail.com'
+const EDITEUR = `${NOM} (entrepreneur individuel, SIRET ${SIRET}, ${ADRESSE})`
+const MAJ = '28 novembre 2026'
 
 const DOCS = {
+  mentions: {
+    title: 'Mentions légales',
+    sections: [
+      ['Éditeur', `${NOM}
+Entrepreneur individuel
+SIRET : ${SIRET}
+Adresse : ${ADRESSE}
+Email : ${CONTACT}`],
+      ['Directeur de la publication', NOM],
+      ['Hébergement', `Application : Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis (vercel.com).
+Données : Supabase Inc., serveurs situés dans l’Union européenne (Francfort, Allemagne) (supabase.com).`],
+      ['Propriété intellectuelle', `Le nom ARISE, l’application et les contenus du coach (programmes, vidéos, textes) sont protégés. Toute reproduction sans autorisation est interdite.`],
+      ['Contact', `Pour toute question ou réclamation : ${CONTACT}.`],
+    ],
+  },
   confidentialite: {
     title: 'Politique de confidentialité',
     sections: [
@@ -65,8 +82,10 @@ export default function Legal() {
             <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: 'var(--label1b)', whiteSpace: 'pre-line' }}>{t}</p>
           </section>
         ))}
-        <p style={{ marginTop: 16, fontSize: 14, textAlign: 'center' }}>
-          <a href={doc === 'cgu' ? '/legal/confidentialite' : '/legal/cgu'} style={{ color: 'var(--accent-text)' }}>{doc === 'cgu' ? 'Politique de confidentialité' : 'Conditions d’utilisation'}</a>
+        <p style={{ marginTop: 16, fontSize: 14, textAlign: 'center', display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {Object.entries(DOCS).filter(([k]) => DOCS[doc] ? k !== doc : k !== 'confidentialite').map(([k, v]) => (
+            <a key={k} href={`/legal/${k}`} style={{ color: 'var(--accent-text)' }}>{v.title}</a>
+          ))}
         </p>
       </div>
     </div>

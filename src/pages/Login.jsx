@@ -120,7 +120,7 @@ export default function Login() {
                         )}
                 </div>
                 <p style={{ marginTop: 18, fontSize: 12, color: 'var(--text-3)', textAlign: 'center' }}>
-                  <a href="/legal/cgu" style={{ color: 'var(--text-2)' }}>Conditions d’utilisation</a> · <a href="/legal/confidentialite" style={{ color: 'var(--text-2)' }}>Confidentialité</a>
+                  <a href="/legal/mentions" style={{ color: 'var(--text-2)' }}>Mentions légales</a> · <a href="/legal/cgu" style={{ color: 'var(--text-2)' }}>Conditions d’utilisation</a> · <a href="/legal/confidentialite" style={{ color: 'var(--text-2)' }}>Confidentialité</a>
                 </p>
         </div>
       )
